@@ -1,19 +1,22 @@
 # Cyber Lab
 
-Laboratorio interactivo para aprender ciberseguridad desde cero, nivel a nivel.
+Curso interactivo de ciberseguridad desde cero, con hoja de ruta, certificaciones y registro de resultados.
 Publicado en https://cyber.huergalabs.dev
 
-## Niveles
-1. Leer binario (4 bits)
-2. Escribir binario (4 bits)
-3. Leer binario (8 bits)
-4. Escribir binario (8 bits)
-5. Números de una IP
-6. Máscaras
+## Secciones
+- **Hoja de ruta**: 5 fases con temas y certificaciones recomendadas.
+- **Curso**: lecciones guiadas por agentes (Nova, Marco y Lía) con tareas en una terminal simulada.
+- **Terminal**: laboratorio libre con la red ficticia de LabCorp (10.10.10.0/24).
+- **Práctica**: niveles de binario y máscaras, más la calculadora de bits.
+- **Certificaciones**: estado, fecha y nota de cada certificación.
+- **Resultados**: historial, horas y copia de seguridad.
 
-Próximamente: Subredes, Puertos, Saludo TCP.
+## Archivos
+- `index.html`: la app (hoja de ruta, práctica, certificaciones, resultados).
+- `js/terminal.js`: terminal simulada y red virtual. Nada sale del navegador.
+- `js/course.js`: motor del curso y contenido de las lecciones.
 
-Cada nivel se desbloquea con 5 aciertos seguidos. El progreso se guarda en el navegador (localStorage).
+El progreso se guarda en el navegador (localStorage). Se puede exportar e importar desde Resultados.
 
 ## Despliegue
-Sitio estático en GitHub Pages. El archivo `CNAME` apunta a `cyber.huergalabs.dev`, con un registro CNAME en Cloudflare hacia `rhuerga-dev.github.io`.
+Sitio estático en GitHub Pages con el dominio `cyber.huergalabs.dev` (archivo `CNAME`).
