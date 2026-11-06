@@ -26,7 +26,7 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.wrap{max-width:1040px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.wrap{margin:0;padding-block:20px 56px;padding-left:max(clamp(16px,3vw,40px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,3vw,40px),env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
 header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
 .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:1.05;margin:4px 0 0}
@@ -130,7 +130,7 @@ button:disabled{opacity:.5;cursor:default}
 .calcpanel .board.b8{gap:3px}
 .calcpanel .board.cb .sw .v{font-size:16px}
 .calcpanel .board.cb .sw .w{font-size:11px}
-@media (min-width:1280px){body.calc-open .wrap{margin-right:396px;margin-left:auto}}
+@media (min-width:1100px){body.calc-open .wrap{padding-right:calc(380px + clamp(16px,3vw,40px))}}
 @media (max-width:640px){.calcpanel{top:auto;height:min(78vh,620px);width:100vw;border-left:0;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.18)}}
 /* Pestañas */
 .tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px}
@@ -432,7 +432,7 @@ function setCalc(open){$('#calc').hidden=!open;$('#calc-fab').setAttribute('aria
 $('#calc-fab').addEventListener('click',()=>setCalc($('#calc').hidden));
 $('#calc-close').addEventListener('click',()=>{setCalc(false);$('#calc-fab').focus()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#calc').hidden){setCalc(false);$('#calc-fab').focus()}});
-try{if(localStorage.getItem('cyberlab-calc')==='1'&&window.innerWidth>=1280)setCalc(true)}catch(e){}
+try{if(localStorage.getItem('cyberlab-calc')==='1'&&window.innerWidth>=1100)setCalc(true)}catch(e){}
 
 /* ================= HOJA DE RUTA ================= */
 const STATUS={pendiente:'Pendiente',estudiando:'Estudiando',programado:'Examen programado',aprobado:'Aprobado'};
