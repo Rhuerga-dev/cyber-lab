@@ -611,9 +611,9 @@ function onCommand(entry, sim) {
 /* ------------------------------------------------------------------ */
 /* Terminal libre                                                      */
 /* ------------------------------------------------------------------ */
-let freeBuilt = false;
+let freeBuilt = false, freeTerm = null, pendingCmd = null;
 function renderFree(container) {
-  if (freeBuilt) return;
+  if (freeBuilt) { if (pendingCmd && freeTerm) { freeTerm.insert(pendingCmd); pendingCmd = null; } return; }
   freeBuilt = true;
   const H = global.CyberTerminal.HOSTS;
   container.innerHTML = `
@@ -635,6 +635,8 @@ function renderFree(container) {
     </aside>
   </div>`;
   const t = global.CyberTerminal.mount(container.querySelector('#free-term'), { id: 'free-term-in', banner: 'LabCorp · Laboratorio libre\nEscribe help para ver los comandos.' });
+  freeTerm = t;
+  if (pendingCmd) { t.insert(pendingCmd); pendingCmd = null; }
   container.querySelector('#free-reset').addEventListener('click', () => t.reset());
   container.querySelector('#free-help').addEventListener('click', () => t.exec('help'));
 }
@@ -643,6 +645,7 @@ global.Course = {
   render, renderFree, COURSE, LESSONS,
   lessonForTopic(topic) { const l = LESSONS.find(x => (x.topics || []).includes(topic)); return l ? l.id : null; },
   open(id) { if (byId(id)) { st().cur = id; save(); cur = null; } },
+  tryInTerminal(cmd) { pendingCmd = cmd; if (location.hash === '#terminal') { if (freeTerm) { freeTerm.insert(cmd); pendingCmd = null; } } else location.hash = '#terminal'; },
   progress() { return { done: LESSONS.filter(l => isDone(l.id)).length, total: LESSONS.length }; },
 };
 })(window);
