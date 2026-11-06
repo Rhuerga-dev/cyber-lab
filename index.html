@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cyber Lab · Huerga Labs</title>
+<meta name="description" content="Aprende ciberseguridad desde cero, paso a paso, practicando.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: ruta de niveles a la izquierda (arriba en móvil), panel de práctica a la derecha; bits como interruptores */
+:root{
+  --bg:#eef2f5;--surface:#ffffff;--ink:#16212c;--muted:#566776;--line:#d3dce4;
+  --accent:#0d6e8c;--accent-ink:#ffffff;--bit:#d97d12;--bit-ink:#1b1206;
+  --ok:#1f7a4d;--ok-bg:#dcf1e5;--bad:#b3261e;--bad-bg:#f8dedb;--warn:#7a5600;--warn-bg:#f6ebc9;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f161d;--surface:#16212b;--ink:#e3eaf0;--muted:#93a4b3;--line:#2a3a48;
+  --accent:#4fb3d4;--accent-ink:#06202b;--bit:#f0a347;--bit-ink:#1b1206;
+  --ok:#6fd39f;--ok-bg:#133826;--bad:#ff8f86;--bad-bg:#45201d;--warn:#e8c35a;--warn-bg:#3a3014;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:1.05;margin:4px 0 0}
+h2{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.15;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0}
+p{margin:0}
+code{font-family:var(--f-mono);font-size:.92em}
+.muted{color:var(--muted)}
+.overall{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.overall b{color:var(--ink)}
+
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+
+/* Ruta */
+.path{display:flex;flex-direction:column;gap:6px}
+@media (max-width:760px){.path{flex-direction:row;overflow-x:auto;padding-bottom:6px}.lvl{flex:0 0 190px}}
+.lvl{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.lvl .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-mono);font-weight:600;font-size:14px;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.lvl .t{font-weight:600;font-size:15px;line-height:1.25}
+.lvl .s{font-size:13px;color:var(--muted)}
+.lvl.done .num{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+.lvl[aria-current="step"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.lvl[aria-current="step"] .num{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.lvl:disabled{cursor:default;opacity:.55}
+.lvl.soon{border-style:dashed}
+
+/* Panel */
+.main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.teach{display:flex;flex-direction:column;gap:12px;max-width:65ch}
+.teach .ex{font-family:var(--f-mono);font-size:15px;background:var(--bg);border-radius:8px;padding:10px 12px;overflow-x:auto}
+details summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open] summary{margin-bottom:10px}
+
+/* Bits */
+.board{display:grid;gap:6px;max-width:560px}
+.board.b4{grid-template-columns:repeat(4,minmax(0,1fr));max-width:300px}
+.board.b8{grid-template-columns:repeat(8,minmax(0,1fr))}
+.sw{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+button.sw{cursor:pointer}
+.sw .w{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.sw .v{font-family:var(--f-mono);font-size:24px;font-weight:600;line-height:1}
+.sw.on{background:var(--bit);border-color:var(--bit);color:var(--bit-ink)}
+.sw.on .w{color:var(--bit-ink)}
+@media (max-width:460px){.board.b8{gap:3px}.sw .v{font-size:19px}.sw .w{font-size:11px}}
+
+.q{font-size:20px}
+.q .big{font-family:var(--f-mono);font-weight:600;font-size:30px;color:var(--accent);letter-spacing:.06em;display:inline-block;margin-top:4px;overflow-wrap:anywhere}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input[type=text]{font-family:var(--f-mono);font-size:20px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:150px}
+button.btn{font:inherit;font-weight:600;font-size:16px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:8px 16px;border-radius:6px;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.live{font-family:var(--f-mono);font-size:15px;color:var(--muted)}
+.fb{padding:10px 14px;border-radius:8px;font-size:16px}
+.fb.ok{background:var(--ok-bg);color:var(--ok)}
+.fb.bad{background:var(--bad-bg);color:var(--bad)}
+.fb.hint{background:var(--warn-bg);color:var(--warn)}
+.streak{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.dot.on{background:var(--ok);border-color:var(--ok)}
+.win{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.ref{font-family:var(--f-mono);font-size:14px;border-collapse:collapse}
+.ref td,.ref th{border:1px solid var(--line);padding:4px 10px;text-align:center}
+.ref th{font-family:var(--f-body);color:var(--muted);font-weight:600}
+.tablewrap{overflow-x:auto}
+footer{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Huerga Labs · Ciberseguridad desde cero</div>
+      <h1>Cyber Lab</h1>
+    </div>
+    <div class="overall" id="overall"></div>
+  </header>
+
+  <div class="layout">
+    <nav class="path" id="path" aria-label="Niveles"></nav>
+    <main class="main" id="main"></main>
+  </div>
+
+  <footer>Practica a tu ritmo. Tu progreso se guarda en este navegador. Cada nivel se desbloquea con 5 aciertos seguidos.</footer>
+</div>
+
+<script>
+(function(){
+const NEED=5;
+const W4=[8,4,2,1], W8=[128,64,32,16,8,4,2,1];
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const bin=(v,n)=>v.toString(2).padStart(n,'0');
+const $=s=>document.querySelector(s);
+
+const MASK_VALUES=[[255,8],[254,7],[252,6],[248,5],[240,4],[224,3],[192,2],[128,1],[0,0]];
+const IP_VALUES=[0,1,10,128,168,172,192,224,240,248,252,254,255,100,64,32,16,85,200,127];
+
+function weightTable(ws){return '<div class="tablewrap"><table class="ref"><tr>'+ws.map(w=>'<th>'+w+'</th>').join('')+'</tr></table></div>'}
+
+const LEVELS=[
+ {id:'leer4',title:'Leer binario',sub:'4 bits',mode:'read',bits:4,
+  teach:`<p>En binario solo hay dos dígitos: <b>0</b> (apagado) y <b>1</b> (encendido). Piensa en una fila de interruptores de luz.</p>
+  <p>Cada interruptor tiene un valor fijo. Con 4 interruptores, los valores son estos (cada uno es el doble del de su derecha):</p>${weightTable(W4)}
+  <p>Para leer un número binario, <b>suma los valores de los interruptores encendidos</b>.</p>
+  <div class="ex">0110 → encendidos el 4 y el 2 → 4 + 2 = 6</div>
+  <div class="ex">1001 → encendidos el 8 y el 1 → 8 + 1 = 9</div>`,
+  gen:()=>rnd(1,15)},
+ {id:'escribir4',title:'Escribir binario',sub:'4 bits',mode:'write',bits:4,
+  teach:`<p>Ahora al revés: te doy un número y tú enciendes los interruptores.</p>
+  <p>El truco: <b>empieza por el interruptor más grande que quepa</b>, réstalo, y repite con lo que sobra.</p>
+  <div class="ex">Quiero 11:<br>¿Cabe el 8? Sí → enciendo 8. Me quedan 3.<br>¿Cabe el 4 en 3? No.<br>¿Cabe el 2? Sí → enciendo 2. Me queda 1.<br>¿Cabe el 1? Sí → enciendo 1. Me queda 0.<br>Resultado: 1011</div>`,
+  gen:()=>rnd(1,15)},
+ {id:'leer8',title:'Leer binario',sub:'8 bits (un octeto)',mode:'read',bits:8,
+  teach:`<p>Una dirección IP está hecha de bloques de <b>8 bits</b>, llamados <b>octetos</b>. Es lo mismo de antes, pero con 4 interruptores más a la izquierda:</p>${weightTable(W8)}
+  <p>Fíjate que siguen doblando: 16, 32, 64, 128. El máximo es encenderlos todos: 128+64+32+16+8+4+2+1 = <b>255</b>. Por eso en una IP ningún número pasa de 255.</p>
+  <div class="ex">11000000 → 128 + 64 = 192</div>`,
+  gen:()=>rnd(1,255)},
+ {id:'escribir8',title:'Escribir binario',sub:'8 bits (un octeto)',mode:'write',bits:8,
+  teach:`<p>El mismo truco de antes, ahora con 8 interruptores: el más grande que quepa, restar, repetir.</p>
+  <div class="ex">Quiero 168:<br>128 cabe → me quedan 40<br>64 no cabe en 40<br>32 cabe → me quedan 8<br>16 no cabe en 8<br>8 cabe → me quedan 0<br>Resultado: 10101000</div>`,
+  gen:()=>rnd(1,255)},
+ {id:'ip',title:'Números de una IP',sub:'Los valores que más verás',mode:'write',bits:8,
+  teach:`<p>En redes hay números que salen una y otra vez. Si los reconoces de memoria, todo lo demás será mucho más fácil.</p>
+  <div class="ex">255 = 11111111 (todo encendido)<br>0 = 00000000 (todo apagado)<br>192 = 11000000 · 168 = 10101000<br>10 = 00001010 · 172 = 10101100</div>
+  <p>Por ejemplo, tu IP <code>192.168.1.85</code> empieza por 192 y 168.</p>`,
+  gen:()=>IP_VALUES[rnd(0,IP_VALUES.length-1)]},
+ {id:'mascara',title:'Máscaras',sub:'Contar los unos',mode:'mask',bits:8,
+  teach:`<p>Una <b>máscara</b> (como <code>255.255.255.0</code>) es una IP especial: en binario siempre tiene <b>todos los 1 seguidos al principio</b> y luego todos los 0.</p>
+  <p>El número de unos es el <b>prefijo</b>, que se escribe con barra: <code>/24</code>.</p>
+  <div class="ex">255.255.255.0<br>= 11111111.11111111.11111111.00000000<br>= 8 + 8 + 8 + 0 unos = /24</div>
+  <p>Solo existen estos valores posibles en un octeto de máscara:</p>
+  <div class="tablewrap"><table class="ref"><tr><th>Octeto</th>${MASK_VALUES.map(m=>'<td>'+m[0]+'</td>').join('')}</tr><tr><th>Unos</th>${MASK_VALUES.map(m=>'<td>'+m[1]+'</td>').join('')}</tr></table></div>`,
+  gen:()=>rnd(8,30)},
+];
+const SOON=[{title:'Subredes',sub:'Red, broadcast y equipos'},{title:'Puertos',sub:'Qué hay detrás de cada puerta'},{title:'Saludo TCP',sub:'Cómo escanea Nmap'}];
+
+/* progreso */
+let prog={done:[],streak:{},cur:0};
+try{const s=JSON.parse(localStorage.getItem('cyberlab-v1')||'null');if(s&&Array.isArray(s.done))prog=Object.assign(prog,s)}catch(e){}
+function save(){try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}}
+const unlocked=i=>i===0||prog.done.includes(LEVELS[i-1].id);
+
+function paintPath(){
+  $('#path').innerHTML=LEVELS.map((L,i)=>{const done=prog.done.includes(L.id),open=unlocked(i);
+    return `<button type="button" class="lvl${done?' done':''}" data-i="${i}" ${i===prog.cur?'aria-current="step"':''} ${open?'':'disabled'}><span class="num">${done?'✓':i+1}</span><span><span class="t">${L.title}</span><br><span class="s">${open?L.sub:'Bloqueado'}</span></span></button>`}).join('')+
+   SOON.map((S,j)=>`<button type="button" class="lvl soon" disabled><span class="num">${LEVELS.length+j+1}</span><span><span class="t">${S.title}</span><br><span class="s">Próximamente</span></span></button>`).join('');
+  document.querySelectorAll('#path .lvl[data-i]').forEach(b=>b.addEventListener('click',()=>{prog.cur=+b.dataset.i;save();render()}));
+  $('#overall').innerHTML='Niveles completados <b>'+prog.done.length+'</b> de <b>'+LEVELS.length+'</b>';
+}
+
+let state={};
+function render(){paintPath();const L=LEVELS[prog.cur];
+  $('#main').innerHTML=`<section class="card"><div class="eyebrow">Nivel ${prog.cur+1} · ${L.sub}</div><h2>${L.title}</h2>
+    <details class="teach" ${prog.done.includes(L.id)?'':'open'}><summary>Explicación</summary><div class="teach">${L.teach}</div></details></section>
+    <section class="card" id="practice"></section>`;
+  newQ();
+}
+
+function streakHTML(){const s=prog.streak[LEVELS[prog.cur].id]||0;
+  return `<div class="streak"><div class="dots">${Array.from({length:NEED},(_,i)=>`<span class="dot${i<s?' on':''}"></span>`).join('')}</div><span>${s} de ${NEED} seguidos</span></div>`}
+
+function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0,answered:false,hinted:false};
+  const n=L.bits, ws=n===4?W4:W8;const P=$('#practice');
+  if(L.mode==='read'){
+    const b=bin(target,n);
+    P.innerHTML=`${streakHTML()}<p class="q">¿Qué número es este?<br><span class="big">${b}</span></p>
+      <div class="board b${n}">${[...b].map((c,i)=>`<div class="sw${c==='1'?' on':''}"><span class="w">${ws[i]}</span><span class="v">${c}</span></div>`).join('')}</div>
+      <div class="row"><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
+  } else if(L.mode==='write'){
+    P.innerHTML=`${streakHTML()}<p class="q">Enciende los interruptores para formar<br><span class="big">${target}</span></p>
+      <div class="board b${n}" id="board">${ws.map((w,i)=>`<button type="button" class="sw" data-w="${w}" aria-pressed="false" aria-label="Interruptor de valor ${w}"><span class="w">${w}</span><span class="v">0</span></button>`).join('')}</div>
+      <div class="live" id="live">Ningún interruptor encendido → 0</div>
+      <div class="row"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
+    P.querySelectorAll('#board .sw').forEach(b=>b.addEventListener('click',()=>{if(state.answered)return;state.on^=+b.dataset.w;paintBoard()}));
+  } else {
+    const c=target;const m=c===0?0:(0xFFFFFFFF<<(32-c))>>>0;const o=[m>>>24,(m>>>16)&255,(m>>>8)&255,m&255];state.mask=o;
+    P.innerHTML=`${streakHTML()}<p class="q">¿Qué prefijo (cuántos unos) tiene esta máscara?<br><span class="big">${o.join('.')}</span></p>
+      <div class="row"><span style="font-family:var(--f-mono);font-size:20px">/</span><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="Número de unos"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
+  }
+  $('#chk').addEventListener('click',check);$('#hint').addEventListener('click',hint);
+  const a=$('#ans');if(a){a.focus({preventScroll:true});a.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.answered?($('#nxt')&&$('#nxt').click()):check()}})}
+}
+function paintBoard(){const ws=LEVELS[prog.cur].bits===4?W4:W8;
+  document.querySelectorAll('#board .sw').forEach(b=>{const on=!!(state.on&+b.dataset.w);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);b.querySelector('.v').textContent=on?1:0});
+  const parts=ws.filter(w=>state.on&w);$('#live').textContent=parts.length?parts.join(' + ')+' = '+state.on:'Ningún interruptor encendido → 0'}
+
+function hint(){const L=LEVELS[prog.cur],t=state.target,ws=L.bits===4?W4:W8;let h='';state.hinted=true;
+  if(L.mode==='read'){const parts=ws.filter(w=>t&w);h='Los interruptores encendidos valen: <b>'+parts.join(' + ')+'</b>. Ahora súmalos.'}
+  else if(L.mode==='write'){const rem=t-state.on;
+    if(state.on>t)h='Te pasaste: llevas '+state.on+' y necesitas '+t+'. Apaga algún interruptor.';
+    else if(rem===0)h='¡Ya lo tienes! Pulsa Comprobar.';
+    else{const big=ws.find(w=>w<=rem&&!(state.on&w));h=big?'Te faltan <b>'+rem+'</b>. El interruptor más grande que cabe en '+rem+' es el <b>'+big+'</b>.':'Revisa: hay algún interruptor encendido que sobra.'}}
+  else{h='Cuenta los unos de cada octeto con la tabla de arriba: '+state.mask.map(v=>v+' → '+(MASK_VALUES.find(m=>m[0]===v)||[0,'?'])[1]).join(' · ')+'. Ahora súmalos.'}
+  $('#fb').innerHTML='<div class="fb hint">'+h+'</div>'}
+
+function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.target,ws=L.bits===4?W4:W8;let ok,expl;
+  if(L.mode==='read'){const v=parseInt(($('#ans').value||'').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
+    ok=v===t;expl=bin(t,L.bits)+' → '+ws.filter(w=>t&w).join(' + ')+' = <b>'+t+'</b>'}
+  else if(L.mode==='write'){ok=state.on===t;expl=t+' = '+ws.filter(w=>t&w).join(' + ')+' → <b>'+bin(t,L.bits)+'</b>'}
+  else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
+    ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>Unos: '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
+  state.answered=true;const id=L.id;let s=prog.streak[id]||0;s=ok?s+1:0;prog.streak[id]=s;
+  let justDone=false;if(ok&&s>=NEED&&!prog.done.includes(id)){prog.done.push(id);justDone=true}
+  save();
+  $('.streak').outerHTML=streakHTML();
+  const fb=$('#fb');
+  if(justDone){const next=prog.cur+1<LEVELS.length;
+    fb.innerHTML=`<div class="fb ok win"><b>¡Nivel ${prog.cur+1} completado!</b><span>${expl}</span>${next?'<button class="btn" id="nxtlvl" type="button">Ir al nivel '+(prog.cur+2)+'</button>':'<span>Has completado todos los niveles disponibles. Pronto llegan Subredes, Puertos y Saludo TCP.</span>'}<button class="btn ghost" id="nxt" type="button">Seguir practicando aquí</button></div>`;
+    paintPath();
+    const nl=$('#nxtlvl');if(nl)nl.addEventListener('click',()=>{prog.cur++;save();render()});
+  } else {
+    fb.innerHTML=`<div class="fb ${ok?'ok':'bad'}">${ok?'¡Correcto! ':'No es correcto. La racha vuelve a 0, no pasa nada. '}<br>${expl}</div><div class="row" style="margin-top:10px"><button class="btn" id="nxt" type="button">Siguiente</button></div>`;
+  }
+  document.querySelectorAll('#chk,#hint').forEach(b=>b.disabled=true);
+  $('#nxt').addEventListener('click',newQ);$('#nxt').focus({preventScroll:true});
+}
+
+render();
+})();
+</script>
+</body>
+</html>
