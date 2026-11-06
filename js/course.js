@@ -16,10 +16,9 @@ const AGENTS = {
   marco: { name: 'Marco', role: 'Administrador de redes', ini: 'M', cls: 'ag-marco' },
   lia:   { name: 'Lía',   role: 'Analista SOC',           ini: 'L', cls: 'ag-lia' },
 };
-// Punto de enganche para la IA (Fase futura): si se define, el botón "Pregúntale"
-// enviará la pregunta aquí. Debe devolver una Promise<string>.
-// Nunca pongas una API key en el navegador: usa un Worker intermedio.
-const AGENT_AI = null;
+// IA: el botón "Pregúntale" llama a tu API (cyber-api.huergalabs.dev/api/ask), que es quien
+// guarda la clave de Claude. Nunca pongas una API key en el navegador.
+const ASK_MAX = 6; // mensajes previos que se envían como memoria de la conversación
 
 /* ------------------------------------------------------------------ */
 /* Ayudantes para comprobar comandos                                   */
@@ -382,23 +381,117 @@ const F1 = [
 {
   id: 'f1-examen', title: 'Examen de la Fase 1', agent: 'nova', topics: [], mins: 15, exam: true, pass: 80,
   steps: [
-    { say: 'Examen final de la Fase 1: **12 preguntas**. Necesitas un **80 %** para aprobar. No hay pistas, y cada pregunta solo tiene un intento. Puedes repetir el examen si no lo apruebas.', task: { type: 'read', label: 'Empezar el examen' } },
-    { q: '¿Cuántos equipos usables tiene una red /27?', options: ['14', '30', '32', '62'], a: 1, why: '2⁵ = 32 direcciones − 2 = 30.' },
-    { q: '¿Cuál es la dirección de red de 192.168.5.200/26?', options: ['192.168.5.128', '192.168.5.192', '192.168.5.200', '192.168.5.0'], a: 1, why: 'Bloques de 64: 0, 64, 128, 192. El 200 cae en el que empieza en 192.' },
-    { q: '¿Qué IP es privada?', options: ['8.8.8.8', '172.20.1.5', '185.199.108.153', '172.32.0.1'], a: 1, why: 'El rango privado 172 va de 172.16 a 172.31.' },
-    { q: '¿Qué registro DNS indica el servidor de correo de un dominio?', options: ['A', 'CNAME', 'MX', 'TXT'], a: 2, why: 'MX = mail exchanger.' },
-    { q: 'Envías un SYN a un puerto y no recibes ninguna respuesta. Nmap lo marcará como…', options: ['open', 'closed', 'filtered'], a: 2, why: 'El silencio suele significar que un firewall descartó el paquete.' },
-    { q: '¿Qué comando muestra los puertos que escucha tu propio equipo en Linux?', options: ['nmap localhost -sn', 'ss -tuln', 'ping -c 4', 'dig'], a: 1, why: 'ss -tuln: TCP, UDP, en escucha, en números.' },
-    { q: 'Un ping devuelve ttl=128. ¿Qué sistema es más probable?', options: ['Linux', 'Windows', 'macOS', 'Una impresora'], a: 1, why: 'Windows suele empezar con TTL 128.' },
-    { q: '¿Qué permisos tiene un archivo con chmod 640?', options: ['rw-r-----', 'rwxr--r--', 'rw-rw-rw-', 'r--r-----'], a: 0, why: '6 = rw-, 4 = r--, 0 = ---.' },
-    { q: '¿Qué comando cuenta cuántas líneas de un log contienen "Failed"?', options: ['cat auth.log | sort', 'grep "Failed" auth.log | wc -l', 'ls -l auth.log', 'tail auth.log'], a: 1, why: 'grep filtra y wc -l cuenta las líneas.' },
-    { q: 'MySQL escucha en 0.0.0.0:3306 en un servidor de internet. ¿Cuál es la mejor corrección?', options: ['Cambiar el puerto a 3307', 'bind-address = 127.0.0.1 y firewall bloqueando el 3306', 'Usar una contraseña más larga y dejarlo así', 'Apagar el servidor por las noches'], a: 1, why: 'Reducir la superficie de ataque: que no esté expuesto. Cambiar el puerto solo lo esconde un poco.' },
-    { q: 'En Active Directory, ¿qué grupo es el objetivo final típico de un atacante?', options: ['Domain Users', 'Domain Admins', 'Guests', 'Print Operators'], a: 1, why: 'Domain Admins controla todo el dominio.' },
-    { q: '¿Qué protege HSTS?', options: ['Que el navegador se conecte siempre por HTTPS y no se pueda forzar HTTP (SSL stripping)', 'Que nadie escanee tus puertos', 'Que tu DNS no falle', 'Que tu IP sea privada'], a: 0, why: 'Lo viviste con huergalabs.dev: .dev obliga a HTTPS.' },
+    { say: 'Examen final de la Fase 1: **12 preguntas** elegidas al azar de todos los temas, y los cálculos de subredes cambian de números en cada intento. Necesitas un **80 %** para aprobar. No hay pistas y cada pregunta tiene un solo intento. Al final verás tu resultado por tema.', task: { type: 'read', label: 'Empezar el examen' } },
   ],
   outro: '',
 },
 ];
+
+
+/* ------------------------------------------------------------------ */
+/* Banco del examen de la Fase 1                                       */
+/* ------------------------------------------------------------------ */
+const TOPICS = {
+  terminal: ['Terminal', 'f1-terminal'], ip: ['IP y NAT', 'f1-ip'], bin: ['Binario y máscaras', 'f1-binario'],
+  sub: ['Subnetting', 'f1-subnetting'], dns: ['DNS', 'f1-dns'], ports: ['Puertos', 'f1-puertos'], tcp: ['TCP y Nmap', 'f1-tcp'],
+  ping: ['Ping y descubrimiento', 'f1-ping'], perm: ['Permisos Linux', 'f1-permisos'], logs: ['Logs y procesos', 'f1-logs'],
+  win: ['Windows y AD', 'f1-windows'], py: ['Python', 'f1-python'],
+};
+// [tema, pregunta, [correcta, distractor, distractor, ...], explicación]  (la primera opción es la correcta; se mezclan al mostrar)
+const BANK_F1 = [
+  ['terminal', '¿Qué comando muestra también los archivos ocultos?', ['ls -a', 'ls -h', 'cat -a', 'pwd -a'], 'La opción -a (all) incluye los archivos que empiezan por punto.'],
+  ['terminal', '¿Qué hace "cd .."?', ['Sube a la carpeta padre', 'Vuelve a tu carpeta personal', 'Borra la carpeta actual', 'Muestra la carpeta actual'], '".." es siempre la carpeta de arriba.'],
+  ['terminal', '¿Por qué un investigador revisa ~/.bash_history?', ['Guarda los comandos que alguien escribió', 'Contiene las contraseñas del sistema', 'Es el log del servidor web', 'Lista los usuarios conectados'], 'Un atacante descuidado deja ahí el rastro de lo que hizo.'],
+  ['ip', '¿Qué IP es privada?', ['172.20.1.5', '8.8.8.8', '185.199.108.153', '172.32.0.1'], 'El rango privado 172 va de 172.16 a 172.31.'],
+  ['ip', '¿Qué IP es privada?', ['10.200.3.7', '11.0.0.1', '100.64.0.1', '192.169.1.1'], 'Todo 10.x.x.x es privado. 192.169 no es 192.168.'],
+  ['ip', '¿Qué hace el NAT del router?', ['Traduce las IPs privadas de la red a una IP pública', 'Cifra el tráfico', 'Asigna nombres a las IPs', 'Bloquea los puertos abiertos'], 'Por eso todos los equipos de tu casa salen a internet con la misma IP.'],
+  ['ip', '¿Qué comando te da tu IP pública?', ['curl ifconfig.me', 'ip a', 'hostname', 'ip route'], 'ip a muestra la privada; la pública solo la ve un servidor de fuera.'],
+  ['dns', '¿Qué registro DNS indica el servidor de correo de un dominio?', ['MX', 'A', 'CNAME', 'TXT'], 'MX = mail exchanger.'],
+  ['dns', '¿Qué registro DNS es un alias de otro nombre?', ['CNAME', 'MX', 'NS', 'A'], 'CNAME apunta a otro nombre, que a su vez tiene su registro A.'],
+  ['dns', '¿Qué archivo indica a Linux qué servidor DNS usar?', ['/etc/resolv.conf', '/etc/hosts.allow', '/etc/passwd', '/var/log/dns.log'], 'La línea nameserver de /etc/resolv.conf.'],
+  ['dns', '¿Qué puede hacer un atacante que controla tu servidor DNS?', ['Mandarte a webs falsas idénticas a las reales', 'Leer los archivos de tu disco', 'Apagar tu router', 'Cambiar tu IP privada'], 'Es DNS spoofing. HTTPS y los certificados ayudan a detectarlo.'],
+  ['ports', '¿Qué comando muestra los puertos que escucha tu propio equipo en Linux?', ['ss -tuln', 'nmap -sn localhost', 'ping -c 4', 'dig localhost'], 'ss -tuln: TCP, UDP, en escucha, en números.'],
+  ['ports', '¿Qué servicio usa normalmente el puerto 3389?', ['RDP (escritorio remoto)', 'SSH', 'MySQL', 'HTTPS'], 'RDP expuesto es un objetivo típico de ransomware.'],
+  ['ports', '¿Qué servicio usa normalmente el puerto 53?', ['DNS', 'SMTP', 'HTTP', 'SMB'], 'DNS usa el 53, sobre todo por UDP.'],
+  ['ports', 'MySQL escucha en 0.0.0.0:3306 en un servidor de internet. ¿Cuál es la mejor corrección?', ['bind-address = 127.0.0.1 y firewall bloqueando el 3306', 'Cambiar el puerto a 3307', 'Usar una contraseña más larga y dejarlo así', 'Apagarlo por las noches'], 'Reducir la superficie de ataque. Cambiar el puerto solo lo esconde un poco.'],
+  ['tcp', 'Envías un SYN y no recibes ninguna respuesta. Nmap marcará el puerto como…', ['filtered', 'open', 'closed', 'unknown'], 'El silencio suele ser un firewall que descarta el paquete.'],
+  ['tcp', 'Envías un SYN y recibes RST. El puerto está…', ['closed', 'open', 'filtered', 'redirigido'], 'RST = "aquí no hay nadie": el equipo existe pero no hay servicio.'],
+  ['tcp', '¿Por qué "nmap -sS" necesita sudo?', ['Porque fabrica los paquetes a mano (raw sockets)', 'Porque escanea más puertos', 'Porque es ilegal sin permisos', 'Porque usa UDP'], 'Crear paquetes sin completar el saludo requiere privilegios de root.'],
+  ['tcp', '¿Cuál es el orden del saludo TCP?', ['SYN → SYN-ACK → ACK', 'ACK → SYN → FIN', 'SYN → ACK → RST', 'HELLO → OK → DATA'], 'En tcpdump se ve como [S], [S.], [.].'],
+  ['tcp', '¿Qué opción de Nmap detecta la versión de cada servicio?', ['-sV', '-sn', '-p-', '-v'], '-sV = service version.'],
+  ['ping', 'Un ping devuelve ttl=128. ¿Qué sistema es más probable?', ['Windows', 'Linux', 'macOS', 'Android'], 'Windows suele empezar con TTL 128; Linux y macOS con 64.'],
+  ['ping', '¿Qué hace "nmap -sn 10.10.10.0/24"?', ['Descubre qué equipos están encendidos, sin escanear puertos', 'Escanea todos los puertos de la red', 'Detecta versiones', 'Apaga los equipos'], '-sn = solo descubrimiento.'],
+  ['ping', 'En un traceroute, ¿qué significa "* * *"?', ['Ese router no respondió a las sondas', 'Se cortó la conexión', 'El destino no existe', 'Hay un error de DNS'], 'Muchos routers descartan los paquetes de traceroute por seguridad.'],
+  ['perm', '¿Qué permisos tiene un archivo con chmod 640?', ['rw-r-----', 'rwxr--r--', 'rw-rw-rw-', 'r--r-----'], '6 = rw-, 4 = r--, 0 = ---.'],
+  ['perm', '¿Qué número equivale a rwxr-xr-x?', ['755', '644', '777', '711'], 'rwx = 7, r-x = 5, r-x = 5.'],
+  ['perm', '¿Qué guarda /etc/shadow?', ['Los hashes de las contraseñas', 'Los usuarios y sus carpetas', 'Los logs de acceso', 'Los permisos de sudo'], 'Solo root puede leerlo.'],
+  ['perm', '¿Qué es el principio de mínimo privilegio?', ['Dar a cada usuario solo los permisos que necesita', 'Usar siempre root para no tener errores', 'Tener una sola cuenta compartida', 'Quitar todas las contraseñas'], 'Limita el daño si una cuenta queda comprometida.'],
+  ['logs', '¿Qué comando cuenta cuántas líneas de un log contienen "Failed"?', ['grep "Failed" auth.log | wc -l', 'cat auth.log | sort', 'ls -l auth.log', 'tail auth.log'], 'grep filtra y wc -l cuenta.'],
+  ['logs', '¿Por qué se pone sort antes de uniq -c?', ['uniq solo junta líneas iguales que estén seguidas', 'sort borra las líneas vacías', 'uniq no funciona sin sort', 'Para ordenar el resultado final'], 'Sin ordenar, la misma IP aparecería varias veces separada.'],
+  ['logs', 'Confirmas que un atacante entró como root. ¿Qué haces primero?', ['Aislar el equipo de la red (contención)', 'Borrar los logs', 'Esperar a ver si vuelve', 'Reiniciar el equipo y seguir trabajando'], 'Contener primero; después credenciales, investigación y restauración.'],
+  ['logs', 'Un proceso usa el 99 % de la CPU. ¿Cómo lo encuentras?', ['ps aux', 'ss -tuln', 'id', 'dig'], 'ps aux muestra %CPU y %MEM de cada proceso.'],
+  ['win', 'En Active Directory, ¿qué grupo es el objetivo final típico de un atacante?', ['Domain Admins', 'Domain Users', 'Guests', 'Print Operators'], 'Domain Admins controla todo el dominio.'],
+  ['win', '¿Qué servicio de Windows usa el puerto 445?', ['SMB (carpetas compartidas)', 'RDP', 'DNS', 'LDAP'], 'WannaCry se propagó por una vulnerabilidad de SMB.'],
+  ['win', '¿Qué es un controlador de dominio?', ['El servidor que guarda AD y autentica a usuarios y equipos', 'Un router de la empresa', 'El antivirus de Windows', 'Una cuenta de administrador local'], 'Si lo controla un atacante, controla toda la empresa.'],
+  ['py', '¿Por qué automatizar un análisis de logs con Python?', ['Se repite en segundos, sin errores, sobre miles de líneas', 'Porque grep no funciona en servidores', 'Porque Python cifra los logs', 'Para que el log ocupe menos'], 'grep y awk siguen siendo útiles; Python es para lo repetitivo o complejo.'],
+  ['py', '¿Qué es una expresión regular?', ['Un patrón para buscar texto', 'Un tipo de base de datos', 'Un comando de red', 'Un formato de log'], 'Permite sacar IPs, usuarios o fechas aunque cambien de posición.'],
+];
+
+/* Preguntas generadas: números distintos en cada intento */
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const ipS = n => [n >>> 24, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+const mk = c => c === 0 ? 0 : (0xFFFFFFFF << (32 - c)) >>> 0;
+function rndIP(c) {
+  const k = rnd(0, 2); const base = k === 0 ? [192, 168, rnd(0, 255)] : k === 1 ? [10, rnd(0, 255), rnd(0, 255)] : [172, rnd(16, 31), rnd(0, 255)];
+  return ((base[0] << 24) | (base[1] << 16) | (base[2] << 8) | rnd(1, 254)) >>> 0;
+}
+const uniq = (arr, n) => { const out = []; for (const x of arr) if (!out.includes(x)) out.push(x); return out.slice(0, n); };
+const GEN = {
+  net() {
+    const c = rnd(25, 30), ip = rndIP(c), net = (ip & mk(c)) >>> 0, bc = (net | (~mk(c) >>> 0)) >>> 0, size = 2 ** (32 - c);
+    const d = uniq([ipS(net), ipS(bc), ipS((ip & 0xFFFFFF00) >>> 0), ipS((net + size) >>> 0), ipS(Math.max(0, net - size) >>> 0), ipS((net + 1) >>> 0)], 4);
+    return ['sub', `¿Cuál es la dirección de red de ${ipS(ip)}/${c}?`, d, `Bloque de ${size}: ${ip & 255} cae en el bloque que empieza en ${net & 255}. Red ${ipS(net)}, broadcast ${ipS(bc)}.`];
+  },
+  bc() {
+    const c = rnd(25, 30), ip = rndIP(c), net = (ip & mk(c)) >>> 0, bc = (net | (~mk(c) >>> 0)) >>> 0, size = 2 ** (32 - c);
+    const d = uniq([ipS(bc), ipS(net), ipS((bc - 1) >>> 0), ipS((ip | 255) >>> 0), ipS((bc + size) >>> 0)], 4);
+    return ['sub', `¿Cuál es el broadcast de ${ipS(ip)}/${c}?`, d, `Bloque de ${size}: la red empieza en ${net & 255}, así que el broadcast es la última dirección: ${bc & 255}.`];
+  },
+  hosts() {
+    const c = rnd(20, 30), h = 2 ** (32 - c) - 2;
+    const d = uniq([h, h + 2, h + 1, 2 ** (31 - c) - 2, 2 ** (33 - c) - 2].filter(x => x > 0).map(String), 4);
+    return ['sub', `¿Cuántos equipos usables tiene una red /${c}?`, d, `2^${32 - c} = ${h + 2} direcciones − 2 (red y broadcast) = ${h}.`];
+  },
+  min() {
+    const N = rnd(5, 1500); let c = 30; while (2 ** (32 - c) - 2 < N) c--;
+    const d = uniq(['/' + c, '/' + (c + 1), '/' + (c - 1), '/' + (c - 2), '/' + (c + 2)].filter(x => +x.slice(1) <= 30 && +x.slice(1) >= 16), 4);
+    return ['sub', `Necesitas una subred para ${N} equipos. ¿Cuál es el prefijo más pequeño que sirve?`, d, `/${c + 1} da ${2 ** (31 - c) - 2} equipos (no llega); /${c} da ${2 ** (32 - c) - 2}.`];
+  },
+  mask() {
+    const c = rnd(17, 30), m = ipS(mk(c));
+    const d = uniq([m, ipS(mk(c + 1 > 30 ? c - 2 : c + 1)), ipS(mk(c - 1)), ipS(mk(c - 8 > 8 ? c - 8 : c + 2))], 4);
+    return ['bin', `¿Qué máscara decimal corresponde a /${c}?`, d, `/${c} = ${c} unos seguidos: ${m}.`];
+  },
+  cidr() {
+    const c = rnd(17, 30), m = ipS(mk(c));
+    const d = uniq(['/' + c, '/' + (c + 1), '/' + (c - 1), '/' + (c >= 24 ? c - 8 : c + 8)].filter(x => +x.slice(1) <= 32), 4);
+    return ['bin', `¿Qué prefijo CIDR tiene la máscara ${m}?`, d, `Cuenta los unos de cada octeto: ${m.split('.').map(o => (+o).toString(2).replace(/0/g, '').length).join(' + ')} = ${c}.`];
+  },
+};
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function buildExam(total) {
+  const gen = shuffle(['net', 'bc', 'hosts', 'min']).slice(0, 3).concat(shuffle(['mask', 'cidr']).slice(0, 1)).map(k => GEN[k]());
+  // Estáticas: una por tema primero (en orden aleatorio) y luego relleno, sin repetir pregunta
+  const byTopic = {}; shuffle(BANK_F1).forEach(q => (byTopic[q[0]] = byTopic[q[0]] || []).push(q));
+  const picked = [], topics = shuffle(Object.keys(byTopic).filter(t => t !== 'sub' && t !== 'bin'));
+  for (const t of topics) if (picked.length < total - gen.length) picked.push(byTopic[t].shift());
+  const rest = shuffle(Object.values(byTopic).flat());
+  while (picked.length < total - gen.length && rest.length) picked.push(rest.shift());
+  return shuffle(gen.concat(picked)).map(([topic, q, opts, why]) => {
+    const order = shuffle(opts.map((t, i) => ({ t, ok: i === 0 })));
+    return { q, options: order.map(o => o.t), a: order.findIndex(o => o.ok), why, topic };
+  });
+}
 
 const COURSE = [
   { id: 'f1', name: 'Fase 1 · Fundamentos', lessons: F1 },
@@ -431,7 +524,7 @@ const norm = s => String(s).trim().toLowerCase().replace(/\s+/g, ' ').replace(/[
 /* ------------------------------------------------------------------ */
 /* Vista                                                               */
 /* ------------------------------------------------------------------ */
-let built = false, term = null, cur = null, mem = {}, exam = null, hintIdx = 0;
+let built = false, term = null, cur = null, mem = {}, exam = null, hintIdx = 0, askHist = [], lastCmds = [];
 let root = null;
 
 function build(container) {
@@ -443,6 +536,7 @@ function build(container) {
       <header class="chead"></header>
       <div class="chat" aria-live="polite"></div>
       <div class="ctask"></div>
+      <div class="cask"></div>
     </section>
     <section class="cterm">
       <div id="course-term"></div>
@@ -488,32 +582,33 @@ function bubble(agentKey, html, cls) {
 }
 
 function openLesson(id) {
-  const L = byId(id); cur = id; mem = {}; hintIdx = 0; exam = null;
+  const L = byId(id); cur = id; mem = {}; hintIdx = 0; exam = null; askHist = [];
   const s = ls(id);
   root.querySelector('.chat').innerHTML = '';
   const a = AGENTS[L.agent];
   root.querySelector('.chead').innerHTML = `<div class="av big ${a.cls}" aria-hidden="true">${a.ini}</div><div class="ct"><div class="eyebrow">${escH(a.name)} · ${escH(a.role)}</div><h2>${escH(L.title)}</h2></div><div class="cprog" id="cprog"></div>`;
-  if (L.exam) { s.step = 0; exam = { right: 0 }; }
+  if (L.exam) { s.step = 0; exam = { right: 0, res: [], steps: [L.steps[0]].concat(buildExam(12)) }; }
   // reconstruir conversación de pasos ya hechos
   const upto = s.done && !L.exam ? L.steps.length : s.step;
   for (let i = 0; i < upto && !L.exam; i++) { const S = L.steps[i]; bubble(L.agent, fmt(S.say)); if (S.done) bubble(L.agent, fmt(S.done), 'ok'); }
   if (s.done && !L.exam) { bubble(L.agent, fmt(L.outro)); }
   else showStep();
-  paintTask();
+  paintTask(); paintAsk();
 }
 
-function curStep() { const L = byId(cur), s = ls(cur); return L.steps[s.step]; }
+const stepsOf = L => (L.exam && exam && exam.steps) ? exam.steps : L.steps;
+function curStep() { const L = byId(cur), s = ls(cur); return stepsOf(L)[s.step]; }
 
 function showStep() {
   const L = byId(cur), S = curStep(); if (!S) return;
   hintIdx = 0; mem = {};
-  if (L.exam && S.q) { bubble(L.agent, `<p class="eyebrow">Pregunta ${ls(cur).step} de ${L.steps.length - 1}</p><p><b>${escH(S.q)}</b></p>`); }
+  if (L.exam && S.q) { bubble(L.agent, `<p class="eyebrow">Pregunta ${ls(cur).step} de ${stepsOf(L).length - 1} · ${escH(TOPICS[S.topic][0])}</p><p><b>${escH(S.q)}</b></p>`); }
   else bubble(L.agent, fmt(S.say));
 }
 
 function paintTask() {
   const L = byId(cur), s = ls(cur), S = curStep(), box = root.querySelector('.ctask');
-  const total = L.exam ? L.steps.length - 1 : L.steps.length;
+  const total = L.exam ? stepsOf(L).length - 1 : L.steps.length;
   const prog = root.querySelector('#cprog');
   if (prog) prog.innerHTML = s.done && !L.exam ? '<span class="pill aprobado">Completada</span>' : (L.exam && s.step === 0 ? `<span class="muted">${total} preguntas · ${L.pass} % para aprobar</span>` : `<span class="muted">${L.exam ? 'Pregunta ' + s.step : 'Paso ' + Math.min(s.step + 1, total)} de ${total}</span>`);
   if (s.done && !L.exam) {
@@ -548,6 +643,7 @@ function paintTask() {
       const o = opts[+b.dataset.i]; bubble('me', escH(o.t));
       if (T.type === 'exam') {
         if (o.ok) exam.right++;
+        exam.res.push({ topic: S.topic, ok: !!o.ok });
         bubble(L.agent, `<p><b>${o.ok ? 'Correcto.' : 'No.'}</b> ${escH(S.why)}</p>`, o.ok ? 'ok' : 'bad');
         advance();
       } else if (o.ok) { complete(o.why); }
@@ -567,21 +663,28 @@ function complete(extra) {
   if (extra) bubble(L.agent, '<p>' + escH(extra) + '</p>', 'ok');
   if (S.done) bubble(L.agent, fmt(S.done), 'ok');
   s.step++; save();
-  if (s.step >= L.steps.length) finish(); else { showStep(); paintTask(); }
+  if (s.step >= stepsOf(L).length) finish(); else { showStep(); paintTask(); }
 }
 
 function advance() {
   const L = byId(cur), s = ls(cur);
   s.step++;
-  if (s.step >= L.steps.length) return finishExam();
+  if (s.step >= stepsOf(L).length) return finishExam();
   showStep(); paintTask();
 }
 
 function finishExam() {
-  const L = byId(cur), s = ls(cur), total = L.steps.length - 1, pct = Math.round(exam.right / total * 100);
+  const L = byId(cur), s = ls(cur), total = stepsOf(L).length - 1, pct = Math.round(exam.right / total * 100);
   const passed = pct >= L.pass;
   bubble(L.agent, `<p><b>Resultado: ${exam.right} de ${total} (${pct} %).</b></p><p>${passed ? '¡Aprobado! Has completado la Fase 1 del curso. Ya tienes la base para preparar el **Cisco CCST Networking**.'.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') : 'No llegas al ' + L.pass + ' %. Repasa las lecciones de las preguntas que fallaste y vuelve a intentarlo.'}</p>`, passed ? 'ok' : 'bad');
   CL().addLog({ type: 'practica', title: `Examen Fase 1 del curso: ${pct} %${passed ? ' (aprobado)' : ''}`, score: `${exam.right}/${total}` });
+  // Resultado por tema
+  const per = {}; exam.res.forEach(r => { const p = per[r.topic] = per[r.topic] || { ok: 0, n: 0 }; p.n++; if (r.ok) p.ok++; });
+  const weak = Object.keys(per).filter(t => per[t].ok < per[t].n);
+  bubble(L.agent, `<p><b>Por tema:</b></p><table class="ref examtbl">${Object.keys(per).sort((a, b) => (per[a].ok / per[a].n) - (per[b].ok / per[b].n)).map(t => `<tr><td>${escH(TOPICS[t][0])}</td><td>${per[t].ok}/${per[t].n}</td><td>${per[t].ok < per[t].n ? `<a href="#curso" data-goto="${TOPICS[t][1]}">Repasar lección</a>` : '✓'}</td></tr>`).join('')}</table>` +
+    (weak.length ? `<p>He puesto para hoy en tu <a href="#repaso">Repaso</a> las tarjetas de: ${weak.map(t => escH(TOPICS[t][0])).join(', ')}.</p>` : ''), 'hint');
+  if (weak.length && global.Review) global.Review.boost(weak.map(t => TOPICS[t][1]));
+  root.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', () => { st().cur = a.dataset.goto; save(); paintList(); openLesson(a.dataset.goto); }));
   if (passed && !s.done) s.done = new Date().toISOString().slice(0, 10);
   s.best = Math.max(s.best || 0, pct); s.step = 0; save(); paintList(); CL().paintOverall();
   const box = root.querySelector('.ctask');
@@ -602,10 +705,58 @@ function finish() {
 }
 
 function onCommand(entry, sim) {
+  lastCmds.push(('$ ' + entry.line + '\n' + (entry.out || '')).slice(-1500)); lastCmds = lastCmds.slice(-3);
   if (!cur) return; const L = byId(cur), s = ls(cur); if (s.done && !L.exam) return;
   const S = curStep(); if (!S || !S.task || S.task.type !== 'cmd') return;
   let good = false; try { good = !!S.task.check(entry, sim, mem); } catch (e) { good = false; }
   if (good) complete(null);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Pregúntale al agente (IA)                                           */
+/* ------------------------------------------------------------------ */
+function paintAsk() {
+  const L = byId(cur), box = root.querySelector('.cask'), a = AGENTS[L.agent];
+  if (L.exam) { box.innerHTML = ''; return; }
+  box.innerHTML = `<button type="button" class="btn ghost askbtn" id="ask-open"><span class="aitag">IA</span> Pregúntale a ${a.name}</button>
+    <form class="askf" id="ask-f" hidden>
+      <label for="ask-in" class="muted small">Tu duda sobre esta lección. ${a.name} ve en qué paso estás y lo último de tu terminal.</label>
+      <textarea id="ask-in" rows="2" maxlength="1000" placeholder="Ej.: ¿por qué uniq necesita sort antes?"></textarea>
+      <div class="row"><button class="btn" type="submit" id="ask-go">Enviar</button><button class="btn ghost" type="button" id="ask-x">Cerrar</button><span class="muted small" id="ask-left"></span></div>
+    </form>`;
+  const f = box.querySelector('#ask-f'), open = box.querySelector('#ask-open'), inp = box.querySelector('#ask-in');
+  open.addEventListener('click', () => { f.hidden = false; open.hidden = true; inp.focus(); });
+  box.querySelector('#ask-x').addEventListener('click', () => { f.hidden = true; open.hidden = false; });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); f.requestSubmit(); } });
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const q = inp.value.trim(); if (!q) return;
+    if (!global.Sync || !global.Sync.loggedIn) {
+      bubble(L.agent, `<p>Para hablar conmigo con IA, entra con tu cuenta (botón <b>Entrar</b>, arriba a la derecha).</p>`, 'hint');
+      if (global.Sync) global.Sync.open('login'); return;
+    }
+    const go = box.querySelector('#ask-go'); go.disabled = true; inp.value = '';
+    bubble('me', escH(q));
+    bubble(L.agent, '<p class="typing" aria-label="Escribiendo"><i></i><i></i><i></i></p>', 'ai pending');
+    const S = curStep();
+    const step = ls(cur).done ? 'Lección completada' : (S && S.say ? S.say.replace(/\*\*/g, '') : '');
+    try {
+      const r = await global.Sync.ask({ agent: L.agent, question: q, context: { lesson: L.title, step: step.slice(0, 1500), terminal: lastCmds.join('\n').slice(-3800) }, history: askHist.slice(-ASK_MAX) });
+      setPending('<span class="aitag">IA</span>' + fmt(r.answer || '(sin respuesta)'), 'ai');
+      askHist.push({ role: 'user', content: q }, { role: 'assistant', content: r.answer || '' });
+      box.querySelector('#ask-left').textContent = r.remaining !== undefined ? `Te quedan ${r.remaining} preguntas hoy` : '';
+    } catch (err) {
+      const msg = err.offline ? 'No puedo conectar con el servidor ahora mismo. Comprueba que tu API está encendida.' : (err.body && err.body.message) || 'No he podido responder. Inténtalo otra vez.';
+      setPending('<p>' + escH(msg) + '</p>', 'bad');
+    }
+    go.disabled = false; inp.focus({ preventScroll: true });
+  });
+}
+function setPending(html, cls) {
+  const m = root.querySelector('.chat .msg.pending'); if (!m) return;
+  m.className = 'msg ' + cls; const b = m.querySelector('.bub'); const who = b.querySelector('.who').outerHTML; b.innerHTML = who + html;
+  const chat = root.querySelector('.chat'); chat.scrollTop = chat.scrollHeight;
 }
 
 /* ------------------------------------------------------------------ */
@@ -642,7 +793,7 @@ function renderFree(container) {
 }
 
 global.Course = {
-  render, renderFree, COURSE, LESSONS,
+  render, renderFree, COURSE, LESSONS, _exam: { GEN, buildExam },
   lessonForTopic(topic) { const l = LESSONS.find(x => (x.topics || []).includes(topic)); return l ? l.id : null; },
   open(id) { if (byId(id)) { st().cur = id; save(); cur = null; } },
   tryInTerminal(cmd) { pendingCmd = cmd; if (location.hash === '#terminal') { if (freeTerm) { freeTerm.insert(cmd); pendingCmd = null; } } else location.hash = '#terminal'; },

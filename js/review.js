@@ -201,6 +201,12 @@ document.addEventListener('keydown', e => {
 
 global.Review = {
   render, CARDS, counts,
+  // Tras un examen: las tarjetas de los temas fallados vuelven hoy al repaso
+  boost(lessonIds) {
+    const r = st(), t = today();
+    CARDS.filter(c => lessonIds.includes(c[1])).forEach(c => { if (r.c[c[0]]) { r.c[c[0]].due = t; r.c[c[0]].ivl = Math.min(r.c[c[0]].ivl, 1); } });
+    session = null; CL().save(); this.badge();
+  },
   badge() { const b = document.getElementById('rv-badge'); if (!b || !CL()) return; const n = counts().total; b.textContent = n; b.hidden = !n; },
 };
 })(window);

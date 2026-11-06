@@ -215,5 +215,5 @@ function init() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token && !meta.dirty) pull(); });
 }
 
-global.Sync = { init, changed, open, get status() { return status; } };
+global.Sync = { init, changed, open, ask: body => call('POST', '/ask', body), get loggedIn() { return !!token; }, get status() { return status; } };
 })(window);
