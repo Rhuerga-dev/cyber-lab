@@ -203,6 +203,25 @@ dialog.acct p{margin:8px 0}
 .acct-adv{margin-top:14px;font-size:14px}.acct-adv summary{color:var(--muted);cursor:pointer}
 .choice2{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .small{font-size:13px}
+/* Repaso */
+.tabbadge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:4px;border-radius:999px;background:var(--bit);color:var(--bit-ink);font-family:var(--f-mono);font-size:12px;font-weight:600;vertical-align:2px}
+.rv{gap:16px;max-width:760px;width:100%}
+.rv-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.rv-q{font-family:var(--f-display);font-weight:600;font-size:clamp(22px,3vw,30px);line-height:1.25;text-wrap:balance;min-height:2.5em}
+.rv-a{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:14px}
+.rv-ans{font-size:22px;font-weight:600}
+.rv-ans.cmd{font-family:var(--f-mono);font-size:19px;background:var(--t-bg);color:var(--t-user);padding:10px 14px;border-radius:8px;overflow-x:auto;white-space:pre}
+.rv-grades{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.rv-grades{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rvg{font:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.rvg span{font-size:12px;color:var(--muted)}
+.rvg.g0{border-color:var(--bad)}.rvg.g0 b{color:var(--bad)}
+.rvg.g2{border-color:var(--ok)}.rvg.g2 b{color:var(--ok)}
+.rvg:hover{border-color:var(--accent)}
+kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;background:var(--surface);color:var(--muted)}
+.btn kbd{background:transparent;color:inherit;border-color:currentColor;opacity:.7;margin-left:6px}
+.rv-empty{display:flex;flex-direction:column;gap:10px}
+.rv-all{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--ink)}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
@@ -304,6 +323,7 @@ footer a{color:var(--accent)}
   <nav class="tabs" aria-label="Secciones">
     <a href="#ruta" data-v="ruta">Hoja de ruta</a>
     <a href="#curso" data-v="curso">Curso</a>
+    <a href="#repaso" data-v="repaso">Repaso <span class="tabbadge" id="rv-badge" hidden></span></a>
     <a href="#terminal" data-v="terminal">Terminal</a>
     <a href="#practica" data-v="practica">Práctica</a>
     <a href="#certs" data-v="certs">Certificaciones</a>
@@ -312,6 +332,7 @@ footer a{color:var(--accent)}
 
   <section class="view" id="v-ruta"></section>
   <section class="view" id="v-curso" hidden></section>
+  <section class="view" id="v-repaso" hidden></section>
   <section class="view" id="v-terminal" hidden></section>
   <section class="view" id="v-certs" hidden></section>
   <section class="view" id="v-resultados" hidden></section>
@@ -346,6 +367,7 @@ footer a{color:var(--accent)}
 
 <script src="js/terminal.js"></script>
 <script src="js/course.js"></script>
+<script src="js/review.js"></script>
 <script src="js/sync.js"></script>
 <script>
 (function(){
@@ -700,7 +722,7 @@ function renderResultados(){
 }
 
 /* navegación */
-const VIEWS=['ruta','curso','terminal','practica','certs','resultados'];
+const VIEWS=['ruta','curso','repaso','terminal','practica','certs','resultados'];
 window.CL={get prog(){return prog},save,addLog,paintOverall,
   replace(d){prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d||{});try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}render();route()}};
 function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'ruta';
@@ -708,6 +730,8 @@ function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'rut
   document.querySelectorAll('.tabs a').forEach(a=>a.dataset.v===v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
   if(v==='ruta')renderRuta();else if(v==='certs')renderCerts();else if(v==='resultados')renderResultados();
   else if(v==='curso'&&window.Course)Course.render($('#v-curso'));else if(v==='terminal'&&window.Course)Course.renderFree($('#v-terminal'));
+  else if(v==='repaso'&&window.Review)Review.render($('#v-repaso'));
+  if(window.Review)Review.badge();
   paintOverall();window.scrollTo(0,0)}
 window.addEventListener('hashchange',route);
 
