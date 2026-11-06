@@ -116,6 +116,74 @@ button:disabled{opacity:.5;cursor:default}
 .ctot .v{font-family:var(--f-mono);font-size:17px;font-weight:600;padding-top:8px;overflow-wrap:anywhere}
 .okc{color:var(--ok)}
 .badc{color:var(--bad)}
+/* Pestañas */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.tabs a{font-family:var(--f-display);font-weight:600;font-size:18px;text-decoration:none;color:var(--muted);padding:6px 14px;border-radius:6px}
+.tabs a:hover{color:var(--ink);background:var(--surface)}
+.tabs a[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.view{display:flex;flex-direction:column;gap:18px}
+
+/* Hoja de ruta */
+.next{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.next .k{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.next .v{font-family:var(--f-display);font-weight:600;font-size:22px;line-height:1.2}
+.phases{display:flex;flex-direction:column;gap:16px}
+.phase{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px}
+.phase .pn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:22px;background:var(--surface);border:2px solid var(--line);color:var(--muted)}
+.phase.active .pn{border-color:var(--accent);color:var(--accent)}
+.phase.complete .pn{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline}
+.bar{height:8px;border-radius:999px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--ok)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.checks li{display:flex;align-items:flex-start;gap:10px;padding:5px 0}
+.checks input{width:18px;height:18px;margin-top:3px;accent-color:var(--ok);flex:0 0 auto}
+.checks label{color:var(--ink);font-size:16px;flex-direction:row;display:flex;flex-wrap:wrap;gap:4px 10px}
+.checks .done label{color:var(--muted);text-decoration:line-through}
+.checks a{font-size:14px;color:var(--accent);text-decoration:none;font-weight:600}
+.minicerts{display:flex;flex-direction:column;gap:6px}
+.mc{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-decoration:none;color:var(--ink);font-size:15px}
+.mc:hover{border-color:var(--accent)}
+.pill{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.pill.pendiente{background:var(--surface);color:var(--muted);border-color:var(--line)}
+.pill.estudiando{background:var(--accent);color:var(--accent-ink)}
+.pill.programado{background:var(--warn-bg);color:var(--warn)}
+.pill.aprobado{background:var(--ok-bg);color:var(--ok)}
+.tag{font-size:12px;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.tag.rec{color:var(--accent);border-color:var(--accent)}
+.tag.top{color:var(--bit-ink);background:var(--bit);border-color:var(--bit)}
+
+/* Certificaciones */
+.certgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
+.cert{gap:10px}
+.cert.is-aprobado{border-color:var(--ok)}
+.ctop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.corg{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ctags{display:flex;flex-wrap:wrap;gap:6px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.form .full{grid-column:1/-1}
+.form label,.lf label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.form input,.form select,.form textarea,.lf input,.lf select,.lf textarea{font:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
+.form textarea,.lf textarea{min-height:56px;resize:vertical}
+.clink{font-size:14px;color:var(--accent);font-weight:600}
+.lvlhead{font-family:var(--f-display);font-weight:600;font-size:20px;margin-top:6px}
+
+/* Resultados */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.tile .k{font-size:13px;color:var(--muted)}
+.tile .v{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.lf{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px;align-items:end}
+.lf .full{grid-column:1/-1}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.log li{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px 14px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
+.log .d{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.log .t{font-weight:600}
+.log .n{color:var(--muted);font-size:15px;overflow-wrap:anywhere}
+.log button{font:inherit;font-size:13px;background:none;border:0;color:var(--muted);cursor:pointer;text-decoration:underline}
+@media (max-width:520px){.log li{grid-template-columns:1fr auto}.log .d{grid-column:1/-1}.form{grid-template-columns:1fr}}
+.empty{color:var(--muted);padding:10px 0}
 footer{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 footer a{color:var(--accent)}
 </style>
@@ -130,6 +198,18 @@ footer a{color:var(--accent)}
     <div class="overall" id="overall"></div>
   </header>
 
+  <nav class="tabs" aria-label="Secciones">
+    <a href="#ruta" data-v="ruta">Hoja de ruta</a>
+    <a href="#practica" data-v="practica">Práctica</a>
+    <a href="#certs" data-v="certs">Certificaciones</a>
+    <a href="#resultados" data-v="resultados">Resultados</a>
+  </nav>
+
+  <section class="view" id="v-ruta"></section>
+  <section class="view" id="v-certs" hidden></section>
+  <section class="view" id="v-resultados" hidden></section>
+
+  <section class="view" id="v-practica" hidden>
   <div class="layout">
     <nav class="path" id="path" aria-label="Niveles"></nav>
     <main class="main">
@@ -149,8 +229,9 @@ footer a{color:var(--accent)}
       </section>
     </main>
   </div>
+  </section>
 
-  <footer>Practica a tu ritmo. Tu progreso se guarda en este navegador. Cada nivel se desbloquea con 5 aciertos seguidos.</footer>
+  <footer>Tu progreso se guarda en este navegador. Descarga una copia de seguridad en Resultados de vez en cuando, sobre todo antes de cambiar de navegador o de equipo.</footer>
 </div>
 
 <script>
@@ -204,8 +285,12 @@ const LEVELS=[
 const SOON=[{title:'Subredes',sub:'Red, broadcast y equipos'},{title:'Puertos',sub:'Qué hay detrás de cada puerta'},{title:'Saludo TCP',sub:'Cómo escanea Nmap'}];
 
 /* progreso */
-let prog={done:[],streak:{},cur:0};
+let prog={done:[],streak:{},cur:0,topics:{},certs:{},log:[]};
 try{const s=JSON.parse(localStorage.getItem('cyberlab-v1')||'null');if(s&&Array.isArray(s.done))prog=Object.assign(prog,s)}catch(e){}
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let logSeq=Date.now();
+function addLog(e){prog.log.push(Object.assign({id:String(logSeq++),date:today()},e))}
 function save(){try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}}
 const unlocked=i=>i===0||prog.done.includes(LEVELS[i-1].id);
 
@@ -214,7 +299,7 @@ function paintPath(){
     return `<button type="button" class="lvl${done?' done':''}" data-i="${i}" ${i===prog.cur?'aria-current="step"':''} ${open?'':'disabled'}><span class="num">${done?'✓':i+1}</span><span><span class="t">${L.title}</span><br><span class="s">${open?L.sub:'Bloqueado'}</span></span></button>`}).join('')+
    SOON.map((S,j)=>`<button type="button" class="lvl soon" disabled><span class="num">${LEVELS.length+j+1}</span><span><span class="t">${S.title}</span><br><span class="s">Próximamente</span></span></button>`).join('');
   document.querySelectorAll('#path .lvl[data-i]').forEach(b=>b.addEventListener('click',()=>{prog.cur=+b.dataset.i;save();render()}));
-  $('#overall').innerHTML='Niveles completados <b>'+prog.done.length+'</b> de <b>'+LEVELS.length+'</b>';
+  paintOverall();
 }
 
 let state={};
@@ -269,7 +354,7 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
   else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
     ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>Unos: '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
   state.answered=true;const id=L.id;let s=prog.streak[id]||0;s=ok?s+1:0;prog.streak[id]=s;
-  let justDone=false;if(ok&&s>=NEED&&!prog.done.includes(id)){prog.done.push(id);justDone=true}
+  let justDone=false;if(ok&&s>=NEED&&!prog.done.includes(id)){prog.done.push(id);justDone=true;addLog({type:'lab',title:'Nivel '+(prog.cur+1)+' completado: '+L.title+' ('+L.sub+')',note:NEED+' aciertos seguidos en el laboratorio'})}
   save();
   $('.streak').outerHTML=streakHTML();
   const fb=$('#fb');
@@ -317,7 +402,186 @@ document.querySelectorAll('.segb').forEach(b=>b.addEventListener('click',()=>{C.
 $('#calc-clear').addEventListener('click',()=>{C.v=[0,0,0,0];paintCalc()});
 buildCalc();
 
+/* ================= HOJA DE RUTA ================= */
+const STATUS={pendiente:'Pendiente',estudiando:'Estudiando',programado:'Examen programado',aprobado:'Aprobado'};
+const CERTS=[
+ {id:'ccst-net',name:'Cisco CCST Networking',org:'Cisco',code:'100-150',lvl:'Inicial',rec:1,url:'https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html',desc:'Primer certificado de redes de Cisco. Cubre justo lo que estás aprendiendo: IP, subredes, puertos y cómo se conecta una red.'},
+ {id:'ccst-cyber',name:'Cisco CCST Cybersecurity',org:'Cisco',code:'100-160',lvl:'Inicial',rec:1,url:'https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html',desc:'Conceptos básicos de seguridad: amenazas, defensa, control de acceso y respuesta a incidentes.'},
+ {id:'isc2-cc',name:'ISC2 Certified in Cybersecurity (CC)',org:'ISC2',code:'CC',lvl:'Inicial',url:'https://www.isc2.org/certifications/cc',desc:'Fundamentos de seguridad de la misma organización que el CISSP. Opcional si ya haces los CCST.'},
+ {id:'ccna',name:'Cisco CCNA',org:'Cisco',code:'200-301',lvl:'Asociado',rec:1,url:'https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html',desc:'La certificación de redes más reconocida del mundo. Subnetting, routing, switching y seguridad de red.'},
+ {id:'netplus',name:'CompTIA Network+',org:'CompTIA',code:'N10-009',lvl:'Asociado',url:'https://www.comptia.org/certifications/network',desc:'Alternativa a CCNA, sin centrarse en equipos Cisco. Con hacer una de las dos basta.'},
+ {id:'secplus',name:'CompTIA Security+',org:'CompTIA',code:'SY0-701',lvl:'Asociado',rec:1,url:'https://www.comptia.org/certifications/security',desc:'La más pedida en ofertas de empleo de entrada en seguridad en EE. UU.'},
+ {id:'ccna-cyber',name:'Cisco CCNA Cybersecurity',org:'Cisco',code:'200-201',lvl:'Asociado',rec:1,url:'https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html',desc:'Antes CyberOps Associate. Enfocada en SOC: monitorizar, detectar y responder a ataques.'},
+ {id:'cysa',name:'CompTIA CySA+',org:'CompTIA',code:'CS0-003',lvl:'Intermedio',url:'https://www.comptia.org/certifications/cybersecurity-analyst',desc:'Analista de seguridad (Blue Team): análisis de logs, SIEM y gestión de vulnerabilidades.'},
+ {id:'ejpt',name:'INE eJPT',org:'INE',code:'eJPT',lvl:'Intermedio',url:'https://security.ine.com/certifications/ejpt-certification/',desc:'Primer certificado práctico de pentesting: atacas máquinas reales en un laboratorio.'},
+ {id:'pentest',name:'CompTIA PenTest+',org:'CompTIA',code:'PT0-003',lvl:'Intermedio',url:'https://www.comptia.org/certifications/pentest',desc:'Pentesting con más teoría y metodología. Útil si te inclinas por la rama ofensiva.'},
+ {id:'ccnp-cyber',name:'Cisco CCNP Cybersecurity',org:'Cisco',code:'350-201 + concentración',lvl:'Profesional',rec:1,url:'https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html',desc:'Nivel profesional de Cisco en ciberseguridad: un examen troncal más uno de especialidad.'},
+ {id:'oscp',name:'OffSec OSCP',org:'OffSec',code:'PEN-200',lvl:'Profesional',url:'https://www.offsec.com/courses/pen-200/',desc:'La referencia en pentesting: examen práctico de 24 horas atacando máquinas.'},
+ {id:'securityx',name:'CompTIA SecurityX',org:'CompTIA',code:'CAS-005',lvl:'Experto',url:'https://www.comptia.org/certifications/securityx',desc:'Antes CASP+. Arquitectura e ingeniería de seguridad a nivel avanzado.'},
+ {id:'cissp',name:'ISC2 CISSP',org:'ISC2',code:'CISSP',lvl:'Experto',rec:1,top:1,url:'https://www.isc2.org/certifications/cissp',desc:'La certificación de seguridad más valorada para puestos senior. Exige unos 5 años de experiencia laboral en seguridad.'},
+ {id:'ccie-sec',name:'Cisco CCIE Security',org:'Cisco',code:'CCIE',lvl:'Experto',top:1,url:'https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html',desc:'La cima de Cisco: examen escrito más un laboratorio práctico de 8 horas.'},
+];
+const CERT=Object.fromEntries(CERTS.map(c=>[c.id,c]));
+const PHASES=[
+ {id:'f1',name:'Fundamentos',time:'2–4 meses',goal:'Entender cómo viaja la información y cómo funcionan los sistemas.',topics:[
+   {id:'binario',t:'Binario y octetos',lab:['leer4','escribir4','leer8','escribir8','ip']},
+   {id:'mascaras',t:'Máscaras y notación CIDR',lab:['mascara']},
+   {id:'ip-nat',t:'IP pública, IP privada y NAT'},
+   {id:'dns',t:'DNS (nslookup, dig)'},
+   {id:'puertos',t:'Puertos y servicios comunes'},
+   {id:'tcp',t:'TCP, UDP y el saludo de 3 pasos'},
+   {id:'subnetting',t:'Subnetting: dividir redes'},
+   {id:'linux',t:'Linux: terminal, permisos, procesos, logs'},
+   {id:'windows-ad',t:'Windows y Active Directory'},
+   {id:'python',t:'Python para automatizar tareas'}],
+  certs:['ccst-net','ccst-cyber','isc2-cc']},
+ {id:'f2',name:'Seguridad base',time:'3–4 meses',goal:'Conceptos de seguridad, herramientas y tu propio laboratorio.',topics:[
+   {id:'cia',t:'Tríada CIA y gestión de riesgos'},
+   {id:'cripto',t:'Criptografía básica: hash, cifrado, claves públicas'},
+   {id:'owasp',t:'OWASP Top 10 (inyección SQL, XSS…)'},
+   {id:'tools',t:'Nmap, Wireshark y Burp Suite'},
+   {id:'homelab',t:'Laboratorio en casa: Kali + máquinas vulnerables'},
+   {id:'vulns',t:'Gestión de vulnerabilidades y parches'}],
+  certs:['ccna','netplus','secplus']},
+ {id:'f3',name:'Especialidad',time:'6–12 meses',goal:'Elegir una rama y practicar en serio.',topics:[
+   {id:'rama',t:'Elegir rama: AppSec, Pentesting, Blue Team o Cloud'},
+   {id:'portswigger',t:'PortSwigger Web Security Academy'},
+   {id:'thm',t:'Rutas de TryHackMe / Hack The Box'},
+   {id:'siem',t:'SIEM y análisis de logs (Splunk, Elastic)'},
+   {id:'auditar',t:'Auditar tus propios proyectos'}],
+  certs:['ccna-cyber','cysa','ejpt','pentest']},
+ {id:'f4',name:'Experiencia real',time:'Continuo',goal:'Demostrar lo que sabes con trabajo real.',topics:[
+   {id:'writeups',t:'Portafolio de writeups en GitHub'},
+   {id:'bugbounty',t:'Primer reporte en bug bounty (HackerOne, Bugcrowd)'},
+   {id:'freelance',t:'Primer cliente de seguridad como freelance'},
+   {id:'comunidad',t:'Comunidad: BSides Florida, Discord, LinkedIn'}],
+  certs:[]},
+ {id:'f5',name:'Experto',time:'3–5+ años',goal:'Profundidad, liderazgo y las certificaciones más altas.',topics:[
+   {id:'exploit',t:'Exploit development / red teaming avanzado'},
+   {id:'arquitectura',t:'Arquitectura de seguridad'},
+   {id:'mentoria',t:'Enseñar o mentorizar a otros'}],
+  certs:['ccnp-cyber','oscp','securityx','cissp','ccie-sec']},
+];
+const ALL_TOPICS=PHASES.flatMap(p=>p.topics);
+const certState=id=>Object.assign({status:'pendiente',date:'',score:'',cred:'',notes:''},prog.certs[id]||{});
+const topicDone=t=>!!prog.topics[t.id]||(t.lab?t.lab.every(l=>prog.done.includes(l)):false);
+function phaseProgress(p){const items=p.topics.map(topicDone);const cs=p.certs.filter(c=>CERT[c].rec);const certDone=cs.map(c=>certState(c).status==='aprobado');
+  const all=items.concat(certDone);return {done:all.filter(Boolean).length,total:all.length}}
+function paintOverall(){const cOk=CERTS.filter(c=>certState(c.id).status==='aprobado').length;
+  $('#overall').innerHTML='Temas <b>'+ALL_TOPICS.filter(topicDone).length+'/'+ALL_TOPICS.length+'</b> · Certificaciones <b>'+cOk+'</b>'}
+
+function renderRuta(){
+  const curPhase=PHASES.findIndex(p=>{const g=phaseProgress(p);return g.done<g.total});
+  const ph=PHASES[curPhase<0?PHASES.length-1:curPhase];
+  const nextTopic=ph.topics.find(t=>!topicDone(t));
+  const nextCert=CERTS.find(c=>c.rec&&certState(c.id).status!=='aprobado');
+  $('#v-ruta').innerHTML=`
+   <section class="card"><div class="eyebrow">Tu siguiente paso</div>
+    <div class="next">
+     <div><div class="k">Fase actual</div><div class="v">${curPhase<0?'Ruta completada':(PHASES.indexOf(ph)+1)+'. '+esc(ph.name)}</div></div>
+     <div><div class="k">Tema</div><div class="v">${nextTopic?esc(nextTopic.t):'Todos los temas de esta fase listos'}</div></div>
+     <div><div class="k">Próxima certificación</div><div class="v">${nextCert?esc(nextCert.name):'Todas las recomendadas aprobadas'}</div></div>
+    </div></section>
+   <div class="phases">${PHASES.map((p,i)=>{const g=phaseProgress(p),pct=g.total?Math.round(g.done/g.total*100):0;const complete=g.done===g.total;
+    return `<div class="phase${complete?' complete':''}${i===curPhase?' active':''}"><div class="pn">${complete?'✓':i+1}</div>
+     <section class="card"><div class="phead"><h2>${esc(p.name)}</h2><span class="muted">${p.time} · ${pct}%</span></div>
+      <p class="muted">${esc(p.goal)}</p><div class="bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+      <div class="cols"><div><h3>Temas</h3><ul class="checks">${p.topics.map(t=>{const d=topicDone(t);
+        const lab=t.lab?` <a href="#practica" data-lab="${t.lab.find(l=>!prog.done.includes(l))||t.lab[0]}">Practicar →</a>`:'';
+        return `<li class="${d?'done':''}"><input type="checkbox" id="tp-${t.id}" data-t="${t.id}" ${d?'checked':''} ${t.lab&&t.lab.every(l=>prog.done.includes(l))?'disabled title="Completado en el laboratorio"':''}><label for="tp-${t.id}">${esc(t.t)}${lab}</label></li>`}).join('')}</ul></div>
+      ${p.certs.length?`<div><h3>Certificaciones</h3><div class="minicerts">${p.certs.map(id=>{const c=CERT[id],s=certState(id);
+        return `<a class="mc" href="#certs" data-focus="${id}"><span>${esc(c.name)}${c.rec?' <span class="tag rec">Recomendada</span>':''}${c.top?' <span class="tag top">Cumbre</span>':''}</span><span class="pill ${s.status}">${STATUS[s.status]}</span></a>`}).join('')}</div></div>`:''}
+      </div></section></div>`}).join('')}</div>`;
+  document.querySelectorAll('#v-ruta input[data-t]').forEach(i=>i.addEventListener('change',()=>{const t=ALL_TOPICS.find(x=>x.id===i.dataset.t);
+    if(i.checked){prog.topics[t.id]=today();addLog({type:'tema',title:'Tema completado: '+t.t})}else delete prog.topics[t.id];save();renderRuta();paintOverall()}));
+  document.querySelectorAll('#v-ruta a[data-lab]').forEach(a=>a.addEventListener('click',()=>{prog.cur=Math.max(0,LEVELS.findIndex(L=>L.id===a.dataset.lab));save();render()}));
+  document.querySelectorAll('#v-ruta a[data-focus]').forEach(a=>a.addEventListener('click',()=>{focusCert=a.dataset.focus}));
+}
+
+let focusCert=null;
+function renderCerts(){
+  const groups=['Inicial','Asociado','Intermedio','Profesional','Experto'];
+  $('#v-certs').innerHTML=`<section class="card"><h2>Certificaciones</h2>
+    <p class="muted" style="max-width:65ch">No necesitas todas. Las marcadas como <span class="tag rec">Recomendada</span> forman la ruta sugerida, centrada en Cisco, desde la primera hasta la <span class="tag top">Cumbre</span>. Guarda aquí el estado, la fecha del examen y tu nota. Los precios y versiones cambian: confírmalos siempre en la web oficial antes de pagar.</p></section>
+   ${groups.map(g=>{const cs=CERTS.filter(c=>c.lvl===g);return `<div class="lvlhead">${g}</div><div class="certgrid">${cs.map(c=>{const s=certState(c.id);
+    return `<section class="card cert is-${s.status}" id="cert-${c.id}">
+     <div class="ctop"><div><div class="corg">${esc(c.org)} · ${esc(c.code)}</div><h3>${esc(c.name)}</h3></div><span class="pill ${s.status}">${STATUS[s.status]}</span></div>
+     ${c.rec||c.top?`<div class="ctags">${c.rec?'<span class="tag rec">Recomendada</span>':''}${c.top?'<span class="tag top">Cumbre</span>':''}</div>`:''}
+     <p class="muted">${esc(c.desc)}</p>
+     <div class="form" data-c="${c.id}">
+      <label>Estado<select data-f="status">${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${s.status===k?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label>Fecha del examen<input type="date" data-f="date" value="${esc(s.date)}"></label>
+      <label>Nota obtenida<input type="text" data-f="score" value="${esc(s.score)}" placeholder="ej. 812/1000"></label>
+      <label>ID de credencial<input type="text" data-f="cred" value="${esc(s.cred)}" placeholder="opcional"></label>
+      <label class="full">Notas<textarea data-f="notes" placeholder="Recursos, fechas, qué te costó…">${esc(s.notes)}</textarea></label>
+     </div>
+     <a class="clink" href="${c.url}" target="_blank" rel="noopener">Página oficial ↗</a></section>`}).join('')}</div>`}).join('')}`;
+  document.querySelectorAll('#v-certs .form').forEach(f=>{const id=f.dataset.c;
+    f.querySelectorAll('[data-f]').forEach(el=>el.addEventListener('change',()=>{const before=certState(id).status;const s=certState(id);s[el.dataset.f]=el.value;prog.certs[id]=s;
+      if(el.dataset.f==='status'&&before!==el.value){const c=CERT[id];
+        if(el.value==='aprobado'){if(!s.date){s.date=today();f.querySelector('[data-f=date]').value=s.date}addLog({type:'oficial',title:'¡Certificación aprobada: '+c.name+'!',cert:id,score:s.score,date:s.date})}
+        else if(el.value==='programado')addLog({type:'otro',title:'Examen programado: '+c.name,cert:id});
+        else if(el.value==='estudiando')addLog({type:'estudio',title:'Empiezo a estudiar: '+c.name,cert:id});
+        const card=$('#cert-'+id);card.className='card cert is-'+el.value;const p=card.querySelector('.pill');p.className='pill '+el.value;p.textContent=STATUS[el.value]}
+      save();paintOverall()}))});
+  if(focusCert){const el=$('#cert-'+focusCert);focusCert=null;if(el)setTimeout(()=>el.scrollIntoView({block:'center'}),0)}
+}
+
+const TYPES={estudio:'Sesión de estudio',practica:'Examen de práctica',lab:'Laboratorio',oficial:'Examen oficial',tema:'Tema completado',otro:'Otro'};
+function renderResultados(){
+  const hours=prog.log.reduce((a,e)=>a+(parseFloat(e.hours)||0),0);
+  const cOk=CERTS.filter(c=>certState(c.id).status==='aprobado').length;
+  const list=prog.log.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(+b.id)-(+a.id));
+  $('#v-resultados').innerHTML=`
+   <div class="tiles">
+    <div class="tile"><span class="k">Certificaciones aprobadas</span><span class="v">${cOk}</span></div>
+    <div class="tile"><span class="k">Temas completados</span><span class="v">${ALL_TOPICS.filter(topicDone).length}<span class="muted" style="font-size:20px">/${ALL_TOPICS.length}</span></span></div>
+    <div class="tile"><span class="k">Niveles del laboratorio</span><span class="v">${prog.done.length}<span class="muted" style="font-size:20px">/${LEVELS.length}</span></span></div>
+    <div class="tile"><span class="k">Horas registradas</span><span class="v">${Math.round(hours*10)/10}</span></div>
+   </div>
+   <section class="card"><h2>Añadir un resultado</h2>
+    <form class="lf" id="logf">
+     <label>Fecha<input type="date" id="lg-date" value="${today()}" required></label>
+     <label>Tipo<select id="lg-type">${['estudio','practica','lab','oficial','otro'].map(k=>`<option value="${k}">${TYPES[k]}</option>`).join('')}</select></label>
+     <label>Certificación relacionada<select id="lg-cert"><option value="">Ninguna</option>${CERTS.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label>
+     <label>Horas<input type="number" id="lg-hours" min="0" step="0.25" placeholder="ej. 1.5"></label>
+     <label>Nota o resultado<input type="text" id="lg-score" placeholder="ej. 78% o máquina resuelta"></label>
+     <label class="full">Qué hiciste<input type="text" id="lg-title" required placeholder="ej. Sala 'Nmap' de TryHackMe, examen de práctica Security+ #2"></label>
+     <label class="full">Notas<textarea id="lg-note" placeholder="Qué aprendiste, qué falló, qué repasar"></textarea></label>
+     <div class="row full"><button class="btn" type="submit">Guardar resultado</button></div>
+    </form></section>
+   <section class="card"><h2>Historial</h2>
+    ${list.length?`<ul class="log">${list.map(e=>`<li><span class="d">${esc(e.date)}</span><div><div class="t">${esc(e.title)}</div>
+      <div class="n">${esc(TYPES[e.type]||'')}${e.cert&&CERT[e.cert]?' · '+esc(CERT[e.cert].name):''}${e.hours?' · '+esc(e.hours)+' h':''}${e.score?' · '+esc(e.score):''}</div>${e.note?`<div class="n">${esc(e.note)}</div>`:''}</div>
+      <button type="button" data-del="${esc(e.id)}" aria-label="Borrar esta entrada">Borrar</button></li>`).join('')}</ul>`
+     :'<p class="empty">Todavía no hay nada. Cada nivel del laboratorio, tema marcado o certificación aprobada aparecerá aquí, y puedes añadir tus sesiones de estudio y exámenes de práctica con el formulario.</p>'}
+   </section>
+   <section class="card"><h2>Copia de seguridad</h2>
+    <p class="muted" style="max-width:65ch">Todo se guarda en este navegador. Descarga una copia para no perder tu progreso, y usa Importar para recuperarlo en otro equipo o navegador.</p>
+    <div class="row"><button class="btn" type="button" id="bk-out">Descargar copia</button><label class="btn ghost" style="display:inline-block;cursor:pointer">Importar copia<input type="file" id="bk-in" accept="application/json,.json" hidden></label></div>
+    <div id="bk-msg"></div></section>`;
+  $('#logf').addEventListener('submit',e=>{e.preventDefault();const title=$('#lg-title').value.trim();if(!title)return;
+    addLog({date:$('#lg-date').value||today(),type:$('#lg-type').value,cert:$('#lg-cert').value,hours:$('#lg-hours').value,score:$('#lg-score').value.trim(),title,note:$('#lg-note').value.trim()});save();renderResultados()});
+  document.querySelectorAll('#v-resultados [data-del]').forEach(b=>b.addEventListener('click',()=>{prog.log=prog.log.filter(x=>x.id!==b.dataset.del);save();renderResultados()}));
+  $('#bk-out').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(Object.assign({app:'cyber-lab',exported:new Date().toISOString()},prog),null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cyber-lab-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    $('#bk-msg').innerHTML='<div class="fb ok">Copia descargada.</div>'});
+  $('#bk-in').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.done))throw 0;
+      delete d.app;delete d.exported;prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d);save();render();renderResultados();$('#bk-msg').innerHTML='<div class="fb ok">Copia importada. Tu progreso está restaurado.</div>'}
+    catch(err){$('#bk-msg').innerHTML='<div class="fb bad">Ese archivo no es una copia de Cyber Lab. Elige el archivo .json que descargaste con "Descargar copia".</div>'}};r.readAsText(f)});
+}
+
+/* navegación */
+const VIEWS=['ruta','practica','certs','resultados'];
+function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'ruta';
+  VIEWS.forEach(x=>{$('#v-'+x).hidden=x!==v});
+  document.querySelectorAll('.tabs a').forEach(a=>a.dataset.v===v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  if(v==='ruta')renderRuta();else if(v==='certs')renderCerts();else if(v==='resultados')renderResultados();
+  paintOverall();window.scrollTo(0,0)}
+window.addEventListener('hashchange',route);
+
 render();
+route();
 })();
 </script>
 </body>
