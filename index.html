@@ -186,6 +186,23 @@ button:disabled{opacity:.5;cursor:default}
 .checks.plain li{display:list-item;margin-left:18px;list-style:disc;padding:3px 0}
 .checks.plain{padding-left:0}
 
+/* Cuenta */
+.hright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.acctbtn{font:inherit;font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.acctbtn:hover{border-color:var(--accent)}
+.sdot{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--muted)}
+.sdot.ok{background:var(--ok)}.sdot.busy{background:var(--accent)}.sdot.warn{background:var(--bit)}.sdot.bad{background:var(--bad)}.sdot.off{background:transparent;border:2px solid var(--muted)}
+dialog.acct{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:20px;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
+dialog.acct::backdrop{background:rgba(10,16,22,.55)}
+.acct-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.acct-head .btn{padding:4px 10px;font-size:14px}
+dialog.acct p{margin:8px 0}
+.acct-form{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.acct-form label,.acct-adv label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.acct-form input,.acct-adv input{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+.acct-adv{margin-top:14px;font-size:14px}.acct-adv summary{color:var(--muted);cursor:pointer}
+.choice2{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.small{font-size:13px}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
@@ -281,7 +298,7 @@ footer a{color:var(--accent)}
       <div class="eyebrow">Huerga Labs · Ciberseguridad desde cero</div>
       <h1>Cyber Lab</h1>
     </div>
-    <div class="overall" id="overall"></div>
+    <div class="hright"><div class="overall" id="overall"></div><button type="button" class="acctbtn" id="acct-btn"><span class="sdot off" aria-hidden="true"></span>Entrar</button></div>
   </header>
 
   <nav class="tabs" aria-label="Secciones">
@@ -329,6 +346,7 @@ footer a{color:var(--accent)}
 
 <script src="js/terminal.js"></script>
 <script src="js/course.js"></script>
+<script src="js/sync.js"></script>
 <script>
 (function(){
 const NEED=5;
@@ -386,7 +404,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let logSeq=Date.now();
 function addLog(e){prog.log.push(Object.assign({id:String(logSeq++),date:today()},e))}
-function save(){try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}}
+function save(){try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}if(window.Sync)Sync.changed()}
 const unlocked=i=>i===0||prog.done.includes(LEVELS[i-1].id);
 
 function paintPath(){
@@ -683,7 +701,8 @@ function renderResultados(){
 
 /* navegación */
 const VIEWS=['ruta','curso','terminal','practica','certs','resultados'];
-window.CL={get prog(){return prog},save,addLog,paintOverall};
+window.CL={get prog(){return prog},save,addLog,paintOverall,
+  replace(d){prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d||{});try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}render();route()}};
 function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'ruta';
   VIEWS.forEach(x=>{$('#v-'+x).hidden=x!==v});
   document.querySelectorAll('.tabs a').forEach(a=>a.dataset.v===v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
@@ -694,6 +713,7 @@ window.addEventListener('hashchange',route);
 
 render();
 route();
+if(window.Sync)Sync.init();
 })();
 </script>
 </body>
