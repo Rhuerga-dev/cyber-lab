@@ -310,8 +310,11 @@ function render(){paintPath();const L=LEVELS[prog.cur];
   newQ();
 }
 
-function streakHTML(){const s=prog.streak[LEVELS[prog.cur].id]||0;
-  return `<div class="streak"><div class="dots">${Array.from({length:NEED},(_,i)=>`<span class="dot${i<s?' on':''}"></span>`).join('')}</div><span>${s} de ${NEED} seguidos</span></div>`}
+function streakHTML(noBtn){const L=LEVELS[prog.cur],s=prog.streak[L.id]||0,done=prog.done.includes(L.id),hasNext=!noBtn&&prog.cur+1<LEVELS.length;
+  if(done)return `<div class="streak"><div class="dots">${Array.from({length:NEED},()=>'<span class="dot on"></span>').join('')}</div><span><b>Nivel completado ✓</b> · estás repasando</span>${hasNext?`<button class="btn" type="button" data-gonext>Ir al nivel ${prog.cur+2} →</button>`:''}</div>`;
+  return `<div class="streak"><div class="dots">${Array.from({length:NEED},(_,i)=>`<span class="dot${i<s?' on':''}"></span>`).join('')}</div><span>${Math.min(s,NEED)} de ${NEED} seguidos</span></div>`}
+function goNext(){if(prog.cur+1<LEVELS.length){prog.cur++;save();render()}}
+document.addEventListener('click',e=>{if(e.target.closest('[data-gonext]'))goNext()});
 
 function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0,answered:false,hinted:false};
   const n=L.bits, ws=n===4?W4:W8;const P=$('#practice');
@@ -332,7 +335,7 @@ function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0
       <div class="row"><span style="font-family:var(--f-mono);font-size:20px">/</span><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="Número de unos"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
   }
   $('#chk').addEventListener('click',check);$('#hint').addEventListener('click',hint);
-  const a=$('#ans');if(a){a.focus({preventScroll:true});a.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.answered?($('#nxt')&&$('#nxt').click()):check()}})}
+  const a=$('#ans');if(a){a.focus({preventScroll:true});a.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!state.answered)check();else{const t=$('#nxtlvl')||$('#nxt');if(t)t.click()}}})}
 }
 function paintBoard(){const ws=LEVELS[prog.cur].bits===4?W4:W8;
   document.querySelectorAll('#board .sw').forEach(b=>{const on=!!(state.on&+b.dataset.w);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);b.querySelector('.v').textContent=on?1:0});
@@ -356,12 +359,16 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
   state.answered=true;const id=L.id;let s=prog.streak[id]||0;s=ok?s+1:0;prog.streak[id]=s;
   let justDone=false;if(ok&&s>=NEED&&!prog.done.includes(id)){prog.done.push(id);justDone=true;addLog({type:'lab',title:'Nivel '+(prog.cur+1)+' completado: '+L.title+' ('+L.sub+')',note:NEED+' aciertos seguidos en el laboratorio'})}
   save();
-  $('.streak').outerHTML=streakHTML();
+  $('.streak').outerHTML=streakHTML(justDone);
   const fb=$('#fb');
   if(justDone){const next=prog.cur+1<LEVELS.length;
     fb.innerHTML=`<div class="fb ok win"><b>¡Nivel ${prog.cur+1} completado!</b><span>${expl}</span>${next?'<button class="btn" id="nxtlvl" type="button">Ir al nivel '+(prog.cur+2)+'</button>':'<span>Has completado todos los niveles disponibles. Pronto llegan Subredes, Puertos y Saludo TCP.</span>'}<button class="btn ghost" id="nxt" type="button">Seguir practicando aquí</button></div>`;
     paintPath();
-    const nl=$('#nxtlvl');if(nl)nl.addEventListener('click',()=>{prog.cur++;save();render()});
+    const nl=$('#nxtlvl');
+    document.querySelectorAll('#chk,#hint').forEach(b=>b.disabled=true);
+    $('#nxt').addEventListener('click',newQ);
+    if(nl){nl.addEventListener('click',goNext);nl.focus({preventScroll:true})}else $('#nxt').focus({preventScroll:true});
+    return;
   } else {
     fb.innerHTML=`<div class="fb ${ok?'ok':'bad'}">${ok?'¡Correcto! ':'No es correcto. La racha vuelve a 0, no pasa nada. '}<br>${expl}</div><div class="row" style="margin-top:10px"><button class="btn" id="nxt" type="button">Siguiente</button></div>`;
   }
