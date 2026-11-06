@@ -96,6 +96,26 @@ button:disabled{opacity:.5;cursor:default}
 .ref td,.ref th{border:1px solid var(--line);padding:4px 10px;text-align:center}
 .ref th{font-family:var(--f-body);color:var(--muted);font-weight:600}
 .tablewrap{overflow-x:auto}
+/* Calculadora */
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.segb{font:inherit;font-size:14px;font-weight:600;padding:6px 12px;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
+.segb[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.coctets{display:flex;flex-direction:column;gap:16px}
+.coct{display:flex;flex-direction:column;gap:6px;min-width:0}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cin{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.cin input[type=text]{width:84px;font-size:16px;padding:4px 8px}
+.board.cb .sw{padding:6px 0}
+.board.cb .sw .v{font-size:18px}
+.cread{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-mono);font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.cread b{color:var(--ink)}
+.csum{display:flex;flex-wrap:wrap;gap:12px 32px;border-top:1px solid var(--line);padding-top:14px}
+.ctot{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ctot .k{font-size:13px;color:var(--muted)}
+.bigc{font-family:var(--f-display);font-weight:700;font-size:42px;line-height:1;font-variant-numeric:tabular-nums}
+.ctot .v{font-family:var(--f-mono);font-size:17px;font-weight:600;padding-top:8px;overflow-wrap:anywhere}
+.okc{color:var(--ok)}
+.badc{color:var(--bad)}
 footer{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 footer a{color:var(--accent)}
 </style>
@@ -112,7 +132,22 @@ footer a{color:var(--accent)}
 
   <div class="layout">
     <nav class="path" id="path" aria-label="Niveles"></nav>
-    <main class="main" id="main"></main>
+    <main class="main">
+      <div class="main" id="main"></div>
+      <section class="card" id="calc" aria-labelledby="calc-h">
+        <div class="row" style="justify-content:space-between">
+          <h3 id="calc-h">Calculadora de bits</h3>
+          <div class="seg" role="group" aria-label="Tamaño de la calculadora">
+            <button type="button" class="segb" data-m="1" aria-pressed="true">1 octeto</button>
+            <button type="button" class="segb" data-m="4" aria-pressed="false">4 octetos (IP o máscara)</button>
+          </div>
+        </div>
+        <p class="muted">Enciende interruptores o escribe un número de 0 a 255. Te cuenta los unos encendidos y hace la suma por ti.</p>
+        <div class="coctets" id="calc-octs"></div>
+        <div class="csum" id="calc-sum" aria-live="polite"></div>
+        <div class="row"><button class="btn ghost" id="calc-clear" type="button">Apagar todo</button></div>
+      </section>
+    </main>
   </div>
 
   <footer>Practica a tu ritmo. Tu progreso se guarda en este navegador. Cada nivel se desbloquea con 5 aciertos seguidos.</footer>
@@ -248,6 +283,39 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
   document.querySelectorAll('#chk,#hint').forEach(b=>b.disabled=true);
   $('#nxt').addEventListener('click',newQ);$('#nxt').focus({preventScroll:true});
 }
+
+/* calculadora de bits */
+const C={mode:1,v:[0,0,0,0]};
+const ones=n=>{let c=0;while(n){c+=n&1;n>>=1}return c};
+function buildCalc(){const n=C.mode;
+  $('#calc-octs').innerHTML=Array.from({length:n},(_,o)=>`<div class="coct">
+    <div class="chead"><span class="eyebrow">${n>1?'Octeto '+(o+1):'Octeto'}</span>
+    <label class="cin">Decimal <input type="text" inputmode="numeric" autocomplete="off" id="calc-in-${o}" data-o="${o}" value="${C.v[o]}"></label></div>
+    <div class="board b8 cb">${W8.map(w=>`<button type="button" class="sw" data-o="${o}" data-w="${w}" aria-pressed="false" aria-label="Octeto ${o+1}, interruptor ${w}"><span class="w">${w}</span><span class="v">0</span></button>`).join('')}</div>
+    <div class="cread" id="calc-r-${o}"></div></div>`).join('');
+  document.querySelectorAll('#calc-octs .sw').forEach(b=>b.addEventListener('click',()=>{C.v[+b.dataset.o]^=+b.dataset.w;paintCalc()}));
+  document.querySelectorAll('#calc-octs input').forEach(i=>i.addEventListener('input',()=>{const o=+i.dataset.o,t=i.value.trim(),v=parseInt(t,10);
+    if(t===''){C.v[o]=0;paintCalc(i)}else if(/^\d+$/.test(t)&&v<=255){C.v[o]=v;paintCalc(i)}}));
+  document.querySelectorAll('.segb').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===n)));
+  paintCalc();
+}
+function paintCalc(src){const n=C.mode;let total=0;
+  for(let o=0;o<n;o++){const v=C.v[o],k=ones(v);total+=k;
+    document.querySelectorAll(`#calc-octs .sw[data-o="${o}"]`).forEach(b=>{const on=!!(v&+b.dataset.w);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));b.querySelector('.v').textContent=on?1:0});
+    const inp=$('#calc-in-'+o);if(inp!==src)inp.value=v;
+    const parts=W8.filter(w=>v&w);
+    $('#calc-r-'+o).innerHTML=`<span><b>${k}</b> ${k===1?'uno':'unos'}</span><span>${bin(v,8)} → ${parts.length?parts.join(' + ')+' = ':''}<b>${v}</b></span>`;
+  }
+  let h=`<div class="ctot"><span class="k">Unos encendidos</span><span class="bigc">${total}</span></div>`;
+  if(n===1){h+=`<div class="ctot"><span class="k">Valor del octeto</span><span class="bigc">${C.v[0]}</span></div>`}
+  else{const all=C.v.map(x=>bin(x,8)).join(''),valid=/^1*0*$/.test(all);
+    h+=`<div class="ctot"><span class="k">En decimal</span><span class="v">${C.v.join('.')}</span></div>
+      <div class="ctot"><span class="k">¿Es una máscara?</span><span class="v ${valid?'okc':'badc'}">${valid?'Sí → /'+total:'No: los unos no van seguidos desde la izquierda'}</span></div>`}
+  $('#calc-sum').innerHTML=h;
+}
+document.querySelectorAll('.segb').forEach(b=>b.addEventListener('click',()=>{C.mode=+b.dataset.m;buildCalc()}));
+$('#calc-clear').addEventListener('click',()=>{C.v=[0,0,0,0];paintCalc()});
+buildCalc();
 
 render();
 })();
