@@ -116,6 +116,22 @@ button:disabled{opacity:.5;cursor:default}
 .ctot .v{font-family:var(--f-mono);font-size:17px;font-weight:600;padding-top:8px;overflow-wrap:anywhere}
 .okc{color:var(--ok)}
 .badc{color:var(--bad)}
+/* Calculadora flotante */
+.fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
+.calcpanel{position:fixed;z-index:25;top:0;right:0;bottom:0;width:min(380px,100vw);overflow-y:auto;background:var(--surface);border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.14);
+  display:flex;flex-direction:column;gap:12px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));padding-left:16px;padding-right:calc(16px + env(safe-area-inset-right,0px))}
+[hidden]{display:none!important}
+.calcpanel > *{flex-shrink:0}
+.cphead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cphead .btn{padding:4px 10px;font-size:14px}
+.calcpanel .seg{align-self:flex-start}
+.cptip{font-size:14px}
+.calcpanel .board.b8{gap:3px}
+.calcpanel .board.cb .sw .v{font-size:16px}
+.calcpanel .board.cb .sw .w{font-size:11px}
+@media (min-width:1280px){body.calc-open .wrap{margin-right:396px;margin-left:auto}}
+@media (max-width:640px){.calcpanel{top:auto;height:min(78vh,620px);width:100vw;border-left:0;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.18)}}
 /* Pestañas */
 .tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px}
 .tabs a{font-family:var(--f-display);font-weight:600;font-size:18px;text-decoration:none;color:var(--muted);padding:6px 14px;border-radius:6px}
@@ -214,25 +230,28 @@ footer a{color:var(--accent)}
     <nav class="path" id="path" aria-label="Niveles"></nav>
     <main class="main">
       <div class="main" id="main"></div>
-      <section class="card" id="calc" aria-labelledby="calc-h">
-        <div class="row" style="justify-content:space-between">
-          <h3 id="calc-h">Calculadora de bits</h3>
-          <div class="seg" role="group" aria-label="Tamaño de la calculadora">
-            <button type="button" class="segb" data-m="1" aria-pressed="true">1 octeto</button>
-            <button type="button" class="segb" data-m="4" aria-pressed="false">4 octetos (IP o máscara)</button>
-          </div>
-        </div>
-        <p class="muted">Enciende interruptores o escribe un número de 0 a 255. Te cuenta los unos encendidos y hace la suma por ti.</p>
-        <div class="coctets" id="calc-octs"></div>
-        <div class="csum" id="calc-sum" aria-live="polite"></div>
-        <div class="row"><button class="btn ghost" id="calc-clear" type="button">Apagar todo</button></div>
-      </section>
     </main>
   </div>
   </section>
 
   <footer>Tu progreso se guarda en este navegador. Descarga una copia de seguridad en Resultados de vez en cuando, sobre todo antes de cambiar de navegador o de equipo.</footer>
 </div>
+
+<button type="button" class="fab" id="calc-fab" aria-controls="calc" aria-expanded="false">Calculadora</button>
+<aside class="calcpanel" id="calc" aria-labelledby="calc-h" hidden>
+  <div class="cphead">
+    <h3 id="calc-h">Calculadora de bits</h3>
+    <button type="button" class="btn ghost" id="calc-close" aria-label="Cerrar calculadora">Cerrar</button>
+  </div>
+  <div class="seg" role="group" aria-label="Tamaño de la calculadora">
+    <button type="button" class="segb" data-m="1" aria-pressed="true">1 octeto</button>
+    <button type="button" class="segb" data-m="4" aria-pressed="false">4 octetos</button>
+  </div>
+  <p class="muted cptip">Piensa primero tu respuesta y usa esto para comprobarla.</p>
+  <div class="coctets" id="calc-octs"></div>
+  <div class="csum" id="calc-sum" aria-live="polite"></div>
+  <div class="row"><button class="btn ghost" id="calc-clear" type="button">Apagar todo</button></div>
+</aside>
 
 <script>
 (function(){
@@ -408,6 +427,12 @@ function paintCalc(src){const n=C.mode;let total=0;
 document.querySelectorAll('.segb').forEach(b=>b.addEventListener('click',()=>{C.mode=+b.dataset.m;buildCalc()}));
 $('#calc-clear').addEventListener('click',()=>{C.v=[0,0,0,0];paintCalc()});
 buildCalc();
+function setCalc(open){$('#calc').hidden=!open;$('#calc-fab').setAttribute('aria-expanded',String(open));$('#calc-fab').textContent=open?'Ocultar calculadora':'Calculadora';
+  document.body.classList.toggle('calc-open',open);try{localStorage.setItem('cyberlab-calc',open?'1':'0')}catch(e){}}
+$('#calc-fab').addEventListener('click',()=>setCalc($('#calc').hidden));
+$('#calc-close').addEventListener('click',()=>{setCalc(false);$('#calc-fab').focus()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#calc').hidden){setCalc(false);$('#calc-fab').focus()}});
+try{if(localStorage.getItem('cyberlab-calc')==='1'&&window.innerWidth>=1280)setCalc(true)}catch(e){}
 
 /* ================= HOJA DE RUTA ================= */
 const STATUS={pendiente:'Pendiente',estudiando:'Estudiando',programado:'Examen programado',aprobado:'Aprobado'};
