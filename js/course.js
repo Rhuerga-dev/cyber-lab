@@ -662,7 +662,8 @@ function paintTask() {
   const T = S.task || (S.q ? { type: 'exam' } : { type: 'read' });
   const hintBtn = S.hint && S.hint.length ? `<button class="btn ghost" type="button" id="hint">${escH(t('Pedir una pista a {name}', { name: AGENTS[L.agent].name }))}</button>` : '';
   if (T.type === 'read') {
-    box.innerHTML = `<div class="row"><button class="btn" type="button" id="cont">${escH(t(T.label || 'Entendido, continuar'))}</button></div>`;
+    box.innerHTML = `<div class="row"><button class="btn" type="button" id="cont">${escH(t(T.label || 'Entendido, continuar'))}</button></div>` +
+      (L.exam ? `<p class="muted small examnote">${escH(t('Al empezar se activa el modo examen: se ocultan el menú, la terminal, la calculadora y la ayuda de la IA, y no podrás cambiar de lección. Si sales de esta ventana o cambias de pestaña {max} veces, el examen se anula.', { max: MAX_LEAVES }))}</p>` : '');
     box.querySelector('#cont').addEventListener('click', () => { if (L.exam) { advance(); } else complete(null); });
     box.querySelector('#cont').focus({ preventScroll: true });
   } else if (T.type === 'cmd') {
@@ -709,12 +710,14 @@ function complete(extra) {
 
 function advance() {
   const L = byId(cur), s = ls(cur);
+  if (L.exam && s.step === 0) lockOn();
   s.step++;
   if (s.step >= stepsOf(L).length) return finishExam();
   showStep(); paintTask();
 }
 
 function finishExam() {
+  lockOff();
   const L = byId(cur), s = ls(cur), total = stepsOf(L).length - 1, pct = Math.round(exam.right / total * 100);
   const passed = pct >= L.pass;
   exam.finished = true;
@@ -731,6 +734,7 @@ function finishExam() {
 
 // Pinta el resultado del examen ya terminado (también al cambiar de idioma)
 function paintExamResult() {
+  if (exam.finished && exam.finished.annulled) return paintAnnulled();
   const L = byId(cur), s = ls(cur), { total, pct, passed, per, weak } = exam.finished;
   bubble(L.agent, `<p><b>${escH(t('Resultado: {right} de {total} ({pct} %).', { right: exam.right, total, pct }))}</b></p><p>${passed ? fmtInline(t('¡Aprobado! Has completado la Fase 1 del curso. Ya tienes la base para preparar el **Cisco CCST Networking**.')) : escH(t('No llegas al {pass} %. Repasa las lecciones de las preguntas que fallaste y vuelve a intentarlo.', { pass: L.pass }))}</p>`, passed ? 'ok' : 'bad');
   bubble(L.agent, `<p><b>${t('Por tema:')}</b></p><table class="ref examtbl">${Object.keys(per).sort((a, b) => (per[a].ok / per[a].n) - (per[b].ok / per[b].n)).map(k => `<tr><td>${escH(t(TOPICS[k][0]))}</td><td>${per[k].ok}/${per[k].n}</td><td>${per[k].ok < per[k].n ? `<a href="#curso" data-goto="${TOPICS[k][1]}">${t('Repasar lección')}</a>` : '✓'}</td></tr>`).join('')}</table>` +
@@ -741,6 +745,68 @@ function paintExamResult() {
   box.querySelector('#retry').addEventListener('click', () => openLesson(cur));
   const prog = root.querySelector('#cprog'); if (prog) prog.innerHTML = `<span class="pill ${passed ? 'aprobado' : 'programado'}">${escH(t('Mejor nota: {n} %', { n: s.best }))}</span>`;
 }
+
+/* ------------------------------------------------------------------ */
+/* Modo examen bloqueado: sin menú ni ayudas, y vigilando si sales     */
+/* ------------------------------------------------------------------ */
+const MAX_LEAVES = 3;
+let lock = null; // { leaves, away }
+function lockOn() {
+  if (lock) return;
+  lock = { leaves: 0, away: false };
+  document.body.classList.add('exam-mode');
+  const bar = document.createElement('div'); bar.className = 'exambar'; bar.id = 'exambar'; bar.setAttribute('role', 'status');
+  root.querySelector('.cmain').prepend(bar); paintBar();
+  document.addEventListener('visibilitychange', onVis);
+  global.addEventListener('blur', onAway); global.addEventListener('focus', onBack);
+  global.addEventListener('beforeunload', onUnload); global.addEventListener('hashchange', onHash);
+  // Pantalla completa si el navegador lo permite (si no, no pasa nada)
+  try { const r = document.documentElement; if (r.requestFullscreen && !document.fullscreenElement) r.requestFullscreen().catch(() => {}); } catch (e) {}
+  global.scrollTo(0, 0);
+}
+function lockOff() {
+  if (!lock) return;
+  lock = null;
+  document.body.classList.remove('exam-mode');
+  const b = document.getElementById('exambar'); if (b) b.remove();
+  document.removeEventListener('visibilitychange', onVis);
+  global.removeEventListener('blur', onAway); global.removeEventListener('focus', onBack);
+  global.removeEventListener('beforeunload', onUnload); global.removeEventListener('hashchange', onHash);
+  try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
+}
+function paintBar() {
+  const b = document.getElementById('exambar'); if (!b || !lock) return;
+  b.innerHTML = `<b>${escH(t('Modo examen'))}</b><span>${escH(t('No salgas de esta ventana ni cambies de pestaña hasta terminar.'))}</span><span class="exl${lock.leaves ? ' warn' : ''}">${escH(t('Salidas: {n} de {max}', { n: lock.leaves, max: MAX_LEAVES }))}</span>`;
+}
+function onVis() { if (document.visibilityState === 'hidden') onAway(); else onBack(); }
+function onBack() { if (lock) lock.away = false; }
+function onAway() {
+  if (!lock || lock.away) return;
+  lock.away = true; lock.leaves++; paintBar();
+  const L = byId(cur);
+  if (lock.leaves >= MAX_LEAVES) return annul();
+  bubble(L.agent, `<p><b>${escH(t('Has salido de la ventana del examen ({n} de {max}).', { n: lock.leaves, max: MAX_LEAVES }))}</b> ${escH(t('Si sales {max} veces, el examen se anula.', { max: MAX_LEAVES }))}</p>`, 'bad');
+}
+function onUnload(e) { if (lock) { e.preventDefault(); e.returnValue = ''; } }
+function onHash() { if (lock && location.hash !== '#curso') location.hash = '#curso'; }
+function annul() {
+  const L = byId(cur), s = ls(cur);
+  lockOff();
+  exam.finished = { annulled: true };
+  s.step = 0;
+  CL().addLog({ type: 'practica', title: I18N.t('Examen Fase 1 anulado: saliste de la ventana {n} veces', { n: MAX_LEAVES }) });
+  save(); paintList();
+  paintAnnulled();
+}
+function paintAnnulled() {
+  const L = byId(cur);
+  bubble(L.agent, `<p><b>${escH(t('Examen anulado.'))}</b> ${escH(t('Saliste de la ventana del examen {n} veces. En un examen real, como los de Cisco o CompTIA, eso también lo anularía. Repasa con calma y vuelve a intentarlo cuando estés listo.', { n: MAX_LEAVES }))}</p>`, 'bad');
+  const box = root.querySelector('.ctask');
+  box.innerHTML = `<div class="row"><button class="btn" type="button" id="retry">${t('Repetir examen')}</button></div>`;
+  box.querySelector('#retry').addEventListener('click', () => openLesson(cur));
+  const prog = root.querySelector('#cprog'); if (prog) prog.innerHTML = `<span class="pill programado">${escH(t('Anulado'))}</span>`;
+}
+
 const fmtInline = s => escH(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
 function finish() {

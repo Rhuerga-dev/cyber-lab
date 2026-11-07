@@ -1,5 +1,15 @@
 (window.I18N_DICT = window.I18N_DICT || { en: {} }).en = window.I18N_DICT.en || {};
 Object.assign(window.I18N_DICT.en, {
+  "Al empezar se activa el modo examen: se ocultan el menú, la terminal, la calculadora y la ayuda de la IA, y no podrás cambiar de lección. Si sales de esta ventana o cambias de pestaña {max} veces, el examen se anula.": "When you start, exam mode turns on: the menu, terminal, calculator and AI help are hidden, and you can't switch lessons. If you leave this window or switch tabs {max} times, the exam is voided.",
+  "Modo examen": "Exam mode",
+  "No salgas de esta ventana ni cambies de pestaña hasta terminar.": "Don't leave this window or switch tabs until you finish.",
+  "Salidas: {n} de {max}": "Times left: {n} of {max}",
+  "Has salido de la ventana del examen ({n} de {max}).": "You left the exam window ({n} of {max}).",
+  "Si sales {max} veces, el examen se anula.": "If you leave {max} times, the exam is voided.",
+  "Examen Fase 1 anulado: saliste de la ventana {n} veces": "Phase 1 exam voided: you left the window {n} times",
+  "Examen anulado.": "Exam voided.",
+  "Saliste de la ventana del examen {n} veces. En un examen real, como los de Cisco o CompTIA, eso también lo anularía. Repasa con calma y vuelve a intentarlo cuando estés listo.": "You left the exam window {n} times. In a real exam, like Cisco's or CompTIA's, that would void it too. Review calmly and try again when you're ready.",
+  "Anulado": "Voided",
   "Examen Fase 1 del curso: {pct} % (aprobado)": "Course Phase 1 exam: {pct}% (passed)",
   "Examen Fase 1 del curso: {pct} %": "Course Phase 1 exam: {pct}%",
   "Lección completada: {title}": "Lesson completed: {title}",
