@@ -128,7 +128,8 @@ function open(mode, notice) {
       ${isReg ? `<label>${t('Nombre')}<input type="text" id="acct-name" autocomplete="name" required maxlength="80"></label>` : ''}
       <label>${t('Correo')}<input type="email" id="acct-email" autocomplete="email" required></label>
       <label>${t('Contraseña')}<input type="password" id="acct-pass" autocomplete="${isReg ? 'new-password' : 'current-password'}" required></label>
-      ${isReg ? `<label>${t('Repite la contraseña')}<input type="password" id="acct-pass2" autocomplete="new-password" required></label><p class="muted small">${t('Mínimo 10 caracteres, con letras y números.')}</p>` : ''}
+      ${isReg ? `<label>${t('Repite la contraseña')}<input type="password" id="acct-pass2" autocomplete="new-password" required></label><p class="muted small">${t('Mínimo 10 caracteres, con letras y números.')}</p>
+      <label>${t('Código de invitación')} <span class="muted small">${t('(si te dieron uno)')}</span><input type="text" id="acct-invite" autocomplete="off" autocapitalize="characters" maxlength="40"></label>` : ''}
       <div id="acct-err" aria-live="polite"></div>
       <div class="row"><button class="btn" type="submit" id="acct-go">${isReg ? t('Crear cuenta') : t('Entrar')}</button>
       <button class="btn ghost" type="button" data-switch>${isReg ? t('Ya tengo cuenta') : t('Crear una cuenta')}</button></div>
@@ -141,7 +142,10 @@ function open(mode, notice) {
     e.preventDefault();
     const err = d.querySelector('#acct-err'), go = d.querySelector('#acct-go');
     const body = { email: d.querySelector('#acct-email').value.trim(), password: d.querySelector('#acct-pass').value, device: navigator.platform || 'navegador' };
-    if (isReg) { body.name = d.querySelector('#acct-name').value.trim(); body.password_confirmation = d.querySelector('#acct-pass2').value; }
+    if (isReg) {
+      body.name = d.querySelector('#acct-name').value.trim(); body.password_confirmation = d.querySelector('#acct-pass2').value;
+      const inv = d.querySelector('#acct-invite').value.trim(); if (inv) body.invite = inv;
+    }
     go.disabled = true; err.innerHTML = '';
     try {
       const r = await call('POST', isReg ? '/register' : '/login', body);
