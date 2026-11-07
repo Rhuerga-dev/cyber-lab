@@ -241,6 +241,20 @@ kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid va
 .portgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
 .portgrid div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:14px}
 .portgrid b{font-family:var(--f-mono);color:var(--accent)}
+.teach ul.parts,.teach ol.steps5{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.teach ul.parts{list-style:none;padding-left:0}
+.sw3{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+.sw3.net{background:var(--accent)}.sw3.bc{background:var(--bit)}.sw3.host{background:var(--ok)}
+.street{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.street label{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.street select,.street input{font:inherit;font-family:var(--f-mono);font-size:16px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.stbar{display:flex;gap:2px;height:42px}
+.stblk{background:var(--surface);border:1px solid var(--line);border-radius:3px;position:relative;min-width:0}
+.stblk span{position:absolute;left:3px;top:2px;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.stblk.mine{background:var(--ok-bg);border-color:var(--ok)}
+.stblk.mine span{color:var(--ok);font-weight:600}
+.stout{font-size:15px;display:flex;flex-direction:column;gap:6px}
+.stparts{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:14px}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
@@ -483,10 +497,27 @@ const LEVELS=[
   <div class="tablewrap"><table class="ref"><tr><th>Octeto</th>${MASK_VALUES.map(m=>'<td>'+m[0]+'</td>').join('')}</tr><tr><th>Unos</th>${MASK_VALUES.map(m=>'<td>'+m[1]+'</td>').join('')}</tr></table></div>`,
   gen:()=>rnd(8,30)},
  {id:'subredes',title:'Subredes',sub:'Red, broadcast y equipos',mode:'ask',
-  teach:`<p>Con una IP y su prefijo calculas todo en 3 pasos. Solo cambia el octeto donde la máscara no es 255.</p>
-  <div class="ex">1. Tamaño de bloque = 256 − octeto de la máscara<br>&nbsp;&nbsp;&nbsp;/26 → máscara .192 → 256 − 192 = <b>64</b><br>2. Los bloques empiezan en 0, 64, 128, 192…<br>&nbsp;&nbsp;&nbsp;Busca el inicio más grande que no se pase de tu número<br>3. Red = ese inicio · Broadcast = inicio del siguiente − 1<br>&nbsp;&nbsp;&nbsp;Equipos usables = bloque − 2</div>
-  <div class="ex">10.0.5.77/26 → bloque 64 → 77 está entre 64 y 127<br>Red 10.0.5.64 · Broadcast 10.0.5.127 · 62 equipos</div>
-  <div class="tablewrap"><table class="ref"><tr><th>Prefijo</th><td>/25</td><td>/26</td><td>/27</td><td>/28</td><td>/29</td><td>/30</td></tr><tr><th>Bloque</th><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td></tr><tr><th>Usables</th><td>126</td><td>62</td><td>30</td><td>14</td><td>6</td><td>2</td></tr></table></div>`,
+  teach:`<p><b>1. Solo cambia el último número.</b> En redes de /24 a /30, los tres primeros números de la IP (por ejemplo <code>10.0.5.</code>) se copian tal cual. Todo el cálculo se hace con el último, que va de 0 a 255.</p>
+  <p><b>2. Imagina una calle con 256 casas</b>, numeradas del 0 al 255. El prefijo dice en cuántas <b>manzanas</b> (bloques) se divide la calle. Cada vez que el prefijo sube 1, las manzanas se parten por la mitad:</p>
+  <div class="tablewrap"><table class="ref"><tr><th>Prefijo</th><td>/24</td><td>/25</td><td>/26</td><td>/27</td><td>/28</td><td>/29</td><td>/30</td></tr><tr><th>Casas por manzana</th><td>256</td><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td></tr><tr><th>Equipos usables</th><td>254</td><td>126</td><td>62</td><td>30</td><td>14</td><td>6</td><td>2</td></tr></table></div>
+  <p>Solo tienes que memorizar la fila del medio: <b>256, 128, 64, 32, 16, 8, 4</b>, siempre la mitad.</p>
+  <p><b>3. Cada manzana tiene tres partes:</b></p>
+  <ul class="parts"><li><span class="sw3 net"></span><b>Primera casa = dirección de red.</b> Es el nombre de la manzana. No se da a ningún equipo.</li>
+  <li><span class="sw3 host"></span><b>Casas de en medio = equipos.</b> Por eso los usables son el bloque − 2.</li>
+  <li><span class="sw3 bc"></span><b>Última casa = broadcast.</b> El megáfono para hablar a todos a la vez. Tampoco se da a ningún equipo.</li></ul>
+  <p><b>4. Pruébalo aquí.</b> Elige un prefijo y un número de casa y mira en qué manzana cae:</p>
+  <div class="street" id="street">
+    <div class="row"><label>Prefijo <select id="st-c">${[24,25,26,27,28,29,30].map(c=>'<option'+(c===26?' selected':'')+'>'+c+'</option>').join('')}</select></label>
+    <label>Último número de la IP <input type="number" id="st-n" min="0" max="255" value="77" style="width:90px"></label></div>
+    <div class="stbar" id="st-bar" aria-hidden="true"></div>
+    <div class="stout" id="st-out" aria-live="polite"></div>
+  </div>
+  <p><b>5. El método, siempre igual</b> (ejemplo con <code>10.0.5.77/26</code>):</p>
+  <ol class="steps5"><li>¿Tamaño de manzana? /26 → <b>64</b>.</li>
+  <li>¿Dónde empiezan las manzanas? Desde 0, sumando 64: <b>0, 64, 128, 192</b>.</li>
+  <li>¿En cuál vive el 77? Es mayor que 64 y menor que 128 → manzana <b>64–127</b>.</li>
+  <li>Red = primera casa: <b>10.0.5.64</b>. Broadcast = última: <b>10.0.5.127</b>. Equipos: 64 − 2 = <b>62</b> (de .65 a .126).</li></ol>
+  <p><b>Truco para números grandes:</b> divide entre el tamaño de manzana y quédate con la parte entera. 200 ÷ 32 = 6,25 → 6 × 32 = <b>192</b>, que es la red. Broadcast = red + bloque − 1 = 192 + 32 − 1 = <b>223</b>.</p>`,
   gen:genSubnet},
  {id:'puertos',title:'Puertos',sub:'Qué hay detrás de cada puerta',mode:'ask',
   teach:`<p>Estos son los puertos que verás en cualquier escaneo. Apréndelos en las dos direcciones: número → servicio y servicio → número.</p>
@@ -521,10 +552,21 @@ function paintPath(){
 }
 
 let state={};
+
+function initStreet(){const box=$('#street');if(!box)return;
+  const draw=()=>{const c=+$('#st-c').value;let n=parseInt($('#st-n').value,10);if(isNaN(n)||n<0)n=0;if(n>255)n=255;
+    const size=2**(32-c),start=n-(n%size),end=start+size-1,count=256/size;
+    let html='';for(let i=0;i<count;i++){const st=i*size,mine=st===start;
+      html+=`<div class="stblk${mine?' mine':''}" style="flex:1" title="${st}–${st+size-1}">${mine||size>=32?`<span>${st}</span>`:''}</div>`}
+    $('#st-bar').innerHTML=html;
+    $('#st-out').innerHTML=`<div>/${c} → manzanas de <b>${size}</b> casas (${count} manzana${count>1?'s':''}). El <b>${n}</b> vive en la manzana <b>${start}–${end}</b>.</div>
+      <div class="stparts"><span><i class="sw3 net"></i>Red: <b>.${start}</b></span><span><i class="sw3 host"></i>Equipos: <b>.${start+1} a .${end-1}</b> (${size-2})</span><span><i class="sw3 bc"></i>Broadcast: <b>.${end}</b></span></div>`};
+  $('#st-c').addEventListener('change',draw);$('#st-n').addEventListener('input',draw);draw()}
 function render(){paintPath();const L=LEVELS[prog.cur];
   $('#main').innerHTML=`<section class="card"><div class="eyebrow">Nivel ${prog.cur+1} · ${L.sub}</div><h2>${L.title}</h2>
     <details class="teach" ${prog.done.includes(L.id)?'':'open'}><summary>Explicación</summary><div class="teach">${L.teach}</div></details></section>
     <section class="card" id="practice"></section>`;
+  initStreet();
   newQ();
 }
 

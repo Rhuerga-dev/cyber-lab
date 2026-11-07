@@ -119,10 +119,14 @@ const F1 = [
 {
   id: 'f1-subnetting', title: 'Subnetting: dividir una red', agent: 'marco', topics: ['subnetting'], mins: 15,
   steps: [
-    { say: 'LabCorp va a separar la red en trozos más pequeños: servidores, empleados, cámaras… Eso es **subnetting**.\n\nEl truco rápido: **tamaño de bloque = 256 − último octeto de la máscara que no es 255**. Para un /26 (255.255.255.192): 256 − 192 = **64**. Las subredes empiezan en 0, 64, 128, 192.',
+    { say: 'LabCorp va a separar la red en trozos más pequeños: servidores, empleados, cámaras… Eso es **subnetting**. Te lo explico con una imagen.\n\nEn redes de /24 a /30, los tres primeros números de la IP se copian tal cual. **Solo calculas con el último**, que va de 0 a 255. Imagínalo como **una calle con 256 casas**, numeradas del 0 al 255.',
+      task: { type: 'read' } },
+    { say: 'El prefijo dice en cuántas **manzanas** se divide la calle. Cada vez que el prefijo sube 1, las manzanas se parten por la mitad:\n\n/24 → 1 manzana de **256** casas\n/25 → 2 de **128**\n/26 → 4 de **64**\n/27 → 8 de **32**\n/28 → 16 de **16**\n/29 → 32 de **8**\n/30 → 64 de **4**\n\nSolo memoriza: **256, 128, 64, 32, 16, 8, 4**.',
+      task: { type: 'read' } },
+    { say: 'Cada manzana tiene 3 partes:\n\n**Primera casa** = dirección de **red** (el nombre de la manzana).\n**Casas de en medio** = los **equipos**. Por eso los usables son el bloque − 2.\n**Última casa** = **broadcast** (el megáfono para hablar a todos).\n\nEl método: 1) tamaño de manzana según el prefijo, 2) dónde empiezan las manzanas (0, 64, 128…), 3) en cuál cae tu número, 4) primera casa = red, última = broadcast.\n\nEn **Práctica → Subredes** tienes una calle interactiva para verlo dibujado.',
       task: { type: 'read' } },
     { say: 'Un equipo tiene la IP **10.10.10.77/26**. ¿Cuál es su **dirección de red**?',
-      task: { type: 'answer', accept: ['10.10.10.64', '10.10.10.64/26'] }, hint: ['Los bloques de /26 empiezan en 0, 64, 128 y 192. ¿En cuál cae el 77?', '77 está entre 64 y 127, así que la red es 10.10.10.64'],
+      task: { type: 'answer', accept: ['10.10.10.64', '10.10.10.64/26'] }, hint: ['/26 son manzanas de 64. Empiezan en 0, 64, 128 y 192. ¿En cuál vive el 77?', '77 está en la manzana 64–127. La primera casa es la red: 10.10.10.64'],
       done: 'Bien. 77 cae en el bloque que empieza en 64.' },
     { say: '¿Y su **broadcast**?',
       task: { type: 'answer', accept: ['10.10.10.127'] }, hint: ['El broadcast es la última dirección del bloque: el inicio del siguiente bloque menos 1.', '128 − 1 = 127, así que 10.10.10.127'],
