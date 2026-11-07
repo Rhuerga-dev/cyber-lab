@@ -421,13 +421,17 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function genSubnet(){
   const c=rnd(24,30),k=rnd(0,2),o1=k===0?192:k===1?10:172,o2=k===0?168:k===1?rnd(0,255):rnd(16,31),o3=rnd(0,255),o4=rnd(1,254);
-  const size=2**(32-c),start=o4-(o4%size),pre=o1+'.'+o2+'.'+o3+'.',net=pre+start,bc=pre+(start+size-1),hosts=size-2,ip=pre+o4+'/'+c;
-  const mo=256-size;
+  const size=2**(32-c),idx=Math.floor(o4/size),start=idx*size,end=start+size-1,pre=o1+'.'+o2+'.'+o3+'.',net=pre+start,bc=pre+end,hosts=size-2,ip=pre+o4+'/'+c;
+  const dec=(o4/size).toFixed(2).replace('.',',').replace(/,?0+$/,'');
+  // Mismos pasos que la explicación: manzana → dividir → red → broadcast
+  const p1='<b>1.</b> /'+c+' → manzanas de <b>'+size+'</b> casas.';
+  const p2=c===24?'<b>2.</b> Con /24 hay una sola manzana (0–255), así que la red es <b>.0</b>.':'<b>2.</b> '+o4+' ÷ '+size+' = '+dec+' → me quedo con <b>'+idx+'</b> → '+idx+' × '+size+' = <b>'+start+'</b> → red <b>.'+start+'</b>.';
+  const p3='<b>3.</b> Broadcast = red + manzana − 1 = '+start+' + '+size+' − 1 = <b>'+end+'</b>.';
+  const steps=p1+'<br>'+p2+'<br>'+p3;
   const kind=pick(['net','net','bc','hosts']);
-  const how='Prefijo /'+c+' → máscara .'+mo+' → bloque 256 − '+mo+' = <b>'+size+'</b>. '+o4+' cae en el bloque '+start+'–'+(start+size-1)+'.';
-  if(kind==='net')return{q:'¿Cuál es la dirección de red?',big:ip,answer:net,ph:'ej. '+pre+'0',why:how+' Red: <b>'+net+'</b>',hint:'El bloque es de '+size+'. ¿Qué múltiplo de '+size+' es el más grande sin pasarse de '+o4+'?'};
-  if(kind==='bc')return{q:'¿Cuál es el broadcast?',big:ip,answer:bc,ph:'ej. '+pre+'255',why:how+' Broadcast: <b>'+bc+'</b>',hint:'Busca el bloque de '+o4+' (bloques de '+size+'). El broadcast es el último número del bloque.'};
-  return{q:'¿Cuántos equipos usables hay en esta red?',big:'/'+c,answer:String(hosts),ph:'ej. 62',why:'2^'+(32-c)+' = '+size+' direcciones − 2 (red y broadcast) = <b>'+hosts+'</b>',hint:'Hay '+(32-c)+' bits de equipo. Calcula 2 elevado a eso y resta 2.'};
+  if(kind==='net')return{q:'¿Cuál es la dirección de red?',big:ip,answer:net,ph:'ej. '+pre+'0',why:steps+'<br>Respuesta: <b>'+net+'</b>',hint:'/'+c+' son manzanas de '+size+'. Divide '+o4+' entre '+size+', quédate con la parte entera y multiplícala por '+size+'.'};
+  if(kind==='bc')return{q:'¿Cuál es el broadcast?',big:ip,answer:bc,ph:'ej. '+pre+'255',why:steps+'<br>Respuesta: <b>'+bc+'</b>',hint:'Primero saca la red ('+o4+' ÷ '+size+', parte entera × '+size+'). Luego: red + '+size+' − 1. No olvides el − 1.'};
+  return{q:'¿Cuántos equipos usables hay en esta red?',big:'/'+c,answer:String(hosts),ph:'ej. 62',why:'<b>1.</b> /'+c+' → manzanas de <b>'+size+'</b> casas.<br><b>2.</b> Quita la primera (red) y la última (broadcast): '+size+' − 2 = <b>'+hosts+'</b>.',hint:'Mira cuántas casas tiene la manzana en un /'+c+' y réstale 2.'};
 }
 const PORTS=[[21,'FTP'],[22,'SSH'],[23,'Telnet'],[25,'SMTP'],[53,'DNS'],[80,'HTTP'],[110,'POP3'],[143,'IMAP'],[443,'HTTPS'],[445,'SMB'],[3306,'MySQL'],[3389,'RDP'],[5432,'PostgreSQL'],[8080,'HTTP alternativo']];
 const PORT_NOTE={21:'Transfiere archivos sin cifrar.',22:'Acceso remoto cifrado. Muy atacado por fuerza bruta.',23:'Acceso remoto SIN cifrar: todo viaja en texto plano.',25:'Envío de correo entre servidores.',53:'Traduce nombres a IPs.',80:'Web sin cifrar.',110:'Descarga de correo (antiguo).',143:'Lectura de correo.',443:'Web cifrada con TLS.',445:'Carpetas compartidas de Windows. WannaCry se propagó por aquí.',3306:'Base de datos. Nunca expuesta a internet.',3389:'Escritorio remoto de Windows. Objetivo clásico de ransomware.',5432:'Base de datos. Nunca expuesta a internet.',8080:'Servidores web de desarrollo o proxies.'};
