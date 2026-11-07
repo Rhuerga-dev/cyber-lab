@@ -283,7 +283,12 @@ kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid va
 /* Modo examen */
 body.exam-mode .tabs,body.exam-mode .cbar,body.exam-mode .fab,body.exam-mode .calcpanel,body.exam-mode .prefs,body.exam-mode .cterm,body.exam-mode .clist,body.exam-mode .cask,body.exam-mode footer,body.exam-mode #acct-btn{display:none!important}
 body.exam-mode .course{grid-template-columns:minmax(0,1fr)!important}
-body.exam-mode .chat{user-select:none;-webkit-user-select:none;max-height:min(62vh,760px)}
+body.exam-mode .chat{user-select:none;-webkit-user-select:none;max-height:none;overflow:visible}
+body.exam-mode .chat .msg{scroll-margin-top:72px}
+body.exam-mode .exambar{position:sticky;top:8px;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+/* Pantalla completa: algunos navegadores (Safari) bloquean el scroll del documento si no se indica */
+html:fullscreen{overflow-y:auto!important;background:var(--bg)}
+html:-webkit-full-screen{overflow-y:auto!important;width:100%!important;height:100%!important;background:var(--bg)}
 body.exam-mode .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))}
 .exambar{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:10px 14px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:15px}
 .exambar .exl{margin-left:auto;font-family:var(--f-mono);font-size:13px}
