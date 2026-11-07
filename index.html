@@ -255,6 +255,8 @@ kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid va
 .stblk.mine span{color:var(--ok);font-weight:600}
 .stout{font-size:15px;display:flex;flex-direction:column;gap:6px}
 .stparts{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:14px}
+.ippre{font-family:var(--f-mono);font-size:20px;font-weight:600;color:var(--muted);margin-right:-6px}
+.lastoct{font-weight:600}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
@@ -429,8 +431,8 @@ function genSubnet(){
   const p3='<b>3.</b> Broadcast = red + manzana − 1 = '+start+' + '+size+' − 1 = <b>'+end+'</b>.';
   const steps=p1+'<br>'+p2+'<br>'+p3;
   const kind=pick(['net','net','bc','hosts']);
-  if(kind==='net')return{q:'¿Cuál es la dirección de red?',big:ip,answer:net,ph:'ej. '+pre+'0',why:steps+'<br>Respuesta: <b>'+net+'</b>',hint:'/'+c+' son manzanas de '+size+'. Divide '+o4+' entre '+size+', quédate con la parte entera y multiplícala por '+size+'.'};
-  if(kind==='bc')return{q:'¿Cuál es el broadcast?',big:ip,answer:bc,ph:'ej. '+pre+'255',why:steps+'<br>Respuesta: <b>'+bc+'</b>',hint:'Primero saca la red ('+o4+' ÷ '+size+', parte entera × '+size+'). Luego: red + '+size+' − 1. No olvides el − 1.'};
+  if(kind==='net')return{q:'¿Cuál es la dirección de red?',big:ip,answer:net,pre,ph:'0',why:steps+'<br>Respuesta: <b>'+net+'</b>',hint:'/'+c+' son manzanas de '+size+'. Divide '+o4+' entre '+size+', quédate con la parte entera y multiplícala por '+size+'.'};
+  if(kind==='bc')return{q:'¿Cuál es el broadcast?',big:ip,answer:bc,pre,ph:'255',why:steps+'<br>Respuesta: <b>'+bc+'</b>',hint:'Primero saca la red ('+o4+' ÷ '+size+', parte entera × '+size+'). Luego: red + '+size+' − 1. No olvides el − 1.'};
   return{q:'¿Cuántos equipos usables hay en esta red?',big:'/'+c,answer:String(hosts),ph:'ej. 62',why:'<b>1.</b> /'+c+' → manzanas de <b>'+size+'</b> casas.<br><b>2.</b> Quita la primera (red) y la última (broadcast): '+size+' − 2 = <b>'+hosts+'</b>.',hint:'Mira cuántas casas tiene la manzana en un /'+c+' y réstale 2.'};
 }
 const PORTS=[[21,'FTP'],[22,'SSH'],[23,'Telnet'],[25,'SMTP'],[53,'DNS'],[80,'HTTP'],[110,'POP3'],[143,'IMAP'],[443,'HTTPS'],[445,'SMB'],[3306,'MySQL'],[3389,'RDP'],[5432,'PostgreSQL'],[8080,'HTTP alternativo']];
@@ -596,7 +598,7 @@ function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0
   } else if(L.mode==='ask'){
     P.innerHTML=`${streakHTML()}<p class="q">${target.q}${target.big?'<br><span class="big">'+esc(target.big)+'</span>':''}</p>`+
       (target.opts?`<div class="qopts">${target.opts.map((o,i)=>`<button type="button" class="qopt" data-i="${i}">${esc(o)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="hint" type="button">Pista</button><button id="chk" hidden></button></div><div id="fb"></div>`
-      :`<div class="row"><input type="text" id="ans" autocomplete="off" spellcheck="false" placeholder="${esc(target.ph||'')}" aria-label="Tu respuesta" style="width:min(260px,100%)"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`);
+      :`<div class="row">${target.pre?`<label class="ippre" for="ans">${esc(target.pre)}</label>`:''}<input type="text" id="ans" autocomplete="off" spellcheck="false" ${target.pre?'inputmode="numeric" class="lastoct"':''} placeholder="${esc(target.ph||'')}" aria-label="${target.pre?'Último número de la IP':'Tu respuesta'}" style="width:${target.pre?'90px':'min(260px,100%)'}"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`);
     P.querySelectorAll('.qopt').forEach(b=>b.addEventListener('click',()=>{if(state.answered)return;state.choice=target.opts[+b.dataset.i];P.querySelectorAll('.qopt').forEach(x=>{x.disabled=true;if(x.textContent===target.answer)x.classList.add('right');else if(x===b)x.classList.add('wrong')});check()}));
   } else {
     const c=target;const m=c===0?0:(0xFFFFFFFF<<(32-c))>>>0;const o=[m>>>24,(m>>>16)&255,(m>>>8)&255,m&255];state.mask=o;
@@ -625,7 +627,8 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
     ok=v===t;expl=bin(t,L.bits)+' → '+ws.filter(w=>t&w).join(' + ')+' = <b>'+t+'</b>'}
   else if(L.mode==='write'){ok=state.on===t;expl=t+' = '+ws.filter(w=>t&w).join(' + ')+' → <b>'+bin(t,L.bits)+'</b>'}
   else if(L.mode==='ask'){
-    let v;if(t.opts)v=state.choice;else{v=($('#ans').value||'').trim();if(!v){$('#fb').innerHTML='<div class="fb hint">Escribe tu respuesta primero.</div>';return}}
+    let v;if(t.opts)v=state.choice;else{v=($('#ans').value||'').trim();if(!v){$('#fb').innerHTML='<div class="fb hint">Escribe tu respuesta primero.</div>';return}
+      if(t.pre&&!/^\d+\.\d+\.\d+\.\d+$/.test(v))v=t.pre+v.replace(/^\./,'')}
     const n=x=>String(x).toLowerCase().replace(/\s+/g,'').replace(/^\//,'');ok=n(v)===n(t.answer);expl=t.why}
   else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
     ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>Unos: '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
