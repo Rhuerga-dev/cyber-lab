@@ -267,6 +267,14 @@ kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid va
 .seg.sm button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .seg.sm button:hover:not([aria-pressed="true"]){color:var(--ink)}
 .msg .bub a{color:var(--accent);font-weight:600}
+/* Modo examen */
+body.exam-mode .tabs,body.exam-mode .fab,body.exam-mode .calcpanel,body.exam-mode .prefs,body.exam-mode .cterm,body.exam-mode .clist,body.exam-mode .cask,body.exam-mode footer,body.exam-mode #acct-btn{display:none!important}
+body.exam-mode .course{grid-template-columns:minmax(0,820px);justify-content:center}
+body.exam-mode .chat{user-select:none;-webkit-user-select:none;max-height:min(64vh,640px)}
+.exambar{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:10px 14px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:15px}
+.exambar .exl{margin-left:auto;font-family:var(--f-mono);font-size:13px}
+.exambar .exl.warn{color:var(--bad);font-weight:700}
+.examnote{max-width:62ch}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
