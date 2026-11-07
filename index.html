@@ -233,6 +233,14 @@ kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid va
 .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.typing i{animation:none}}
+.qopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px;max-width:640px}
+.qopt{font:inherit;font-size:17px;font-weight:600;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+.qopt:hover:not(:disabled){border-color:var(--accent)}
+.qopt.right{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+.qopt.wrong{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.portgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.portgrid div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:14px}
+.portgrid b{font-family:var(--f-mono);color:var(--accent)}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
@@ -393,6 +401,53 @@ const IP_VALUES=[0,1,10,128,168,172,192,224,240,248,252,254,255,100,64,32,16,85,
 
 function weightTable(ws){return '<div class="tablewrap"><table class="ref"><tr>'+ws.map(w=>'<th>'+w+'</th>').join('')+'</tr></table></div>'}
 
+
+/* Generadores de los niveles 7–9 */
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function genSubnet(){
+  const c=rnd(24,30),k=rnd(0,2),o1=k===0?192:k===1?10:172,o2=k===0?168:k===1?rnd(0,255):rnd(16,31),o3=rnd(0,255),o4=rnd(1,254);
+  const size=2**(32-c),start=o4-(o4%size),pre=o1+'.'+o2+'.'+o3+'.',net=pre+start,bc=pre+(start+size-1),hosts=size-2,ip=pre+o4+'/'+c;
+  const mo=256-size;
+  const kind=pick(['net','net','bc','hosts']);
+  const how='Prefijo /'+c+' → máscara .'+mo+' → bloque 256 − '+mo+' = <b>'+size+'</b>. '+o4+' cae en el bloque '+start+'–'+(start+size-1)+'.';
+  if(kind==='net')return{q:'¿Cuál es la dirección de red?',big:ip,answer:net,ph:'ej. '+pre+'0',why:how+' Red: <b>'+net+'</b>',hint:'El bloque es de '+size+'. ¿Qué múltiplo de '+size+' es el más grande sin pasarse de '+o4+'?'};
+  if(kind==='bc')return{q:'¿Cuál es el broadcast?',big:ip,answer:bc,ph:'ej. '+pre+'255',why:how+' Broadcast: <b>'+bc+'</b>',hint:'Busca el bloque de '+o4+' (bloques de '+size+'). El broadcast es el último número del bloque.'};
+  return{q:'¿Cuántos equipos usables hay en esta red?',big:'/'+c,answer:String(hosts),ph:'ej. 62',why:'2^'+(32-c)+' = '+size+' direcciones − 2 (red y broadcast) = <b>'+hosts+'</b>',hint:'Hay '+(32-c)+' bits de equipo. Calcula 2 elevado a eso y resta 2.'};
+}
+const PORTS=[[21,'FTP'],[22,'SSH'],[23,'Telnet'],[25,'SMTP'],[53,'DNS'],[80,'HTTP'],[110,'POP3'],[143,'IMAP'],[443,'HTTPS'],[445,'SMB'],[3306,'MySQL'],[3389,'RDP'],[5432,'PostgreSQL'],[8080,'HTTP alternativo']];
+const PORT_NOTE={21:'Transfiere archivos sin cifrar.',22:'Acceso remoto cifrado. Muy atacado por fuerza bruta.',23:'Acceso remoto SIN cifrar: todo viaja en texto plano.',25:'Envío de correo entre servidores.',53:'Traduce nombres a IPs.',80:'Web sin cifrar.',110:'Descarga de correo (antiguo).',143:'Lectura de correo.',443:'Web cifrada con TLS.',445:'Carpetas compartidas de Windows. WannaCry se propagó por aquí.',3306:'Base de datos. Nunca expuesta a internet.',3389:'Escritorio remoto de Windows. Objetivo clásico de ransomware.',5432:'Base de datos. Nunca expuesta a internet.',8080:'Servidores web de desarrollo o proxies.'};
+const PUBLIC_OK=[80,443];
+function genPort(){
+  const [p,sv]=pick(PORTS),kind=pick(['p2s','p2s','s2p','expose']);
+  if(kind==='p2s'){const opts=shuf([sv].concat(shuf(PORTS.filter(x=>x[1]!==sv).map(x=>x[1])).slice(0,3)));
+    return{q:'¿Qué servicio usa normalmente este puerto?',big:String(p),opts,answer:sv,why:'<b>'+p+' = '+sv+'</b>. '+PORT_NOTE[p],hint:'Mira la tabla de la explicación de arriba.'}}
+  if(kind==='s2p'){const opts=shuf([String(p)].concat(shuf(PORTS.filter(x=>x[0]!==p).map(x=>String(x[0]))).slice(0,3)));
+    return{q:'¿Qué puerto usa normalmente este servicio?',big:sv,opts,answer:String(p),why:'<b>'+sv+' = '+p+'</b>. '+PORT_NOTE[p],hint:'Mira la tabla de la explicación de arriba.'}}
+  const pp=pick([[80,'HTTP'],[443,'HTTPS'],[3306,'MySQL'],[3389,'RDP'],[445,'SMB'],[23,'Telnet'],[5432,'PostgreSQL'],[22,'SSH']]),ok=PUBLIC_OK.includes(pp[0]);
+  const ans=pp[0]===22?'Solo con medidas extra':ok?'Sí, es normal':'No, nunca';
+  return{q:'Un servidor de internet tiene este puerto abierto al mundo. ¿Es normal?',big:pp[0]+' · '+pp[1],opts:['Sí, es normal','No, nunca','Solo con medidas extra'],answer:ans,
+    why:pp[0]===22?'SSH se expone a menudo, pero <b>solo con medidas extra</b>: claves en vez de contraseñas, sin login de root y limitando intentos (fail2ban).':ok?'Sí: es la web, está pensada para el público.':'<b>No.</b> '+PORT_NOTE[pp[0]]+' Debe quedar detrás de un firewall o accesible solo por VPN o túnel.',hint:'¿Es un servicio pensado para que lo use cualquier persona de internet?'};
+}
+function genTcp(){
+  const S=[
+    ['Nmap envía SYN al puerto 443 y recibe SYN-ACK. Estado:',['open','closed','filtered'],'open','SYN-ACK = "aquí hay un servicio escuchando, adelante".'],
+    ['Nmap envía SYN al puerto 8080 y recibe RST. Estado:',['open','closed','filtered'],'closed','RST = "el equipo existe, pero aquí no hay nadie".'],
+    ['Nmap envía SYN al puerto 22 y no recibe nada, ni siquiera tras reintentar. Estado:',['open','closed','filtered'],'filtered','El silencio es un firewall descartando el paquete.'],
+    ['Nmap envía SYN y recibe un ICMP "destination unreachable (admin prohibited)". Estado:',['open','closed','filtered'],'filtered','Un router o firewall rechaza el paquete explícitamente: filtrado.'],
+    ['En tcpdump ves Flags [S.]. ¿Qué paquete es?',['SYN','SYN-ACK','ACK','RST'],'SYN-ACK','[S.] = SYN + ACK (el punto es ACK).'],
+    ['En tcpdump ves Flags [R.]. ¿Qué paquete es?',['RST','SYN','ACK','FIN'],'RST','R = reset: la conexión se rechaza o se corta.'],
+    ['En tcpdump ves Flags [S]. ¿Qué paquete es?',['SYN','SYN-ACK','RST','FIN'],'SYN','Solo S: el primer paso, "quiero conectarme".'],
+    ['¿Cuál es el saludo TCP completo?',['SYN → SYN-ACK → ACK','SYN → ACK → RST','ACK → SYN → FIN','SYN → RST → ACK'],'SYN → SYN-ACK → ACK','Así se abre cualquier conexión TCP.'],
+    ['En un escaneo SYN (-sS), ¿qué envía Nmap después de recibir SYN-ACK?',['RST','ACK','SYN','Nada'],'RST','Corta antes de completar la conexión: más rápido y deja menos rastro en los logs del servicio.'],
+    ['¿Qué estado es MEJOR para el defensor?',['filtered','closed','open'],'filtered','Con filtered el atacante ni siquiera sabe si el equipo existe.'],
+    ['¿Por qué "nmap -sS" necesita sudo?',['Fabrica los paquetes a mano','Escanea más rápido','Usa UDP','Lo exige la ley'],'Fabrica los paquetes a mano','Crear paquetes sin completar el saludo requiere privilegios de root.'],
+    ['DNS normalmente funciona sobre…',['UDP','TCP','ICMP'],'UDP','DNS usa UDP 53 (rápido, sin saludo). TCP solo para respuestas grandes.'],
+  ];
+  const [q,o,a,w]=pick(S);
+  return{q,big:'',opts:shuf(o),answer:a,why:w,hint:'Repasa la tabla de la explicación de arriba.'};
+}
+
 const LEVELS=[
  {id:'leer4',title:'Leer binario',sub:'4 bits',mode:'read',bits:4,
   teach:`<p>En binario solo hay dos dígitos: <b>0</b> (apagado) y <b>1</b> (encendido). Piensa en una fila de interruptores de luz.</p>
@@ -427,8 +482,25 @@ const LEVELS=[
   <p>Solo existen estos valores posibles en un octeto de máscara:</p>
   <div class="tablewrap"><table class="ref"><tr><th>Octeto</th>${MASK_VALUES.map(m=>'<td>'+m[0]+'</td>').join('')}</tr><tr><th>Unos</th>${MASK_VALUES.map(m=>'<td>'+m[1]+'</td>').join('')}</tr></table></div>`,
   gen:()=>rnd(8,30)},
+ {id:'subredes',title:'Subredes',sub:'Red, broadcast y equipos',mode:'ask',
+  teach:`<p>Con una IP y su prefijo calculas todo en 3 pasos. Solo cambia el octeto donde la máscara no es 255.</p>
+  <div class="ex">1. Tamaño de bloque = 256 − octeto de la máscara<br>&nbsp;&nbsp;&nbsp;/26 → máscara .192 → 256 − 192 = <b>64</b><br>2. Los bloques empiezan en 0, 64, 128, 192…<br>&nbsp;&nbsp;&nbsp;Busca el inicio más grande que no se pase de tu número<br>3. Red = ese inicio · Broadcast = inicio del siguiente − 1<br>&nbsp;&nbsp;&nbsp;Equipos usables = bloque − 2</div>
+  <div class="ex">10.0.5.77/26 → bloque 64 → 77 está entre 64 y 127<br>Red 10.0.5.64 · Broadcast 10.0.5.127 · 62 equipos</div>
+  <div class="tablewrap"><table class="ref"><tr><th>Prefijo</th><td>/25</td><td>/26</td><td>/27</td><td>/28</td><td>/29</td><td>/30</td></tr><tr><th>Bloque</th><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td></tr><tr><th>Usables</th><td>126</td><td>62</td><td>30</td><td>14</td><td>6</td><td>2</td></tr></table></div>`,
+  gen:genSubnet},
+ {id:'puertos',title:'Puertos',sub:'Qué hay detrás de cada puerta',mode:'ask',
+  teach:`<p>Estos son los puertos que verás en cualquier escaneo. Apréndelos en las dos direcciones: número → servicio y servicio → número.</p>
+  <div class="portgrid">${PORTS.map(x=>'<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('')}</div>
+  <p>Regla de oro: a internet solo se exponen los servicios pensados para el público (web: 80 y 443). Bases de datos, escritorio remoto, carpetas compartidas o Telnet nunca deberían estar abiertos al mundo.</p>`,
+  gen:genPort},
+ {id:'saludo',title:'Saludo TCP',sub:'Cómo escanea Nmap',mode:'ask',
+  teach:`<p>Nmap envía un <b>SYN</b> a cada puerto y mira qué le responden:</p>
+  <div class="tablewrap"><table class="ref"><tr><th>Respuesta</th><td>SYN-ACK</td><td>RST</td><td>Nada</td><td>ICMP inalcanzable</td></tr><tr><th>Estado</th><td>open</td><td>closed</td><td>filtered</td><td>filtered</td></tr></table></div>
+  <p>En <code>tcpdump</code> los flags se ven así: <code>[S]</code> SYN, <code>[S.]</code> SYN-ACK, <code>[.]</code> ACK, <code>[R]</code> o <code>[R.]</code> RST, <code>[P.]</code> datos.</p>
+  <div class="ex">Saludo completo: SYN → SYN-ACK → ACK<br>Escaneo SYN (-sS): SYN → SYN-ACK → RST (no completa la conexión)</div>`,
+  gen:genTcp},
 ];
-const SOON=[{title:'Subredes',sub:'Red, broadcast y equipos'},{title:'Puertos',sub:'Qué hay detrás de cada puerta'},{title:'Saludo TCP',sub:'Cómo escanea Nmap'}];
+const SOON=[];
 
 /* progreso */
 let prog={done:[],streak:{},cur:0,topics:{},certs:{},log:[]};
@@ -475,6 +547,11 @@ function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0
       <div class="live" id="live">Ningún interruptor encendido → 0</div>
       <div class="row"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
     P.querySelectorAll('#board .sw').forEach(b=>b.addEventListener('click',()=>{if(state.answered)return;state.on^=+b.dataset.w;paintBoard()}));
+  } else if(L.mode==='ask'){
+    P.innerHTML=`${streakHTML()}<p class="q">${target.q}${target.big?'<br><span class="big">'+esc(target.big)+'</span>':''}</p>`+
+      (target.opts?`<div class="qopts">${target.opts.map((o,i)=>`<button type="button" class="qopt" data-i="${i}">${esc(o)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="hint" type="button">Pista</button><button id="chk" hidden></button></div><div id="fb"></div>`
+      :`<div class="row"><input type="text" id="ans" autocomplete="off" spellcheck="false" placeholder="${esc(target.ph||'')}" aria-label="Tu respuesta" style="width:min(260px,100%)"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`);
+    P.querySelectorAll('.qopt').forEach(b=>b.addEventListener('click',()=>{if(state.answered)return;state.choice=target.opts[+b.dataset.i];P.querySelectorAll('.qopt').forEach(x=>{x.disabled=true;if(x.textContent===target.answer)x.classList.add('right');else if(x===b)x.classList.add('wrong')});check()}));
   } else {
     const c=target;const m=c===0?0:(0xFFFFFFFF<<(32-c))>>>0;const o=[m>>>24,(m>>>16)&255,(m>>>8)&255,m&255];state.mask=o;
     P.innerHTML=`${streakHTML()}<p class="q">¿Qué prefijo (cuántos unos) tiene esta máscara?<br><span class="big">${o.join('.')}</span></p>
@@ -493,6 +570,7 @@ function hint(){const L=LEVELS[prog.cur],t=state.target,ws=L.bits===4?W4:W8;let 
     if(state.on>t)h='Te pasaste: llevas '+state.on+' y necesitas '+t+'. Apaga algún interruptor.';
     else if(rem===0)h='¡Ya lo tienes! Pulsa Comprobar.';
     else{const big=ws.find(w=>w<=rem&&!(state.on&w));h=big?'Te faltan <b>'+rem+'</b>. El interruptor más grande que cabe en '+rem+' es el <b>'+big+'</b>.':'Revisa: hay algún interruptor encendido que sobra.'}}
+  else if(L.mode==='ask'){h=t.hint}
   else{h='Cuenta los unos de cada octeto con la tabla de arriba: '+state.mask.map(v=>v+' → '+(MASK_VALUES.find(m=>m[0]===v)||[0,'?'])[1]).join(' · ')+'. Ahora súmalos.'}
   $('#fb').innerHTML='<div class="fb hint">'+h+'</div>'}
 
@@ -500,6 +578,9 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
   if(L.mode==='read'){const v=parseInt(($('#ans').value||'').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
     ok=v===t;expl=bin(t,L.bits)+' → '+ws.filter(w=>t&w).join(' + ')+' = <b>'+t+'</b>'}
   else if(L.mode==='write'){ok=state.on===t;expl=t+' = '+ws.filter(w=>t&w).join(' + ')+' → <b>'+bin(t,L.bits)+'</b>'}
+  else if(L.mode==='ask'){
+    let v;if(t.opts)v=state.choice;else{v=($('#ans').value||'').trim();if(!v){$('#fb').innerHTML='<div class="fb hint">Escribe tu respuesta primero.</div>';return}}
+    const n=x=>String(x).toLowerCase().replace(/\s+/g,'').replace(/^\//,'');ok=n(v)===n(t.answer);expl=t.why}
   else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
     ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>Unos: '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
   state.answered=true;const id=L.id;let s=prog.streak[id]||0;s=ok?s+1:0;prog.streak[id]=s;
@@ -508,7 +589,7 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
   $('.streak').outerHTML=streakHTML(justDone);
   const fb=$('#fb');
   if(justDone){const next=prog.cur+1<LEVELS.length;
-    fb.innerHTML=`<div class="fb ok win"><b>¡Nivel ${prog.cur+1} completado!</b><span>${expl}</span>${next?'<button class="btn" id="nxtlvl" type="button">Ir al nivel '+(prog.cur+2)+'</button>':'<span>Has completado todos los niveles disponibles. Pronto llegan Subredes, Puertos y Saludo TCP.</span>'}<button class="btn ghost" id="nxt" type="button">Seguir practicando aquí</button></div>`;
+    fb.innerHTML=`<div class="fb ok win"><b>¡Nivel ${prog.cur+1} completado!</b><span>${expl}</span>${next?'<button class="btn" id="nxtlvl" type="button">Ir al nivel '+(prog.cur+2)+'</button>':'<span>Has completado todos los niveles de Práctica. Sigue con el <a href="#curso">Curso</a> y mantén lo aprendido en <a href="#repaso">Repaso</a>.</span>'}<button class="btn ghost" id="nxt" type="button">Seguir practicando aquí</button></div>`;
     paintPath();
     const nl=$('#nxtlvl');
     document.querySelectorAll('#chk,#hint').forEach(b=>b.disabled=true);
@@ -587,9 +668,9 @@ const PHASES=[
    {id:'mascaras',t:'Máscaras y notación CIDR',lab:['mascara']},
    {id:'ip-nat',t:'IP pública, IP privada y NAT'},
    {id:'dns',t:'DNS (nslookup, dig)'},
-   {id:'puertos',t:'Puertos y servicios comunes'},
-   {id:'tcp',t:'TCP, UDP y el saludo de 3 pasos'},
-   {id:'subnetting',t:'Subnetting: dividir redes'},
+   {id:'puertos',t:'Puertos y servicios comunes',lab:['puertos']},
+   {id:'tcp',t:'TCP, UDP y el saludo de 3 pasos',lab:['saludo']},
+   {id:'subnetting',t:'Subnetting: dividir redes',lab:['subredes']},
    {id:'linux',t:'Linux: terminal, permisos, procesos, logs'},
    {id:'windows-ad',t:'Windows y Active Directory'},
    {id:'python',t:'Python para automatizar tareas'}],
