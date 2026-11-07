@@ -81,10 +81,10 @@ function authLog() {
   return L.join('\n') + '\n';
 }
 
-const CONTAR = `import re
+const CONTAR = () => `import re
 from collections import Counter
 
-# Lee el log de SSH y cuenta los intentos fallidos por IP
+${t('# Lee el log de SSH y cuenta los intentos fallidos por IP')}
 patron = re.compile(r"Failed password for (?:invalid user )?\\S+ from (\\S+)")
 contador = Counter()
 
@@ -95,37 +95,37 @@ with open("/var/log/auth.log") as log:
             contador[coincidencia.group(1)] += 1
 
 for ip, total in contador.most_common():
-    print(f"{ip:<16} {total} intentos")
+    print(f"{ip:<16} ${t('{n} intentos', { n: '{total}' })}")
 `;
 
 function makeFS() {
   return D('root', '755', {
     home: D('root', '755', {
       alumno: D('alumno', '750', {
-        'mision.txt': F('alumno', '644', `=== LABCORP · LABORATORIO DE CIBERSEGURIDAD ===
+        'mision.txt': F('alumno', '644', t(`=== LABCORP · LABORATORIO DE CIBERSEGURIDAD ===
 Bienvenido/a, alumno.
 Este equipo (lab) está conectado a la red 10.10.10.0/24 de LabCorp.
 Todo lo que hagas aquí es una simulación segura.
 
 Tu primera bandera es:
 FLAG{primer_paso}
-`, 'alumno', 'Nov  6 09:02'),
-        '.pista_oculta': F('alumno', '644', `Bien visto. Los archivos que empiezan por punto no salen con un ls normal.
+`), 'alumno', 'Nov  6 09:02'),
+        '.pista_oculta': F('alumno', '644', t(`Bien visto. Los archivos que empiezan por punto no salen con un ls normal.
 FLAG{archivos_ocultos}
-`, 'alumno', 'Nov  6 09:03'),
+`), 'alumno', 'Nov  6 09:03'),
         '.bash_history': F('alumno', '600', 'ls\ncat notas.txt\nmysql -u root\nexit\n', 'alumno', 'Nov  6 09:05'),
-        'notas.txt': F('alumno', '644', `Pendientes:
+        'notas.txt': F('alumno', '644', t(`Pendientes:
 - Revisar por qué MySQL escucha en todas las interfaces (0.0.0.0).
 - Cambiar los permisos de secreto.txt, cualquiera puede leerlo.
 - Preguntar a Lía por los intentos de acceso SSH en el servidor db.
-`, 'alumno', 'Nov  6 09:10'),
-        'secreto.txt': F('alumno', '666', `Contraseña del router: Lab0rC0rp!2026
+`), 'alumno', 'Nov  6 09:10'),
+        'secreto.txt': F('alumno', '666', t(`Contraseña del router: Lab0rC0rp!2026
 (Esto nunca debería estar en un archivo que cualquiera pueda leer.)
-`, 'alumno', 'Nov  6 09:14'),
+`), 'alumno', 'Nov  6 09:14'),
         'captura.pcap': F('alumno', '644', '\u0000PCAP', 'alumno', 'Nov  6 09:20'),
         scripts: D('alumno', '755', {
-          'contar_ips.py': F('alumno', '644', CONTAR, 'alumno', 'Nov  6 09:30'),
-          'hola.py': F('alumno', '644', 'print("Hola desde Python")\n', 'alumno', 'Nov  6 09:31'),
+          'contar_ips.py': F('alumno', '644', CONTAR(), 'alumno', 'Nov  6 09:30'),
+          'hola.py': F('alumno', '644', `print("${t('Hola desde Python')}")\n`, 'alumno', 'Nov  6 09:31'),
         }, 'alumno'),
       }, 'alumno'),
     }),
@@ -185,7 +185,7 @@ function tokenize(s) {
     }
     cur += ch;
   }
-  if (q) return { error: 'Falta cerrar una comilla (' + q + ').' };
+  if (q) return { error: I18N.t('Falta cerrar una comilla ({q}).', { q }) };
   if (cur || has) out.push(cur);
   return out;
 }
@@ -303,23 +303,23 @@ class Sim {
       if (toks[i] && toks[i].op && (toks[i].op === '>' || toks[i].op === '>>')) { redir = { append: toks[i].op === '>>', file: toks[i + 1] }; i++; continue; }
       t2.push(toks[i]);
     }
-    if (redir && (typeof redir.file !== 'string' || !redir.file)) { entry.ok = false; return { out: 'bash: error de sintaxis: falta el archivo después de >', err: true, entry }; }
+    if (redir && (typeof redir.file !== 'string' || !redir.file)) { entry.ok = false; return { out: 'bash: ' + I18N.t('error de sintaxis: falta el archivo después de >'), err: true, entry }; }
     const segs = [[]];
     for (const t of t2) { if (t && t.op === '|') segs.push([]); else segs[segs.length - 1].push(t); }
-    if (segs.some(s => !s.length)) { entry.ok = false; return { out: 'bash: error de sintaxis cerca de "|"', err: true, entry }; }
+    if (segs.some(s => !s.length)) { entry.ok = false; return { out: 'bash: ' + I18N.t('error de sintaxis cerca de "|"'), err: true, entry }; }
     let stdin = null, out = '', err = false, clear = false;
     for (const seg of segs) {
       let argv = seg.slice(), sudo = false;
-      if (argv[0] === 'sudo') { sudo = true; argv.shift(); if (!argv.length) { out = 'uso: sudo comando'; err = true; break; } }
+      if (argv[0] === 'sudo') { sudo = true; argv.shift(); if (!argv.length) { out = I18N.t('uso: sudo comando'); err = true; break; } }
       const name = argv[0], args = argv.slice(1);
       entry.cmds.push({ name, args, sudo });
       const fn = CMDS[name];
-      if (!fn) { out = `${name}: command not found\nEscribe help para ver los comandos disponibles.`; err = true; entry.ok = false; break; }
+      if (!fn) { out = I18N.t('{name}: command not found\nEscribe help para ver los comandos disponibles.', { name }); err = true; entry.ok = false; break; }
       const ctx = { sim: this, user: sudo ? 'root' : this.user, sudo, stdin };
       let pre = '';
-      if (sudo && !this.sudoWarned) { this.sudoWarned = true; pre = '[sudo] password for alumno: (en el laboratorio no hace falta escribirla)\n'; }
+      if (sudo && !this.sudoWarned) { this.sudoWarned = true; pre = I18N.t('[sudo] password for alumno: (en el laboratorio no hace falta escribirla)') + '\n'; }
       let r;
-      try { r = fn(args, ctx); } catch (e) { r = { out: name + ': error interno del laboratorio', err: true }; }
+      try { r = fn(args, ctx); } catch (e) { r = { out: I18N.t('{name}: error interno del laboratorio', { name }), err: true }; }
       if (typeof r === 'string') r = { out: r };
       if (r.clear) clear = true;
       out = pre + (r.out || '');
@@ -343,9 +343,9 @@ class Sim {
 const flagsOf = args => { const f = new Set(), rest = []; for (const a of args) { if (/^-[a-zA-Z]+$/.test(a)) a.slice(1).split('').forEach(c => f.add(c)); else rest.push(a); } return { f, rest }; };
 const lines = s => s === '' ? [] : s.replace(/\n$/, '').split('\n');
 function inputText(args, ctx, cmd) {
-  if (!args.length) { if (ctx.stdin === null) return { err: `${cmd}: falta el archivo. Ejemplo: ${cmd} archivo.txt` }; return { text: ctx.stdin }; }
+  if (!args.length) { if (ctx.stdin === null) return { err: t('{cmd}: falta el archivo. Ejemplo: {cmd} archivo.txt', { cmd }) }; return { text: ctx.stdin }; }
   let text = '';
-  for (const a of args) { const r = ctx.sim.readFile(a, ctx.user, cmd); if (r.err) return { err: r.err }; if (r.bin) return { err: `${cmd}: ${a}: es un archivo binario` }; text += r.text; }
+  for (const a of args) { const r = ctx.sim.readFile(a, ctx.user, cmd); if (r.err) return { err: r.err }; if (r.bin) return { err: t('{cmd}: {file}: es un archivo binario', { cmd, file: a }) }; text += r.text; }
   return { text };
 }
 function numOpt(args, def) {
@@ -400,10 +400,11 @@ const EXPLICA = {
   hostname: 'Muestra el nombre del equipo.', uname: 'Información del sistema. uname -a muestra todo.', date: 'Muestra la fecha y hora.',
   explica: 'Explica para qué sirve un comando. Ejemplo: explica nmap',
 };
+EXPLICA.explain = EXPLICA.explica;
 
 const CMDS = {
   help() {
-    return `Comandos del laboratorio (escribe "explica <comando>" para saber más):
+    return t(`Comandos del laboratorio (escribe "explica <comando>" para saber más):
 
   Archivos   pwd  ls  cd  cat  head  tail  touch  mkdir  rm  echo
   Texto      grep  wc  sort  uniq  awk  cut
@@ -413,9 +414,10 @@ const CMDS = {
   Código     python3
 
 Puedes encadenar comandos con | y guardar la salida con >.
-Flechas arriba/abajo: historial. Tab: autocompletar.`;
+Flechas arriba/abajo: historial. Tab: autocompletar.`);
   },
-  explica(args) { const c = args[0]; if (!c) return 'uso: explica <comando>'; return EXPLICA[c] ? `${c}: ${EXPLICA[c]}` : `No tengo explicación para "${c}". Escribe help para ver la lista.`; },
+  explica(args) { const c = args[0]; if (!c) return t('uso: explica <comando>'); return EXPLICA[c] ? `${c}: ${t(EXPLICA[c])}` : t('No tengo explicación para "{c}". Escribe help para ver la lista.', { c }); },
+  explain(args) { return CMDS.explica(args); },
   man(args) { return CMDS.explica(args); },
   clear() { return { clear: true, out: '' }; },
   pwd(a, ctx) { return ctx.sim.cwd; },
@@ -425,7 +427,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
   uname(args) { return args.includes('-a') ? 'Linux lab 6.8.0-45-generic #45-Ubuntu SMP PREEMPT_DYNAMIC x86_64 GNU/Linux' : 'Linux'; },
   date() { return new Date().toString().replace(/ GMT.*$/, ''); },
   history(a, ctx) { return ctx.sim.history.map((h, i) => lpad(i + 1, 5) + '  ' + h).join('\n'); },
-  exit() { return 'Esta terminal no se puede cerrar: es tu laboratorio. Si quieres empezar de cero, usa el botón "Reiniciar laboratorio".'; },
+  exit() { return t('Esta terminal no se puede cerrar: es tu laboratorio. Si quieres empezar de cero, usa el botón "Reiniciar laboratorio".'); },
   echo(args) { return args.join(' '); },
   cd(args, ctx) {
     const s = ctx.sim, target = args[0] === undefined ? '~' : args[0];
@@ -457,12 +459,12 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
     return blocks.join('\n\n');
   },
   cat(args, ctx) {
-    if (!args.length) return ctx.stdin === null ? { out: 'cat: falta el archivo. Ejemplo: cat mision.txt', err: true } : ctx.stdin;
+    if (!args.length) return ctx.stdin === null ? { out: t('cat: falta el archivo. Ejemplo: cat mision.txt'), err: true } : ctx.stdin;
     let o = '';
     for (const a of args) {
       const r = ctx.sim.readFile(a, ctx.user, 'cat');
       if (r.err) return { out: (o ? o + '\n' : '') + r.err, err: true };
-      if (r.bin) { o += a.endsWith('.pcap') ? `(${a} es una captura de red binaria. Léela con: tcpdump -r ${a})\n` : `(${a} es un archivo binario y no se puede mostrar como texto)\n`; continue; }
+      if (r.bin) { o += (a.endsWith('.pcap') ? t('({file} es una captura de red binaria. Léela con: tcpdump -r {file})', { file: a }) : t('({file} es un archivo binario y no se puede mostrar como texto)', { file: a })) + '\n'; continue; }
       o += r.text;
     }
     return o;
@@ -478,14 +480,14 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
   },
   grep(args, ctx) {
     const { f, rest } = flagsOf(args);
-    if (!rest.length) return { out: 'uso: grep [-i -c -v -n] "texto" archivo', err: true };
+    if (!rest.length) return { out: t('uso: grep [-i -c -v -n] "texto" archivo'), err: true };
     const pat = rest[0], files = rest.slice(1);
     let re; try { re = new RegExp(pat, f.has('i') ? 'i' : ''); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), f.has('i') ? 'i' : ''); }
     const res = []; let count = 0;
     const srcs = files.length ? files : [null];
     for (const file of srcs) {
       let text;
-      if (file === null) { if (ctx.stdin === null) return { out: 'grep: falta el archivo. Ejemplo: grep "Failed" /var/log/auth.log', err: true }; text = ctx.stdin; }
+      if (file === null) { if (ctx.stdin === null) return { out: t('grep: falta el archivo. Ejemplo: grep "Failed" /var/log/auth.log'), err: true }; text = ctx.stdin; }
       else { const r = ctx.sim.readFile(file, ctx.user, 'grep'); if (r.err) return { out: r.err, err: true }; text = r.text; }
       let c = 0;
       lines(text).forEach((ln, i) => { if (re.test(ln) !== f.has('v')) { c++; if (!f.has('c')) res.push((files.length > 1 ? file + ':' : '') + (f.has('n') ? (i + 1) + ':' : '') + ln); } });
@@ -512,7 +514,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
     let sep = null; const a = args.slice();
     if (a[0] && a[0].startsWith('-F')) { sep = a[0].length > 2 ? a[0].slice(2) : a[1]; a.splice(0, a[0].length > 2 ? 1 : 2); }
     const prog = a[0] || ''; const m = prog.match(/^\{\s*print\s*(.*?)\s*\}$/);
-    if (!m) return { out: 'awk: en el laboratorio solo funciona la forma awk \'{print $N}\' (por ejemplo awk \'{print $11}\')', err: true };
+    if (!m) return { out: t('awk: en el laboratorio solo funciona la forma awk \'{print $N}\' (por ejemplo awk \'{print $11}\')'), err: true };
     const r = inputText(a.slice(1), ctx, 'awk'); if (r.err) return { out: r.err, err: true };
     const parts = m[1] ? m[1].split(/\s*,\s*/) : ['$0'];
     return lines(r.text).map(ln => { const fl = sep ? ln.split(sep) : ln.trim().split(/\s+/); return parts.map(p => { const k = p.match(/^\$(\d+)$/); if (!k) return p.replace(/^"|"$/g, ''); return +k[1] === 0 ? ln : (fl[+k[1] - 1] || ''); }).join(' '); }).join('\n');
@@ -524,7 +526,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
       if (x === '-d') d = args[++i]; else if (x.startsWith('-d')) d = x.slice(2);
       else if (x === '-f') fields = args[++i]; else if (x.startsWith('-f')) fields = x.slice(2); else rest.push(x);
     }
-    if (!fields) return { out: 'uso: cut -d: -f1 archivo', err: true };
+    if (!fields) return { out: t('uso: cut -d: -f1 archivo'), err: true };
     const idx = fields.split(',').map(Number);
     const r = inputText(rest, ctx, 'cut'); if (r.err) return { out: r.err, err: true };
     return lines(r.text).map(ln => { const p = ln.split(d); return idx.map(i => p[i - 1] || '').join(d); }).join('\n');
@@ -544,7 +546,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
   rm(args, ctx) {
     const s = ctx.sim; const { f, rest } = flagsOf(args);
     for (const a of rest) {
-      const p = s.abs(a); if (p === '/' || p === '/home' || p === s.home) return { out: `rm: no se permite borrar '${a}' en el laboratorio`, err: true };
+      const p = s.abs(a); if (p === '/' || p === '/home' || p === s.home) return { out: t("rm: no se permite borrar '{file}' en el laboratorio", { file: a }), err: true };
       const { dir, name } = s.parent(p); const n = dir && dir.c[name];
       if (!n) return { out: `rm: cannot remove '${a}': No such file or directory`, err: true };
       if (n.t === 'd' && !f.has('r')) return { out: `rm: cannot remove '${a}': Is a directory`, err: true };
@@ -554,7 +556,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
     return '';
   },
   chmod(args, ctx) {
-    const s = ctx.sim; if (args.length < 2) return { out: 'uso: chmod 600 archivo   (o chmod u+x archivo)', err: true };
+    const s = ctx.sim; if (args.length < 2) return { out: t('uso: chmod 600 archivo   (o chmod u+x archivo)'), err: true };
     const mode = args[0];
     for (const a of args.slice(1)) {
       const p = s.abs(a), r = s.reach(p, ctx.user);
@@ -563,7 +565,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
       if (/^[0-7]{3}$/.test(mode)) r.n.perm = mode;
       else {
         const m = mode.match(/^([ugoa]*)([+\-=])([rwx]+)$/);
-        if (!m) return { out: `chmod: invalid mode: '${mode}'. Usa números (chmod 600) o letras (chmod u+x).`, err: true };
+        if (!m) return { out: `chmod: invalid mode: '${mode}'. ` + t('Usa números (chmod 600) o letras (chmod u+x).'), err: true };
         const who = (m[1] || 'a').replace('a', 'ugo'), bits = (m[3].includes('r') ? 4 : 0) | (m[3].includes('w') ? 2 : 0) | (m[3].includes('x') ? 1 : 0);
         const p3 = r.n.perm.split('').map(Number);
         ['u', 'g', 'o'].forEach((w, i) => { if (!who.includes(w)) return; if (m[2] === '+') p3[i] |= bits; else if (m[2] === '-') p3[i] &= ~bits; else p3[i] = bits; });
@@ -583,7 +585,7 @@ Flechas arriba/abajo: historial. Tab: autocompletar.`;
     inet ${ME.ip}/${ME.cidr} brd 10.10.10.255 scope global eth0
     inet6 fe80::42:aff:fe0a:a64/64 scope link`;
     if (/^r(oute)?$/.test(sub)) return `default via ${ME.gw} dev eth0 proto dhcp metric 100\n10.10.10.0/24 dev eth0 proto kernel scope link src ${ME.ip}`;
-    return { out: 'uso: ip a  (direcciones)   ·   ip route  (rutas)', err: true };
+    return { out: t('uso: ip a  (direcciones)   ·   ip route  (rutas)'), err: true };
   },
   ifconfig() {
     return `eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
@@ -603,7 +605,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     let count = 4; const rest = [];
     for (let i = 0; i < args.length; i++) { if (args[i] === '-c') count = parseInt(args[++i], 10) || 4; else if (/^-c\d+$/.test(args[i])) count = +args[i].slice(2); else if (!args[i].startsWith('-')) rest.push(args[i]); }
     count = Math.min(Math.max(count, 1), 10);
-    if (!rest[0]) return { out: 'uso: ping -c 4 destino', err: true };
+    if (!rest[0]) return { out: I18N.t('uso: ping -c 4 destino'), err: true };
     const r = ctx.sim.resolve(rest[0]); if (!r) return { out: `ping: ${rest[0]}: Name or service not known`, err: true };
     const ip = r.ips[0], h = ctx.sim.hostInfo(ip), label = isIP(rest[0]) ? ip : `${r.canon} (${ip})`;
     const o = [`PING ${label} 56(84) bytes of data.`];
@@ -616,11 +618,11 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     for (let i = 1; i <= count; i++) { const t = +(base * (0.85 + ((i * 37) % 30) / 100)).toFixed(base < 1 ? 3 : 1); times.push(t); o.push(`64 bytes from ${h.internal && !isIP(rest[0]) ? `${h.name} (${ip})` : ip}: icmp_seq=${i} ttl=${h.ttl} time=${t} ms`); }
     const mn = Math.min(...times), mx = Math.max(...times), av = times.reduce((a, b) => a + b, 0) / times.length;
     o.push('', `--- ${isIP(rest[0]) ? ip : r.canon} ping statistics ---`, `${count} packets transmitted, ${count} received, 0% packet loss, time ${count * 1000 - 997}ms`, `rtt min/avg/max/mdev = ${mn.toFixed(3)}/${av.toFixed(3)}/${mx.toFixed(3)}/${((mx - mn) / 2).toFixed(3)} ms`);
-    if (!args.some(a => a.startsWith('-c'))) o.push('(En Linux ping no para solo: el laboratorio envía 4 paquetes. En tu Mac usa ping -c 4 o pulsa Ctrl+C.)');
+    if (!args.some(a => a.startsWith('-c'))) o.push(I18N.t('(En Linux ping no para solo: el laboratorio envía 4 paquetes. En tu Mac usa ping -c 4 o pulsa Ctrl+C.)'));
     return o.join('\n');
   },
   traceroute(args, ctx) {
-    const t = args.find(a => !a.startsWith('-')); if (!t) return { out: 'uso: traceroute destino', err: true };
+    const t = args.find(a => !a.startsWith('-')); if (!t) return { out: I18N.t('uso: traceroute destino'), err: true };
     const r = ctx.sim.resolve(t); if (!r) return { out: `traceroute: ${t}: Name or service not known`, err: true };
     const ip = r.ips[0], h = ctx.sim.hostInfo(ip);
     const o = [`traceroute to ${isIP(t) ? ip : r.canon} (${ip}), 30 hops max, 60 byte packets`];
@@ -638,7 +640,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
   nslookup(args, ctx) {
     let type = 'A'; const rest = [];
     for (const a of args) { const m = a.match(/^-(?:type|query|q)=(\w+)$/i); if (m) type = m[1].toUpperCase(); else rest.push(a); }
-    const name = rest[0]; if (!name) return { out: 'uso: nslookup nombre   ·   nslookup -type=mx dominio', err: true };
+    const name = rest[0]; if (!name) return { out: t('uso: nslookup nombre   ·   nslookup -type=mx dominio'), err: true };
     const head = `Server:\t\t${ME.gw}\nAddress:\t${ME.gw}#53\n`;
     if (isIP(name)) {
       const h = HOSTS[name] || EXTERNAL[name];
@@ -672,7 +674,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
       else if (/^(MX|NS|TXT|CNAME|AAAA|SOA)$/i.test(a) && !name) type = a.toUpperCase();
       else if (!name) name = a;
     }
-    if (!name) return { out: 'uso: dig nombre [tipo] [+short]   ·   dig -x IP', err: true };
+    if (!name) return { out: I18N.t('uso: dig nombre [tipo] [+short]   ·   dig -x IP'), err: true };
     const ans = []; let status = 'NOERROR'; let qname = name.replace(/\.$/, '').toLowerCase();
     if (rev) {
       const h = HOSTS[name] || EXTERNAL[name]; type = 'PTR'; qname = name.split('.').reverse().join('.') + '.in-addr.arpa';
@@ -698,7 +700,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     return o.join('\n');
   },
   host(args, ctx) {
-    const name = args.find(a => !a.startsWith('-')); if (!name) return { out: 'uso: host nombre', err: true };
+    const name = args.find(a => !a.startsWith('-')); if (!name) return { out: t('uso: host nombre'), err: true };
     if (isIP(name)) { const h = HOSTS[name] || EXTERNAL[name]; return h ? `${name.split('.').reverse().join('.')}.in-addr.arpa domain name pointer ${h.name}.` : { out: `Host ${name}.in-addr.arpa. not found: 3(NXDOMAIN)`, err: true }; }
     const r = ctx.sim.resolve(name); let q = name.toLowerCase(); if (!DNS[q] && DNS[q + '.labcorp.local']) q += '.labcorp.local';
     if (!r && !DNS[q]) return { out: `Host ${name} not found: 3(NXDOMAIN)`, err: true };
@@ -710,7 +712,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
   },
   curl(args, ctx) {
     const { f, rest } = flagsOf(args); let url = rest[0];
-    if (!url) return { out: 'uso: curl ifconfig.me   ·   curl -I http://www.labcorp.local', err: true };
+    if (!url) return { out: t('uso: curl ifconfig.me   ·   curl -I http://www.labcorp.local'), err: true };
     const m = url.match(/^(?:(https?):\/\/)?([^\/:]+)(?::(\d+))?(\/.*)?$/); if (!m) return { out: `curl: (3) URL rejected: Bad hostname`, err: true };
     const scheme = m[1] || 'http', hostn = m[2], port = +(m[3] || (scheme === 'https' ? 443 : 80));
     if (hostn === 'ifconfig.me') return f.has('I') ? 'HTTP/1.1 200 OK\ncontent-type: text/plain\ncontent-length: 12' : ME.pub;
@@ -722,15 +724,15 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     const server = (h.ports[port][2] || 'server').replace(' ', '/');
     const headers = `HTTP/1.1 200 OK\nServer: ${server}\nDate: ${new Date().toUTCString()}\nContent-Type: text/html; charset=UTF-8\nContent-Length: 612\nConnection: keep-alive`;
     if (f.has('I')) return headers;
-    const body = ip === '10.10.10.10' ? `<!doctype html>\n<html><head><title>LabCorp · Intranet</title></head>\n<body><h1>Bienvenido a LabCorp</h1>\n<!-- TODO: quitar el acceso de prueba admin/admin antes de producción -->\n</body></html>` :
-      ip === '10.10.10.50' ? '<html><body><h1>HP LaserJet · Estado: Listo</h1></body></html>' :
-      ip === '10.10.10.1' ? '<html><body><h1>Router LabCorp</h1><p>Inicia sesión para administrar.</p></body></html>' :
-      GH.includes(ip) ? '<!doctype html>\n<html lang="es"><head><title>Huerga Labs</title></head>\n<body>…</body></html>' : '<html><body><h1>Página de ejemplo</h1></body></html>';
+    const body = ip === '10.10.10.10' ? `<!doctype html>\n<html><head><title>LabCorp · Intranet</title></head>\n<body><h1>${t('Bienvenido a LabCorp')}</h1>\n<!-- ${t('TODO: quitar el acceso de prueba admin/admin antes de producción')} -->\n</body></html>` :
+      ip === '10.10.10.50' ? `<html><body><h1>HP LaserJet · ${t('Estado: Listo')}</h1></body></html>` :
+      ip === '10.10.10.1' ? `<html><body><h1>Router LabCorp</h1><p>${t('Inicia sesión para administrar.')}</p></body></html>` :
+      GH.includes(ip) ? '<!doctype html>\n<html lang="es"><head><title>Huerga Labs</title></head>\n<body>…</body></html>' : `<html><body><h1>${t('Página de ejemplo')}</h1></body></html>`;
     return f.has('i') ? headers + '\n\n' + body : body;
   },
   ss(args) {
     const { f } = flagsOf(args);
-    if (!f.has('l')) return 'Netid State  Recv-Q Send-Q  Local Address:Port    Peer Address:Port\ntcp   ESTAB  0      0       10.10.10.100:50412     10.10.10.20:22\n(Usa ss -tuln para ver los puertos en escucha.)';
+    if (!f.has('l')) return 'Netid State  Recv-Q Send-Q  Local Address:Port    Peer Address:Port\ntcp   ESTAB  0      0       10.10.10.100:50412     10.10.10.20:22\n' + t('(Usa ss -tuln para ver los puertos en escucha.)');
     const rows = [['udp', 'UNCONN', '0', '0', '127.0.0.53%lo:53', '0.0.0.0:*'], ['tcp', 'LISTEN', '0', '128', '0.0.0.0:22', '0.0.0.0:*'], ['tcp', 'LISTEN', '0', '151', '0.0.0.0:3306', '0.0.0.0:*'], ['tcp', 'LISTEN', '0', '511', '127.0.0.1:8000', '0.0.0.0:*'], ['tcp', 'LISTEN', '0', '4096', '127.0.0.1:631', '0.0.0.0:*']];
     return 'Netid State  Recv-Q Send-Q  Local Address:Port    Peer Address:Port\n' + rows.map(r => `${pad(r[0], 6)}${pad(r[1], 7)}${pad(r[2], 7)}${pad(r[3], 8)}${pad(r[4], 22)}${r[5]}`).join('\n');
   },
@@ -742,17 +744,17 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     return head + '\n' + list.map(p => `${pad(p.user, 9)}${lpad(p.pid, 6)} ${lpad(p.cpu.toFixed(1), 4)} ${lpad(p.mem.toFixed(1), 4)} ${p.cmd}`).join('\n');
   },
   kill(args, ctx) {
-    const pid = parseInt(args.filter(a => !a.startsWith('-'))[0], 10); if (!pid) return { out: 'uso: kill PID   (mira el PID con ps aux)', err: true };
+    const pid = parseInt(args.filter(a => !a.startsWith('-'))[0], 10); if (!pid) return { out: t('uso: kill PID   (mira el PID con ps aux)'), err: true };
     const s = ctx.sim, i = s.procs.findIndex(p => p.pid === pid);
     if (i < 0) return { out: `bash: kill: (${pid}) - No such process`, err: true };
     if (ctx.user !== 'root' && s.procs[i].user !== ctx.user) return { out: `bash: kill: (${pid}) - Operation not permitted`, err: true };
-    if (pid === 1) return { out: 'bash: kill: (1) - en el laboratorio no puedes matar init', err: true };
+    if (pid === 1) return { out: 'bash: kill: (1) - ' + t('en el laboratorio no puedes matar init'), err: true };
     s.procs.splice(i, 1); return '';
   },
   ipcalc(args) {
     const a = args.find(x => !x.startsWith('-')); const m = a && a.match(/^([\d.]+)(?:\/(\d{1,2}))?$/);
-    if (!m || !isIP(m[1])) return { out: 'uso: ipcalc 10.10.10.77/26', err: true };
-    const c = m[2] === undefined ? 24 : +m[2]; if (c > 32) return { out: 'ipcalc: prefijo no válido', err: true };
+    if (!m || !isIP(m[1])) return { out: t('uso: ipcalc 10.10.10.77/26'), err: true };
+    const c = m[2] === undefined ? 24 : +m[2]; if (c > 32) return { out: 'ipcalc: ' + t('prefijo no válido'), err: true };
     const ip = ipInt(m[1]), mk = maskOf(c), net = (ip & mk) >>> 0, bc = (net | (~mk >>> 0)) >>> 0;
     const bin = n => { const b = n.toString(2).padStart(32, '0'); const s = b.slice(0, 8) + '.' + b.slice(8, 16) + '.' + b.slice(16, 24) + '.' + b.slice(24); const pos = c + Math.floor(c / 8) - (c % 8 === 0 && c > 0 ? 1 : 0); return c === 0 || c === 32 ? s : s.slice(0, pos + (c % 8 === 0 ? 1 : 0)) + ' ' + s.slice(pos + (c % 8 === 0 ? 1 : 0)); };
     const hosts = c >= 31 ? (c === 32 ? 1 : 2) : 2 ** (32 - c) - 2;
@@ -761,11 +763,11 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     const L = (k, v, b) => `${pad(k, 11)}${pad(v, 21)}${b || ''}`;
     return [L('Address:', m[1], bin(ip)), L('Netmask:', intIp(mk) + ' = ' + c, bin(mk)), L('Wildcard:', intIp(~mk >>> 0), bin(~mk >>> 0)), '=>',
       L('Network:', intIp(net) + '/' + c, bin(net)), L('HostMin:', intIp(first), bin(first)), L('HostMax:', intIp(last), bin(last)),
-      L('Broadcast:', c >= 31 ? '(ninguno)' : intIp(bc), c >= 31 ? '' : bin(bc)), L('Hosts/Net:', String(hosts), priv ? 'Private Internet' : '')].join('\n');
+      L('Broadcast:', c >= 31 ? t('(ninguno)') : intIp(bc), c >= 31 ? '' : bin(bc)), L('Hosts/Net:', String(hosts), priv ? 'Private Internet' : '')].join('\n');
   },
   tcpdump(args, ctx) {
     const i = args.indexOf('-r');
-    if (i < 0) return ctx.user === 'root' ? 'tcpdump: listening on eth0, link-type EN10MB (Ethernet)\n(En el laboratorio no hay tráfico en vivo. Lee la captura guardada: tcpdump -r captura.pcap)' : { out: 'tcpdump: eth0: You don\'t have permission to capture on that device (socket: Operation not permitted)\n(Para capturar en vivo hace falta sudo. Para leer una captura no: tcpdump -r captura.pcap)', err: true };
+    if (i < 0) return ctx.user === 'root' ? 'tcpdump: listening on eth0, link-type EN10MB (Ethernet)\n' + t('(En el laboratorio no hay tráfico en vivo. Lee la captura guardada: tcpdump -r captura.pcap)') : { out: 'tcpdump: eth0: You don\'t have permission to capture on that device (socket: Operation not permitted)\n' + t('(Para capturar en vivo hace falta sudo. Para leer una captura no: tcpdump -r captura.pcap)'), err: true };
     const r = ctx.sim.readFile(args[i + 1] || '', ctx.user, 'tcpdump'); if (r.err) return { out: r.err, err: true };
     if (!(args[i + 1] || '').endsWith('.pcap')) return { out: `tcpdump: ${args[i + 1]}: unknown file format`, err: true };
     return `reading from file ${args[i + 1]}, link-type EN10MB (Ethernet), snapshot length 262144
@@ -788,19 +790,19 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
       if (a.startsWith('-')) { fl.add(a.replace(/^-/, '')); continue; }
       targets.push(a);
     }
-    if (!targets.length) return { out: 'uso: nmap [opciones] destino\nEjemplos: nmap 10.10.10.20 · nmap -sn 10.10.10.0/24 · sudo nmap -sS -sV 10.10.10.20', err: true };
+    if (!targets.length) return { out: I18N.t('uso: nmap [opciones] destino\nEjemplos: nmap 10.10.10.20 · nmap -sn 10.10.10.0/24 · sudo nmap -sS -sV 10.10.10.20'), err: true };
     const syn = fl.has('sS'), ver = fl.has('sV') || fl.has('A'), osd = fl.has('O') || fl.has('A'), sweep = fl.has('sn');
-    if ((syn || osd) && ctx.user !== 'root') return { out: 'You requested a scan type which requires root privileges.\nQUITTING!\n(Prueba con sudo delante del comando.)', err: true };
+    if ((syn || osd) && ctx.user !== 'root') return { out: 'You requested a scan type which requires root privileges.\nQUITTING!\n' + I18N.t('(Prueba con sudo delante del comando.)'), err: true };
     const now = new Date(); const z = n => String(n).padStart(2, '0');
     const o = [`Starting Nmap 7.94SVN ( https://nmap.org ) at ${now.getFullYear()}-${z(now.getMonth() + 1)}-${z(now.getDate())} ${z(now.getHours())}:${z(now.getMinutes())} EST`];
     let ips = [];
     for (const t of targets) {
       const cm = t.match(/^([\d.]+)\/(\d{1,2})$/);
-      if (cm && isIP(cm[1])) { const c = +cm[2]; if (c < 24) return { out: 'En el laboratorio solo se pueden escanear redes /24 o más pequeñas.', err: true }; const mk = maskOf(c), n = (ipInt(cm[1]) & mk) >>> 0; for (let k = 0; k < 2 ** (32 - c); k++) ips.push([intIp(n + k), null]); }
+      if (cm && isIP(cm[1])) { const c = +cm[2]; if (c < 24) return { out: I18N.t('En el laboratorio solo se pueden escanear redes /24 o más pequeñas.'), err: true }; const mk = maskOf(c), n = (ipInt(cm[1]) & mk) >>> 0; for (let k = 0; k < 2 ** (32 - c); k++) ips.push([intIp(n + k), null]); }
       else { const r = s.resolve(t); if (!r) { o.push(`Failed to resolve "${t}".`); continue; } ips.push([r.ips[0], isIP(t) ? null : r.canon]); }
     }
     const external = ips.some(([ip]) => !s.hostInfo(ip).internal);
-    if (external) o.splice(1, 0, 'AVISO: escanear equipos que no son tuyos sin permiso puede ser ilegal. Aquí solo se simula la respuesta.');
+    if (external) o.splice(1, 0, I18N.t('AVISO: escanear equipos que no son tuyos sin permiso puede ser ilegal. Aquí solo se simula la respuesta.'));
     let up = 0; const t0 = sweep ? 2.31 : 0.42;
     for (const [ip, nm] of ips) {
       const h = s.hostInfo(ip); if (!h.up) continue; up++;
@@ -821,7 +823,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
       if (shown.length) { o.push(ver ? 'PORT      STATE    SERVICE        VERSION' : 'PORT      STATE    SERVICE'); shown.forEach(([p, st, sv, v]) => o.push(`${pad(p + '/tcp', 10)}${pad(st, 9)}${ver ? pad(sv, 15) + (st === 'open' ? v : '') : sv}`)); }
       else o.push(`All ${total} scanned ports on ${label} are in ignored states.`);
       if (h.internal && ip !== ME.ip) o.push(`MAC Address: 02:42:0A:0A:0A:${(+ip.split('.')[3]).toString(16).toUpperCase().padStart(2, '0')} (Unknown)`);
-      if (osd) o.push(`OS details: ${h.os}`);
+      if (osd) o.push(`OS details: ${h.os.replace('(impresora)', I18N.t('(impresora)'))}`);
       o.push('');
     }
     if (!up && ips.length === 1) o.push('Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn');
@@ -829,7 +831,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
     return o.join('\n').replace(/\n\n(Nmap done)/, '\n$1');
   },
   python3(args, ctx) {
-    const f = args[0]; if (!f) return { out: 'El intérprete interactivo no está disponible en el laboratorio.\nEjecuta un script: python3 scripts/contar_ips.py', err: true };
+    const f = args[0]; if (!f) return { out: t('El intérprete interactivo no está disponible en el laboratorio.\nEjecuta un script: python3 scripts/contar_ips.py'), err: true };
     const r = ctx.sim.readFile(f, ctx.user, 'python3');
     if (r.err) return { out: `python3: can't open file '${ctx.sim.abs(f)}': [Errno 2] No such file or directory`, err: true };
     if (/print\("Hola desde Python"\)/.test(r.text) && r.text.trim().split('\n').length === 1) return 'Hola desde Python';
@@ -837,13 +839,13 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
       const lg = ctx.sim.readFile('/var/log/auth.log', ctx.user, 'python3');
       if (lg.err) return { out: 'PermissionError: [Errno 13] Permission denied: \'/var/log/auth.log\'', err: true };
       const c = {}; lines(lg.text).forEach(l => { const m = l.match(/Failed password for (?:invalid user )?\S+ from (\S+)/); if (m) c[m[1]] = (c[m[1]] || 0) + 1; });
-      return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([ip, n]) => `${pad(ip, 16)} ${n} intentos`).join('\n');
+      return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([ip, n]) => `${pad(ip, 16)} ${t('{n} intentos', { n })}`).join('\n');
     }
     const prints = [...r.text.matchAll(/^print\((["'])(.*?)\1\)\s*$/gm)].map(m => m[2]);
     if (prints.length) return prints.join('\n');
-    return '(El laboratorio solo puede ejecutar los scripts de ejemplo y scripts sencillos con print.)';
+    return t('(El laboratorio solo puede ejecutar los scripts de ejemplo y scripts sencillos con print.)');
   },
-  ssh(args) { return { out: `ssh: en el laboratorio no puedes conectarte a otros equipos todavía. Llegará en la Fase 2.`, err: true }; },
+  ssh(args) { return { out: 'ssh: ' + t('en el laboratorio no puedes conectarte a otros equipos todavía. Llegará en la Fase 2.'), err: true }; },
 };
 CMDS.ll = (args, ctx) => CMDS.ls(['-la'].concat(args), ctx);
 
@@ -853,18 +855,18 @@ CMDS.ll = (args, ctx) => CMDS.ls(['-la'].concat(args), ctx);
 function mount(el, opts) {
   opts = opts || {};
   const sim = new Sim(); const listeners = [];
-  el.innerHTML = `<div class="term" role="region" aria-label="Terminal del laboratorio">
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  el.innerHTML = `<div class="term" role="region" aria-label="${esc(t('Terminal del laboratorio'))}">
     <div class="term-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="term-title">alumno@lab · LabCorp</span></div>
     <div class="term-out" role="log" aria-live="polite"></div>
-    <form class="term-line" autocomplete="off"><label class="term-ps" for="${opts.id || 'term-in'}"></label><input id="${opts.id || 'term-in'}" class="term-in" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="Escribe un comando"></form>
+    <form class="term-line" autocomplete="off"><label class="term-ps" for="${opts.id || 'term-in'}"></label><input id="${opts.id || 'term-in'}" class="term-in" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="${esc(t('Escribe un comando'))}"></form>
   </div>`;
   const out = el.querySelector('.term-out'), form = el.querySelector('.term-line'), input = el.querySelector('.term-in'), ps = el.querySelector('.term-ps');
   let hIdx = null;
-  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const psHTML = () => { const p = sim.prompt(); return `<span class="tp-u">${p.user}@${p.host}</span>:<span class="tp-p">${esc(p.path)}</span>$`; };
   const paintPs = () => { ps.innerHTML = psHTML(); };
   const write = (html, cls) => { const d = document.createElement('div'); d.className = 'term-row' + (cls ? ' ' + cls : ''); d.innerHTML = html; out.appendChild(d); while (out.children.length > 400) out.removeChild(out.firstChild); out.scrollTop = out.scrollHeight; };
-  const banner = () => write(esc(opts.banner || 'LabCorp · Laboratorio seguro de ciberseguridad\nEscribe help para ver los comandos.'), 'term-muted');
+  const banner = () => write(esc(t(opts.banner || 'LabCorp · Laboratorio seguro de ciberseguridad\nEscribe help para ver los comandos.')), 'term-muted');
   function exec(line) {
     write(psHTML() + ' ' + esc(line));
     const r = sim.run(line);

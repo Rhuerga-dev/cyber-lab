@@ -450,38 +450,41 @@ function rndIP(c) {
   return ((base[0] << 24) | (base[1] << 16) | (base[2] << 8) | rnd(1, 254)) >>> 0;
 }
 const uniq = (arr, n) => { const out = []; for (const x of arr) if (!out.includes(x)) out.push(x); return out.slice(0, n); };
+// Las preguntas generadas guardan [plantilla, variables]; se traducen al pintar con tx().
 const GEN = {
   net() {
     const c = rnd(25, 30), ip = rndIP(c), net = (ip & mk(c)) >>> 0, bc = (net | (~mk(c) >>> 0)) >>> 0, size = 2 ** (32 - c);
     const d = uniq([ipS(net), ipS(bc), ipS((ip & 0xFFFFFF00) >>> 0), ipS((net + size) >>> 0), ipS(Math.max(0, net - size) >>> 0), ipS((net + 1) >>> 0)], 4);
-    return ['sub', `¿Cuál es la dirección de red de ${ipS(ip)}/${c}?`, d, `Bloque de ${size}: ${ip & 255} cae en el bloque que empieza en ${net & 255}. Red ${ipS(net)}, broadcast ${ipS(bc)}.`];
+    return ['sub', ['¿Cuál es la dirección de red de {ip}/{c}?', { ip: ipS(ip), c }], d, ['Bloque de {size}: {last} cae en el bloque que empieza en {start}. Red {net}, broadcast {bc}.', { size, last: ip & 255, start: net & 255, net: ipS(net), bc: ipS(bc) }]];
   },
   bc() {
     const c = rnd(25, 30), ip = rndIP(c), net = (ip & mk(c)) >>> 0, bc = (net | (~mk(c) >>> 0)) >>> 0, size = 2 ** (32 - c);
     const d = uniq([ipS(bc), ipS(net), ipS((bc - 1) >>> 0), ipS((ip | 255) >>> 0), ipS((bc + size) >>> 0)], 4);
-    return ['sub', `¿Cuál es el broadcast de ${ipS(ip)}/${c}?`, d, `Bloque de ${size}: la red empieza en ${net & 255}, así que el broadcast es la última dirección: ${bc & 255}.`];
+    return ['sub', ['¿Cuál es el broadcast de {ip}/{c}?', { ip: ipS(ip), c }], d, ['Bloque de {size}: la red empieza en {start}, así que el broadcast es la última dirección: {last}.', { size, start: net & 255, last: bc & 255 }]];
   },
   hosts() {
     const c = rnd(20, 30), h = 2 ** (32 - c) - 2;
     const d = uniq([h, h + 2, h + 1, 2 ** (31 - c) - 2, 2 ** (33 - c) - 2].filter(x => x > 0).map(String), 4);
-    return ['sub', `¿Cuántos equipos usables tiene una red /${c}?`, d, `2^${32 - c} = ${h + 2} direcciones − 2 (red y broadcast) = ${h}.`];
+    return ['sub', ['¿Cuántos equipos usables tiene una red /{c}?', { c }], d, ['2^{bits} = {total} direcciones − 2 (red y broadcast) = {h}.', { bits: 32 - c, total: h + 2, h }]];
   },
   min() {
     const N = rnd(5, 1500); let c = 30; while (2 ** (32 - c) - 2 < N) c--;
     const d = uniq(['/' + c, '/' + (c + 1), '/' + (c - 1), '/' + (c - 2), '/' + (c + 2)].filter(x => +x.slice(1) <= 30 && +x.slice(1) >= 16), 4);
-    return ['sub', `Necesitas una subred para ${N} equipos. ¿Cuál es el prefijo más pequeño que sirve?`, d, `/${c + 1} da ${2 ** (31 - c) - 2} equipos (no llega); /${c} da ${2 ** (32 - c) - 2}.`];
+    return ['sub', ['Necesitas una subred para {n} equipos. ¿Cuál es el prefijo más pequeño que sirve?', { n: N }], d, ['/{c1} da {h1} equipos (no llega); /{c} da {h}.', { c1: c + 1, h1: 2 ** (31 - c) - 2, c, h: 2 ** (32 - c) - 2 }]];
   },
   mask() {
     const c = rnd(17, 30), m = ipS(mk(c));
     const d = uniq([m, ipS(mk(c + 1 > 30 ? c - 2 : c + 1)), ipS(mk(c - 1)), ipS(mk(c - 8 > 8 ? c - 8 : c + 2))], 4);
-    return ['bin', `¿Qué máscara decimal corresponde a /${c}?`, d, `/${c} = ${c} unos seguidos: ${m}.`];
+    return ['bin', ['¿Qué máscara decimal corresponde a /{c}?', { c }], d, ['/{c} = {c} unos seguidos: {m}.', { c, m }]];
   },
   cidr() {
     const c = rnd(17, 30), m = ipS(mk(c));
     const d = uniq(['/' + c, '/' + (c + 1), '/' + (c - 1), '/' + (c >= 24 ? c - 8 : c + 8)].filter(x => +x.slice(1) <= 32), 4);
-    return ['bin', `¿Qué prefijo CIDR tiene la máscara ${m}?`, d, `Cuenta los unos de cada octeto: ${m.split('.').map(o => (+o).toString(2).replace(/0/g, '').length).join(' + ')} = ${c}.`];
+    return ['bin', ['¿Qué prefijo CIDR tiene la máscara {m}?', { m }], d, ['Cuenta los unos de cada octeto: {sum} = {c}.', { sum: m.split('.').map(o => (+o).toString(2).replace(/0/g, '').length).join(' + '), c }]];
   },
 };
+// Traduce un texto fijo o una plantilla [texto, variables]
+const tx = x => Array.isArray(x) ? I18N.t(x[0], x[1]) : I18N.t(x);
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 function buildExam(total) {
   const gen = shuffle(['net', 'bc', 'hosts', 'min']).slice(0, 3).concat(shuffle(['mask', 'cidr']).slice(0, 1)).map(k => GEN[k]());
@@ -520,7 +523,7 @@ const save = () => CL().save();
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function fmt(s) {
   return escH(s).split('\n\n').map(p => '<p>' + p
-    .replace(/`([^`]+)`/g, (m, c) => `<code class="cmd" data-cmd="${c}" title="Toca para copiarlo a la terminal">${c}</code>`)
+    .replace(/`([^`]+)`/g, (m, c) => `<code class="cmd" data-cmd="${c}" title="${escH(t('Toca para copiarlo a la terminal'))}">${c}</code>`)
     .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\*([^*]+)\*/g, '<i>$1</i>').replace(/\n/g, '<br>') + '</p>').join('');
 }
 const norm = s => String(s).trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.]$/, '');
@@ -535,7 +538,7 @@ function build(container) {
   root = container;
   container.innerHTML = `
   <div class="course">
-    <nav class="clist" aria-label="Lecciones"></nav>
+    <nav class="clist"></nav>
     <section class="cmain card">
       <header class="chead"></header>
       <div class="chat" aria-live="polite"></div>
@@ -544,33 +547,41 @@ function build(container) {
     </section>
     <section class="cterm">
       <div id="course-term"></div>
-      <div class="row ctools"><button class="btn ghost" type="button" id="term-reset">Reiniciar laboratorio</button><button class="btn ghost" type="button" id="term-help">Ver comandos</button></div>
+      <div class="row ctools"><button class="btn ghost" type="button" id="term-reset"></button><button class="btn ghost" type="button" id="term-help"></button></div>
     </section>
   </div>`;
+  paintStatic();
   term = global.CyberTerminal.mount(container.querySelector('#course-term'), { id: 'course-term-in' });
   term.onCommand(onCommand);
-  container.querySelector('#term-reset').addEventListener('click', () => { term.reset(); term.note('Laboratorio reiniciado: archivos, permisos y procesos vuelven a su estado inicial.'); });
+  container.querySelector('#term-reset').addEventListener('click', () => { term.reset(); term.note(t('Laboratorio reiniciado: archivos, permisos y procesos vuelven a su estado inicial.')); });
   container.querySelector('#term-help').addEventListener('click', () => term.exec('help'));
   container.addEventListener('click', e => { const c = e.target.closest('code.cmd'); if (c) term.insert(c.dataset.cmd); });
   built = true;
+}
+// Textos fijos de la vista del curso (se repintan al cambiar de idioma)
+function paintStatic() {
+  root.querySelector('.clist').setAttribute('aria-label', t('Lecciones'));
+  root.querySelector('#term-reset').textContent = t('Reiniciar laboratorio');
+  root.querySelector('#term-help').textContent = t('Ver comandos');
 }
 
 function render(container) {
   if (!built) build(container);
   const s = st(); if (!byId(s.cur)) s.cur = LESSONS[0].id;
   paintList();
-  if (cur !== s.cur) openLesson(s.cur); else paintTask();
+  // Un examen ya terminado se vuelve a generar al volver a la vista
+  if (cur !== s.cur || (exam && exam.finished)) openLesson(s.cur); else paintTask();
 }
 
 function paintList() {
   const nav = root.querySelector('.clist'); let n = 0;
   nav.innerHTML = COURSE.map(ph => {
-    if (ph.soon) return `<div class="cph soon"><span>${escH(ph.name)}</span><span class="tag">Próximamente</span></div>`;
+    if (ph.soon) return `<div class="cph soon"><span>${escH(t(ph.name))}</span><span class="tag">${t('Próximamente')}</span></div>`;
     const done = ph.lessons.filter(l => isDone(l.id)).length;
-    return `<div class="cph"><span>${escH(ph.name)}</span><span class="muted">${done}/${ph.lessons.length}</span></div>` + ph.lessons.map(l => {
+    return `<div class="cph"><span>${escH(t(ph.name))}</span><span class="muted">${done}/${ph.lessons.length}</span></div>` + ph.lessons.map(l => {
       const i = LESSONS.indexOf(l), open = unlocked(i), d = isDone(l.id); n++;
       return `<button type="button" class="cl${d ? ' done' : ''}" data-l="${l.id}" ${st().cur === l.id ? 'aria-current="step"' : ''} ${open ? '' : 'disabled'}>
-        <span class="num">${d ? '✓' : (l.exam ? '★' : n)}</span><span><span class="t">${escH(l.title)}</span><br><span class="s">${open ? escH(AGENTS[l.agent].name) + ' · ' + l.mins + ' min' : 'Bloqueada'}</span></span></button>`;
+        <span class="num">${d ? '✓' : (l.exam ? '★' : n)}</span><span><span class="t">${escH(t(l.title))}</span><br><span class="s">${open ? escH(t('{agent} · {mins} min', { agent: AGENTS[l.agent].name, mins: l.mins })) : escH(t('Bloqueada'))}</span></span></button>`;
     }).join('');
   }).join('');
   nav.querySelectorAll('.cl[data-l]').forEach(b => b.addEventListener('click', () => { st().cur = b.dataset.l; save(); paintList(); openLesson(b.dataset.l); }));
@@ -581,82 +592,108 @@ function bubble(agentKey, html, cls) {
   const a = AGENTS[agentKey];
   const d = document.createElement('div');
   if (agentKey === 'me') { d.className = 'msg me'; d.innerHTML = `<div class="bub">${html}</div>`; }
-  else { d.className = 'msg ' + (cls || ''); d.innerHTML = `<div class="av ${a.cls}" aria-hidden="true">${a.ini}</div><div class="bub"><div class="who">${a.name} <span>${a.role}</span></div>${html}</div>`; }
+  else { d.className = 'msg ' + (cls || ''); d.innerHTML = `<div class="av ${a.cls}" aria-hidden="true">${a.ini}</div><div class="bub"><div class="who">${a.name} <span>${escH(t(a.role))}</span></div>${html}</div>`; }
   chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
 }
 
 function openLesson(id) {
   const L = byId(id); cur = id; mem = {}; hintIdx = 0; exam = null; askHist = [];
   const s = ls(id);
+  if (L.exam) { s.step = 0; exam = { right: 0, res: [], log: [], steps: [L.steps[0]].concat(buildExam(12)) }; }
+  paintLesson(); hintIdx = 0; mem = {};
+}
+
+// Pinta la cabecera y reconstruye la conversación desde el progreso guardado, en el idioma actual.
+// No reinicia el estado (pistas, memoria del paso, examen en curso): la usan openLesson y refresh.
+function paintLesson() {
+  const L = byId(cur), s = ls(cur);
   root.querySelector('.chat').innerHTML = '';
   const a = AGENTS[L.agent];
-  root.querySelector('.chead').innerHTML = `<div class="av big ${a.cls}" aria-hidden="true">${a.ini}</div><div class="ct"><div class="eyebrow">${escH(a.name)} · ${escH(a.role)}</div><h2>${escH(L.title)}</h2></div><div class="cprog" id="cprog"></div>`;
-  if (L.exam) { s.step = 0; exam = { right: 0, res: [], steps: [L.steps[0]].concat(buildExam(12)) }; }
+  root.querySelector('.chead').innerHTML = `<div class="av big ${a.cls}" aria-hidden="true">${a.ini}</div><div class="ct"><div class="eyebrow">${escH(a.name)} · ${escH(t(a.role))}</div><h2>${escH(t(L.title))}</h2></div><div class="cprog" id="cprog"></div>`;
+  if (L.exam && exam) {
+    bubble(L.agent, fmt(t(exam.steps[0].say)));
+    exam.log.forEach(r => { examQuestion(r.S, r.n); bubble('me', escH(tx(r.S.options[r.i]))); examVerdict(r.S, r.ok); });
+    if (exam.finished) { paintExamResult(); paintAsk(); return; }
+    if (s.step > 0) examQuestion(curStep(), s.step);
+    paintTask(); paintAsk(); return;
+  }
   // reconstruir conversación de pasos ya hechos
   const upto = s.done && !L.exam ? L.steps.length : s.step;
-  for (let i = 0; i < upto && !L.exam; i++) { const S = L.steps[i]; bubble(L.agent, fmt(S.say)); if (S.done) bubble(L.agent, fmt(S.done), 'ok'); }
-  if (s.done && !L.exam) { bubble(L.agent, fmt(L.outro)); }
-  else showStep();
+  for (let i = 0; i < upto && !L.exam; i++) { const S = L.steps[i]; bubble(L.agent, fmt(t(S.say))); if (S.done) bubble(L.agent, fmt(t(S.done)), 'ok'); }
+  if (s.done && !L.exam) { bubble(L.agent, fmt(t(L.outro))); }
+  else stepBubble();
   paintTask(); paintAsk();
 }
 
 const stepsOf = L => (L.exam && exam && exam.steps) ? exam.steps : L.steps;
 function curStep() { const L = byId(cur), s = ls(cur); return stepsOf(L)[s.step]; }
 
-function showStep() {
+function examQuestion(S, n) {
+  const L = byId(cur);
+  bubble(L.agent, `<p class="eyebrow">${escH(t('Pregunta {n} de {total} · {topic}', { n, total: stepsOf(L).length - 1, topic: t(TOPICS[S.topic][0]) }))}</p><p><b>${escH(tx(S.q))}</b></p>`);
+}
+function examVerdict(S, good) {
+  bubble(byId(cur).agent, `<p><b>${good ? t('Correcto.') : t('No.')}</b> ${escH(tx(S.why))}</p>`, good ? 'ok' : 'bad');
+}
+function stepBubble() {
   const L = byId(cur), S = curStep(); if (!S) return;
+  if (L.exam && S.q) examQuestion(S, ls(cur).step);
+  else bubble(L.agent, fmt(t(S.say)));
+}
+function showStep() {
+  if (!curStep()) return;
   hintIdx = 0; mem = {};
-  if (L.exam && S.q) { bubble(L.agent, `<p class="eyebrow">Pregunta ${ls(cur).step} de ${stepsOf(L).length - 1} · ${escH(TOPICS[S.topic][0])}</p><p><b>${escH(S.q)}</b></p>`); }
-  else bubble(L.agent, fmt(S.say));
+  stepBubble();
 }
 
 function paintTask() {
   const L = byId(cur), s = ls(cur), S = curStep(), box = root.querySelector('.ctask');
   const total = L.exam ? stepsOf(L).length - 1 : L.steps.length;
   const prog = root.querySelector('#cprog');
-  if (prog) prog.innerHTML = s.done && !L.exam ? '<span class="pill aprobado">Completada</span>' : (L.exam && s.step === 0 ? `<span class="muted">${total} preguntas · ${L.pass} % para aprobar</span>` : `<span class="muted">${L.exam ? 'Pregunta ' + s.step : 'Paso ' + Math.min(s.step + 1, total)} de ${total}</span>`);
+  if (prog) prog.innerHTML = s.done && !L.exam ? `<span class="pill aprobado">${t('Completada')}</span>` : (L.exam && s.step === 0 ? `<span class="muted">${t('{total} preguntas · {pass} % para aprobar', { total, pass: L.pass })}</span>` : `<span class="muted">${L.exam ? t('Pregunta {n} de {total}', { n: s.step, total }) : t('Paso {n} de {total}', { n: Math.min(s.step + 1, total), total })}</span>`);
   if (s.done && !L.exam) {
     const i = LESSONS.indexOf(L), next = LESSONS[i + 1];
-    box.innerHTML = `<div class="row">${next ? `<button class="btn" type="button" id="go-next">Siguiente: ${escH(next.title)} →</button>` : ''}<button class="btn ghost" type="button" id="redo">Repetir lección</button></div>`;
+    box.innerHTML = `<div class="row">${next ? `<button class="btn" type="button" id="go-next">${escH(t('Siguiente: {title} →', { title: t(next.title) }))}</button>` : ''}<button class="btn ghost" type="button" id="redo">${t('Repetir lección')}</button></div>`;
     if (next) box.querySelector('#go-next').addEventListener('click', () => { st().cur = next.id; save(); paintList(); openLesson(next.id); });
     box.querySelector('#redo').addEventListener('click', () => { s.step = 0; delete s.done; save(); openLesson(cur); paintList(); });
     return;
   }
   if (!S) return;
   const T = S.task || (S.q ? { type: 'exam' } : { type: 'read' });
-  const hintBtn = S.hint && S.hint.length ? `<button class="btn ghost" type="button" id="hint">Pedir una pista a ${AGENTS[L.agent].name}</button>` : '';
+  const hintBtn = S.hint && S.hint.length ? `<button class="btn ghost" type="button" id="hint">${escH(t('Pedir una pista a {name}', { name: AGENTS[L.agent].name }))}</button>` : '';
   if (T.type === 'read') {
-    box.innerHTML = `<div class="row"><button class="btn" type="button" id="cont">${escH(T.label || 'Entendido, continuar')}</button></div>`;
+    box.innerHTML = `<div class="row"><button class="btn" type="button" id="cont">${escH(t(T.label || 'Entendido, continuar'))}</button></div>`;
     box.querySelector('#cont').addEventListener('click', () => { if (L.exam) { advance(); } else complete(null); });
     box.querySelector('#cont').focus({ preventScroll: true });
   } else if (T.type === 'cmd') {
-    box.innerHTML = `<div class="tbox"><span class="tlabel">Tarea</span><span>Escríbelo en la terminal. Avanzarás en cuanto lo ejecutes.</span></div><div class="row">${hintBtn}<button class="btn ghost" type="button" id="focus-term">Ir a la terminal</button></div>`;
+    box.innerHTML = `<div class="tbox"><span class="tlabel">${t('Tarea')}</span><span>${t('Escríbelo en la terminal. Avanzarás en cuanto lo ejecutes.')}</span></div><div class="row">${hintBtn}<button class="btn ghost" type="button" id="focus-term">${t('Ir a la terminal')}</button></div>`;
     box.querySelector('#focus-term').addEventListener('click', () => { term.focus(); document.querySelector('.cterm').scrollIntoView({ block: 'nearest' }); });
   } else if (T.type === 'answer') {
-    box.innerHTML = `<form class="row" id="ans-f"><input type="text" id="ans-in" autocomplete="off" spellcheck="false" placeholder="Tu respuesta" aria-label="Tu respuesta"><button class="btn" type="submit">Responder</button>${hintBtn}</form>`;
+    box.innerHTML = `<form class="row" id="ans-f"><input type="text" id="ans-in" autocomplete="off" spellcheck="false" placeholder="${escH(t('Tu respuesta'))}" aria-label="${escH(t('Tu respuesta'))}"><button class="btn" type="submit">${t('Responder')}</button>${hintBtn}</form>`;
     box.querySelector('#ans-f').addEventListener('submit', e => {
       e.preventDefault(); const v = box.querySelector('#ans-in').value; if (!v.trim()) return;
       bubble('me', escH(v));
       const good = T.accept.some(a => a instanceof RegExp ? a.test(v) : norm(a) === norm(v));
-      if (good) complete(null); else { bubble(L.agent, '<p>' + (T.wrong ? escH(T.wrong) : 'No es eso. Revisa la salida de la terminal' + (S.hint ? ' o pídeme una pista.' : '.')) + '</p>', 'bad'); box.querySelector('#ans-in').select(); }
+      if (good) complete(null); else { bubble(L.agent, '<p>' + escH(T.wrong ? t(T.wrong) : (S.hint ? t('No es eso. Revisa la salida de la terminal o pídeme una pista.') : t('No es eso. Revisa la salida de la terminal.'))) + '</p>', 'bad'); box.querySelector('#ans-in').select(); }
     });
   } else if (T.type === 'choice' || T.type === 'exam') {
-    const opts = T.type === 'exam' ? S.options.map((t, i) => ({ t, ok: i === S.a })) : T.options;
-    box.innerHTML = `<div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-i="${i}">${escH(o.t)}</button>`).join('')}</div>`;
+    const opts = T.type === 'exam' ? S.options.map((o, i) => ({ t: o, ok: i === S.a })) : T.options;
+    box.innerHTML = `<div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-i="${i}">${escH(t(o.t))}</button>`).join('')}</div>`;
     box.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
-      const o = opts[+b.dataset.i]; bubble('me', escH(o.t));
+      const o = opts[+b.dataset.i]; bubble('me', escH(t(o.t)));
       if (T.type === 'exam') {
         if (o.ok) exam.right++;
         exam.res.push({ topic: S.topic, ok: !!o.ok });
-        bubble(L.agent, `<p><b>${o.ok ? 'Correcto.' : 'No.'}</b> ${escH(S.why)}</p>`, o.ok ? 'ok' : 'bad');
+        exam.log.push({ S, n: ls(cur).step, i: +b.dataset.i, ok: !!o.ok });
+        examVerdict(S, !!o.ok);
         advance();
       } else if (o.ok) { complete(o.why); }
-      else { b.disabled = true; b.classList.add('wrong'); bubble(L.agent, '<p>' + escH(o.why) + '</p>', 'bad'); }
+      else { b.disabled = true; b.classList.add('wrong'); bubble(L.agent, '<p>' + escH(t(o.why)) + '</p>', 'bad'); }
     }));
   }
   const h = box.querySelector('#hint');
   if (h) h.addEventListener('click', () => {
-    const hs = S.hint; bubble(L.agent, '<p><b>Pista:</b> ' + escH(hs[Math.min(hintIdx, hs.length - 1)]) + '</p>', 'hint');
+    const hs = S.hint; bubble(L.agent, '<p><b>' + t('Pista:') + '</b> ' + escH(t(hs[Math.min(hintIdx, hs.length - 1)])) + '</p>', 'hint');
     hintIdx++; if (hintIdx >= hs.length) h.disabled = true;
   });
   const inp = box.querySelector('#ans-in'); if (inp && document.activeElement && root.contains(document.activeElement) && !document.activeElement.closest('.cterm')) inp.focus({ preventScroll: true });
@@ -664,8 +701,8 @@ function paintTask() {
 
 function complete(extra) {
   const L = byId(cur), s = ls(cur), S = curStep();
-  if (extra) bubble(L.agent, '<p>' + escH(extra) + '</p>', 'ok');
-  if (S.done) bubble(L.agent, fmt(S.done), 'ok');
+  if (extra) bubble(L.agent, '<p>' + escH(t(extra)) + '</p>', 'ok');
+  if (S.done) bubble(L.agent, fmt(t(S.done)), 'ok');
   s.step++; save();
   if (s.step >= stepsOf(L).length) finish(); else { showStep(); paintTask(); }
 }
@@ -680,31 +717,40 @@ function advance() {
 function finishExam() {
   const L = byId(cur), s = ls(cur), total = stepsOf(L).length - 1, pct = Math.round(exam.right / total * 100);
   const passed = pct >= L.pass;
-  bubble(L.agent, `<p><b>Resultado: ${exam.right} de ${total} (${pct} %).</b></p><p>${passed ? '¡Aprobado! Has completado la Fase 1 del curso. Ya tienes la base para preparar el **Cisco CCST Networking**.'.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') : 'No llegas al ' + L.pass + ' %. Repasa las lecciones de las preguntas que fallaste y vuelve a intentarlo.'}</p>`, passed ? 'ok' : 'bad');
-  CL().addLog({ type: 'practica', title: `Examen Fase 1 del curso: ${pct} %${passed ? ' (aprobado)' : ''}`, score: `${exam.right}/${total}` });
+  exam.finished = true;
+  CL().addLog({ type: 'practica', title: I18N.t(passed ? 'Examen Fase 1 del curso: {pct} % (aprobado)' : 'Examen Fase 1 del curso: {pct} %', { pct }), score: `${exam.right}/${total}` });
   // Resultado por tema
   const per = {}; exam.res.forEach(r => { const p = per[r.topic] = per[r.topic] || { ok: 0, n: 0 }; p.n++; if (r.ok) p.ok++; });
-  const weak = Object.keys(per).filter(t => per[t].ok < per[t].n);
-  bubble(L.agent, `<p><b>Por tema:</b></p><table class="ref examtbl">${Object.keys(per).sort((a, b) => (per[a].ok / per[a].n) - (per[b].ok / per[b].n)).map(t => `<tr><td>${escH(TOPICS[t][0])}</td><td>${per[t].ok}/${per[t].n}</td><td>${per[t].ok < per[t].n ? `<a href="#curso" data-goto="${TOPICS[t][1]}">Repasar lección</a>` : '✓'}</td></tr>`).join('')}</table>` +
-    (weak.length ? `<p>He puesto para hoy en tu <a href="#repaso">Repaso</a> las tarjetas de: ${weak.map(t => escH(TOPICS[t][0])).join(', ')}.</p>` : ''), 'hint');
-  if (weak.length && global.Review) global.Review.boost(weak.map(t => TOPICS[t][1]));
-  root.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', () => { st().cur = a.dataset.goto; save(); paintList(); openLesson(a.dataset.goto); }));
+  const weak = Object.keys(per).filter(k => per[k].ok < per[k].n);
+  if (weak.length && global.Review) global.Review.boost(weak.map(k => TOPICS[k][1]));
   if (passed && !s.done) s.done = new Date().toISOString().slice(0, 10);
   s.best = Math.max(s.best || 0, pct); s.step = 0; save(); paintList(); CL().paintOverall();
-  const box = root.querySelector('.ctask');
-  box.innerHTML = `<div class="row"><button class="btn${passed ? ' ghost' : ''}" type="button" id="retry">Repetir examen</button>${passed ? '<a class="btn" href="#certs">Ver certificaciones →</a>' : ''}</div>`;
-  box.querySelector('#retry').addEventListener('click', () => openLesson(cur));
-  const prog = root.querySelector('#cprog'); if (prog) prog.innerHTML = `<span class="pill ${passed ? 'aprobado' : 'programado'}">Mejor nota: ${s.best} %</span>`;
+  exam.finished = { total, pct, passed, per, weak };
+  paintExamResult();
 }
+
+// Pinta el resultado del examen ya terminado (también al cambiar de idioma)
+function paintExamResult() {
+  const L = byId(cur), s = ls(cur), { total, pct, passed, per, weak } = exam.finished;
+  bubble(L.agent, `<p><b>${escH(t('Resultado: {right} de {total} ({pct} %).', { right: exam.right, total, pct }))}</b></p><p>${passed ? fmtInline(t('¡Aprobado! Has completado la Fase 1 del curso. Ya tienes la base para preparar el **Cisco CCST Networking**.')) : escH(t('No llegas al {pass} %. Repasa las lecciones de las preguntas que fallaste y vuelve a intentarlo.', { pass: L.pass }))}</p>`, passed ? 'ok' : 'bad');
+  bubble(L.agent, `<p><b>${t('Por tema:')}</b></p><table class="ref examtbl">${Object.keys(per).sort((a, b) => (per[a].ok / per[a].n) - (per[b].ok / per[b].n)).map(k => `<tr><td>${escH(t(TOPICS[k][0]))}</td><td>${per[k].ok}/${per[k].n}</td><td>${per[k].ok < per[k].n ? `<a href="#curso" data-goto="${TOPICS[k][1]}">${t('Repasar lección')}</a>` : '✓'}</td></tr>`).join('')}</table>` +
+    (weak.length ? `<p>${t('He puesto para hoy en tu <a href="#repaso">Repaso</a> las tarjetas de: {list}.', { list: weak.map(k => escH(t(TOPICS[k][0]))).join(', ') })}</p>` : ''), 'hint');
+  root.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', () => { st().cur = a.dataset.goto; save(); paintList(); openLesson(a.dataset.goto); }));
+  const box = root.querySelector('.ctask');
+  box.innerHTML = `<div class="row"><button class="btn${passed ? ' ghost' : ''}" type="button" id="retry">${t('Repetir examen')}</button>${passed ? `<a class="btn" href="#certs">${t('Ver certificaciones →')}</a>` : ''}</div>`;
+  box.querySelector('#retry').addEventListener('click', () => openLesson(cur));
+  const prog = root.querySelector('#cprog'); if (prog) prog.innerHTML = `<span class="pill ${passed ? 'aprobado' : 'programado'}">${escH(t('Mejor nota: {n} %', { n: s.best }))}</span>`;
+}
+const fmtInline = s => escH(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
 function finish() {
   const L = byId(cur), s = ls(cur);
   s.done = new Date().toISOString().slice(0, 10);
   const p = CL().prog;
   (L.topics || []).forEach(t => { if (!p.topics[t]) p.topics[t] = s.done; });
-  CL().addLog({ type: 'curso', title: 'Lección completada: ' + L.title });
+  CL().addLog({ type: 'curso', title: I18N.t('Lección completada: {title}', { title: I18N.t(L.title) }) });
   save(); CL().paintOverall();
-  bubble(L.agent, fmt(L.outro));
+  bubble(L.agent, fmt(t(L.outro)));
   paintList(); paintTask();
 }
 
@@ -723,11 +769,11 @@ function onCommand(entry, sim) {
 function paintAsk() {
   const L = byId(cur), box = root.querySelector('.cask'), a = AGENTS[L.agent];
   if (L.exam) { box.innerHTML = ''; return; }
-  box.innerHTML = `<button type="button" class="btn ghost askbtn" id="ask-open"><span class="aitag">IA</span> Pregúntale a ${a.name}</button>
+  box.innerHTML = `<button type="button" class="btn ghost askbtn" id="ask-open"><span class="aitag">${t('IA')}</span> ${escH(t('Pregúntale a {name}', { name: a.name }))}</button>
     <form class="askf" id="ask-f" hidden>
-      <label for="ask-in" class="muted small">Tu duda sobre esta lección. ${a.name} ve en qué paso estás y lo último de tu terminal.</label>
-      <textarea id="ask-in" rows="2" maxlength="1000" placeholder="Ej.: ¿por qué uniq necesita sort antes?"></textarea>
-      <div class="row"><button class="btn" type="submit" id="ask-go">Enviar</button><button class="btn ghost" type="button" id="ask-x">Cerrar</button><span class="muted small" id="ask-left"></span></div>
+      <label for="ask-in" class="muted small">${escH(t('Tu duda sobre esta lección. {name} ve en qué paso estás y lo último de tu terminal.', { name: a.name }))}</label>
+      <textarea id="ask-in" rows="2" maxlength="1000" placeholder="${escH(t('Ej.: ¿por qué uniq necesita sort antes?'))}"></textarea>
+      <div class="row"><button class="btn" type="submit" id="ask-go">${t('Enviar')}</button><button class="btn ghost" type="button" id="ask-x">${t('Cerrar')}</button><span class="muted small" id="ask-left"></span></div>
     </form>`;
   const f = box.querySelector('#ask-f'), open = box.querySelector('#ask-open'), inp = box.querySelector('#ask-in');
   open.addEventListener('click', () => { f.hidden = false; open.hidden = true; inp.focus(); });
@@ -737,21 +783,21 @@ function paintAsk() {
     e.preventDefault();
     const q = inp.value.trim(); if (!q) return;
     if (!global.Sync || !global.Sync.loggedIn) {
-      bubble(L.agent, `<p>Para hablar conmigo con IA, entra con tu cuenta (botón <b>Entrar</b>, arriba a la derecha).</p>`, 'hint');
+      bubble(L.agent, `<p>${t('Para hablar conmigo con IA, entra con tu cuenta (botón <b>Entrar</b>, arriba a la derecha).')}</p>`, 'hint');
       if (global.Sync) global.Sync.open('login'); return;
     }
     const go = box.querySelector('#ask-go'); go.disabled = true; inp.value = '';
     bubble('me', escH(q));
-    bubble(L.agent, '<p class="typing" aria-label="Escribiendo"><i></i><i></i><i></i></p>', 'ai pending');
+    bubble(L.agent, `<p class="typing" aria-label="${escH(t('Escribiendo'))}"><i></i><i></i><i></i></p>`, 'ai pending');
     const S = curStep();
-    const step = ls(cur).done ? 'Lección completada' : (S && S.say ? S.say.replace(/\*\*/g, '') : '');
+    const step = ls(cur).done ? t('Lección completada') : (S && S.say ? t(S.say).replace(/\*\*/g, '') : '');
     try {
-      const r = await global.Sync.ask({ agent: L.agent, question: q, context: { lesson: L.title, step: step.slice(0, 1500), terminal: lastCmds.join('\n').slice(-3800) }, history: askHist.slice(-ASK_MAX) });
-      setPending('<span class="aitag">IA</span>' + fmt(r.answer || '(sin respuesta)'), 'ai');
+      const r = await global.Sync.ask({ agent: L.agent, question: q, lang: I18N.lang, context: { lesson: t(L.title), step: step.slice(0, 1500), terminal: lastCmds.join('\n').slice(-3800) }, history: askHist.slice(-ASK_MAX) });
+      setPending(`<span class="aitag">${t('IA')}</span>` + fmt(r.answer || t('(sin respuesta)')), 'ai');
       askHist.push({ role: 'user', content: q }, { role: 'assistant', content: r.answer || '' });
-      box.querySelector('#ask-left').textContent = r.remaining !== undefined ? `Te quedan ${r.remaining} preguntas hoy` : '';
+      box.querySelector('#ask-left').textContent = r.remaining !== undefined ? t('Te quedan {n} preguntas hoy', { n: r.remaining }) : '';
     } catch (err) {
-      const msg = err.offline ? 'No puedo conectar con el servidor ahora mismo. Comprueba que tu API está encendida.' : (err.body && err.body.message) || 'No he podido responder. Inténtalo otra vez.';
+      const msg = err.offline ? t('No puedo conectar con el servidor ahora mismo. Comprueba que tu API está encendida.') : (err.body && err.body.message && (global.Sync && global.Sync.tr ? global.Sync.tr(err.body.message) : err.body.message)) || t('No he podido responder. Inténtalo otra vez.');
       setPending('<p>' + escH(msg) + '</p>', 'bad');
     }
     go.disabled = false; inp.focus({ preventScroll: true });
@@ -766,38 +812,54 @@ function setPending(html, cls) {
 /* ------------------------------------------------------------------ */
 /* Terminal libre                                                      */
 /* ------------------------------------------------------------------ */
-let freeBuilt = false, freeTerm = null, pendingCmd = null;
+let freeBuilt = false, freeTerm = null, pendingCmd = null, freeRoot = null;
+const FREE_CHALLENGES = [
+  'Encuentra la flag que solo puede leer root.',
+  'Descubre qué versión de nginx usa la web.',
+  'Encuentra un comentario olvidado en el HTML de la intranet.',
+  '¿Qué servidores DNS usa huergalabs.dev? (pista: registro NS)',
+  'Crea un archivo con la lista de usuarios del sistema usando cut y >.',
+];
 function renderFree(container) {
   if (freeBuilt) { if (pendingCmd && freeTerm) { freeTerm.insert(pendingCmd); pendingCmd = null; } return; }
-  freeBuilt = true;
-  const H = global.CyberTerminal.HOSTS;
+  freeBuilt = true; freeRoot = container;
   container.innerHTML = `
   <div class="freelab">
-    <section class="cterm"><div id="free-term"></div><div class="row ctools"><button class="btn ghost" type="button" id="free-reset">Reiniciar laboratorio</button><button class="btn ghost" type="button" id="free-help">Ver comandos</button></div></section>
-    <aside class="card freeside">
-      <h2>Laboratorio libre</h2>
-      <p class="muted">Practica lo que quieras sin guion. Es la misma red de LabCorp que en el curso, pero en una terminal aparte.</p>
-      <h3>Mapa de la red 10.10.10.0/24</h3>
-      <div class="tablewrap"><table class="ref netmap"><tr><th>IP</th><th>Nombre</th></tr>${Object.entries(H).map(([ip, h]) => `<tr><td>${ip}</td><td>${escH(h.name.replace('.labcorp.local', ''))}${ip === '10.10.10.100' ? ' (tú)' : ''}</td></tr>`).join('')}</table></div>
-      <h3>Retos libres</h3>
-      <ul class="checks plain">
-        <li>Encuentra la flag que solo puede leer root.</li>
-        <li>Descubre qué versión de nginx usa la web.</li>
-        <li>Encuentra un comentario olvidado en el HTML de la intranet.</li>
-        <li>¿Qué servidores DNS usa huergalabs.dev? (pista: registro NS)</li>
-        <li>Crea un archivo con la lista de usuarios del sistema usando cut y &gt;.</li>
-      </ul>
-    </aside>
+    <section class="cterm"><div id="free-term"></div><div class="row ctools"><button class="btn ghost" type="button" id="free-reset"></button><button class="btn ghost" type="button" id="free-help"></button></div></section>
+    <aside class="card freeside"></aside>
   </div>`;
-  const t = global.CyberTerminal.mount(container.querySelector('#free-term'), { id: 'free-term-in', banner: 'LabCorp · Laboratorio libre\nEscribe help para ver los comandos.' });
-  freeTerm = t;
-  if (pendingCmd) { t.insert(pendingCmd); pendingCmd = null; }
-  container.querySelector('#free-reset').addEventListener('click', () => t.reset());
-  container.querySelector('#free-help').addEventListener('click', () => t.exec('help'));
+  paintFreeSide();
+  const ft = global.CyberTerminal.mount(container.querySelector('#free-term'), { id: 'free-term-in', banner: t('LabCorp · Laboratorio libre\nEscribe help para ver los comandos.') });
+  freeTerm = ft;
+  if (pendingCmd) { ft.insert(pendingCmd); pendingCmd = null; }
+  container.querySelector('#free-reset').addEventListener('click', () => ft.reset());
+  container.querySelector('#free-help').addEventListener('click', () => ft.exec('help'));
+}
+// Panel lateral y botones de la terminal libre (se repintan al cambiar de idioma sin tocar la terminal)
+function paintFreeSide() {
+  const H = global.CyberTerminal.HOSTS;
+  freeRoot.querySelector('#free-reset').textContent = t('Reiniciar laboratorio');
+  freeRoot.querySelector('#free-help').textContent = t('Ver comandos');
+  freeRoot.querySelector('.freeside').innerHTML = `
+      <h2>${t('Laboratorio libre')}</h2>
+      <p class="muted">${t('Practica lo que quieras sin guion. Es la misma red de LabCorp que en el curso, pero en una terminal aparte.')}</p>
+      <h3>${escH(t('Mapa de la red {net}', { net: '10.10.10.0/24' }))}</h3>
+      <div class="tablewrap"><table class="ref netmap"><tr><th>IP</th><th>${t('Nombre')}</th></tr>${Object.entries(H).map(([ip, h]) => `<tr><td>${ip}</td><td>${escH(h.name.replace('.labcorp.local', ''))}${ip === '10.10.10.100' ? ' ' + escH(t('(tú)')) : ''}</td></tr>`).join('')}</table></div>
+      <h3>${t('Retos libres')}</h3>
+      <ul class="checks plain">
+        ${FREE_CHALLENGES.map(c => `<li>${escH(t(c))}</li>`).join('\n        ')}
+      </ul>`;
 }
 
+// Vuelve a pintar todo en el idioma actual (lista, lección abierta y panel de la terminal libre)
+function refresh() {
+  if (built && root) { paintStatic(); paintList(); if (cur && byId(cur)) paintLesson(); }
+  if (freeBuilt && freeRoot) paintFreeSide();
+}
+if (global.I18N && global.I18N.onChange) global.I18N.onChange(kind => { if (kind === 'lang' && (built || freeBuilt)) refresh(); });
+
 global.Course = {
-  render, renderFree, COURSE, LESSONS, _exam: { GEN, buildExam },
+  render, renderFree, refresh, COURSE, LESSONS, _exam: { GEN, buildExam, BANK_F1, TOPICS },
   lessonForTopic(topic) { const l = LESSONS.find(x => (x.topics || []).includes(topic)); return l ? l.id : null; },
   open(id) { if (byId(id)) { st().cur = id; save(); cur = null; } },
   tryInTerminal(cmd) { pendingCmd = cmd; if (location.hash === '#terminal') { if (freeTerm) { freeTerm.insert(cmd); pendingCmd = null; } } else location.hash = '#terminal'; },

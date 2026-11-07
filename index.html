@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cyber Lab · Huerga Labs</title>
 <meta name="description" content="Aprende ciberseguridad desde cero, paso a paso, practicando.">
+<script>try{var th=localStorage.getItem("cyberlab-theme");if(th==="light"||th==="dark")document.documentElement.setAttribute("data-theme",th);var lg=localStorage.getItem("cyberlab-lang");if(lg)document.documentElement.lang=lg}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
@@ -19,10 +20,14 @@
   --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){:root{
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f161d;--surface:#16212b;--ink:#e3eaf0;--muted:#93a4b3;--line:#2a3a48;
   --accent:#4fb3d4;--accent-ink:#06202b;--bit:#f0a347;--bit-ink:#1b1206;
   --ok:#6fd39f;--ok-bg:#133826;--bad:#ff8f86;--bad-bg:#45201d;--warn:#e8c35a;--warn-bg:#3a3014;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161d;--surface:#16212b;--ink:#e3eaf0;--muted:#93a4b3;--line:#2a3a48;
+  --accent:#4fb3d4;--accent-ink:#06202b;--bit:#f0a347;--bit-ink:#1b1206;
+  --ok:#6fd39f;--ok-bg:#133826;--bad:#ff8f86;--bad-bg:#45201d;--warn:#e8c35a;--warn-bg:#3a3014;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -257,6 +262,11 @@ kbd{font-family:var(--f-mono);font-size:11px;padding:1px 5px;border:1px solid va
 .stparts{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:14px}
 .ippre{font-family:var(--f-mono);font-size:20px;font-weight:600;color:var(--muted);margin-right:-6px}
 .lastoct{font-weight:600}
+.prefs{display:flex;gap:8px;align-items:center}
+.seg.sm .segb,.seg.sm button{font:inherit;font-size:13px;font-weight:600;padding:5px 9px;border:0;background:var(--surface);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:30px}
+.seg.sm button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg.sm button:hover:not([aria-pressed="true"]){color:var(--ink)}
+.msg .bub a{color:var(--accent);font-weight:600}
 /* Calculadora flotante */
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;font:inherit;font-weight:600;font-size:16px;padding:12px 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .fab[aria-expanded="true"]{background:var(--surface);color:var(--accent)}
@@ -349,20 +359,28 @@ footer a{color:var(--accent)}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">Huerga Labs · Ciberseguridad desde cero</div>
+      <div class="eyebrow" data-i18n>Huerga Labs · Ciberseguridad desde cero</div>
       <h1>Cyber Lab</h1>
     </div>
-    <div class="hright"><div class="overall" id="overall"></div><button type="button" class="acctbtn" id="acct-btn"><span class="sdot off" aria-hidden="true"></span>Entrar</button></div>
+    <div class="hright"><div class="overall" id="overall"></div>
+      <div class="prefs">
+        <div class="seg sm" role="group" aria-label="Idioma" data-i18n-attr="aria-label">
+          <button type="button" data-setlang="es" lang="es" title="Español">ES</button><button type="button" data-setlang="en" lang="en" title="English">EN</button>
+        </div>
+        <div class="seg sm" role="group" aria-label="Apariencia" data-i18n-attr="aria-label">
+          <button type="button" data-settheme="light" title="Claro" aria-label="Claro" data-i18n-attr="title,aria-label"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><button type="button" data-settheme="auto" title="Automático (como el sistema)" aria-label="Automático (como el sistema)" data-i18n-attr="title,aria-label"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button><button type="button" data-settheme="dark" title="Oscuro" aria-label="Oscuro" data-i18n-attr="title,aria-label"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div><button type="button" class="acctbtn" id="acct-btn"><span class="sdot off" aria-hidden="true"></span>Entrar</button></div>
   </header>
 
-  <nav class="tabs" aria-label="Secciones">
-    <a href="#ruta" data-v="ruta">Hoja de ruta</a>
-    <a href="#curso" data-v="curso">Curso</a>
-    <a href="#repaso" data-v="repaso">Repaso <span class="tabbadge" id="rv-badge" hidden></span></a>
-    <a href="#terminal" data-v="terminal">Terminal</a>
-    <a href="#practica" data-v="practica">Práctica</a>
-    <a href="#certs" data-v="certs">Certificaciones</a>
-    <a href="#resultados" data-v="resultados">Resultados</a>
+  <nav class="tabs" aria-label="Secciones" data-i18n-attr="aria-label">
+    <a href="#ruta" data-v="ruta" data-i18n>Hoja de ruta</a>
+    <a href="#curso" data-v="curso" data-i18n>Curso</a>
+    <a href="#repaso" data-v="repaso"><span data-i18n>Repaso</span> <span class="tabbadge" id="rv-badge" hidden></span></a>
+    <a href="#terminal" data-v="terminal" data-i18n>Terminal</a>
+    <a href="#practica" data-v="practica" data-i18n>Práctica</a>
+    <a href="#certs" data-v="certs" data-i18n>Certificaciones</a>
+    <a href="#resultados" data-v="resultados" data-i18n>Resultados</a>
   </nav>
 
   <section class="view" id="v-ruta"></section>
@@ -374,38 +392,44 @@ footer a{color:var(--accent)}
 
   <section class="view" id="v-practica" hidden>
   <div class="layout">
-    <nav class="path" id="path" aria-label="Niveles"></nav>
+    <nav class="path" id="path" aria-label="Niveles" data-i18n-attr="aria-label"></nav>
     <main class="main">
       <div class="main" id="main"></div>
     </main>
   </div>
   </section>
 
-  <footer>Tu progreso se guarda en este navegador. Descarga una copia de seguridad en Resultados de vez en cuando, sobre todo antes de cambiar de navegador o de equipo.</footer>
+  <footer data-i18n>Tu progreso se guarda en este navegador. Descarga una copia de seguridad en Resultados de vez en cuando, sobre todo antes de cambiar de navegador o de equipo.</footer>
 </div>
 
 <button type="button" class="fab" id="calc-fab" aria-controls="calc" aria-expanded="false">Calculadora</button>
 <aside class="calcpanel" id="calc" aria-labelledby="calc-h" hidden>
   <div class="cphead">
-    <h3 id="calc-h">Calculadora de bits</h3>
-    <button type="button" class="btn ghost" id="calc-close" aria-label="Cerrar calculadora">Cerrar</button>
+    <h3 id="calc-h" data-i18n>Calculadora de bits</h3>
+    <button type="button" class="btn ghost" id="calc-close" aria-label="Cerrar calculadora" data-i18n-attr="aria-label"><span data-i18n>Cerrar</span></button>
   </div>
-  <div class="seg" role="group" aria-label="Tamaño de la calculadora">
-    <button type="button" class="segb" data-m="1" aria-pressed="true">1 octeto</button>
-    <button type="button" class="segb" data-m="4" aria-pressed="false">4 octetos</button>
+  <div class="seg" role="group" aria-label="Tamaño de la calculadora" data-i18n-attr="aria-label">
+    <button type="button" class="segb" data-m="1" aria-pressed="true" data-i18n>1 octeto</button>
+    <button type="button" class="segb" data-m="4" aria-pressed="false" data-i18n>4 octetos</button>
   </div>
-  <p class="muted cptip">Piensa primero tu respuesta y usa esto para comprobarla.</p>
+  <p class="muted cptip" data-i18n>Piensa primero tu respuesta y usa esto para comprobarla.</p>
   <div class="coctets" id="calc-octs"></div>
   <div class="csum" id="calc-sum" aria-live="polite"></div>
-  <div class="row"><button class="btn ghost" id="calc-clear" type="button">Apagar todo</button></div>
+  <div class="row"><button class="btn ghost" id="calc-clear" type="button" data-i18n>Apagar todo</button></div>
 </aside>
 
+<script src="js/lang/en-ui.js"></script>
+<script src="js/lang/en-course.js"></script>
+<script src="js/lang/en-terminal.js"></script>
+<script src="js/lang/en-review.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/terminal.js"></script>
 <script src="js/course.js"></script>
 <script src="js/review.js"></script>
 <script src="js/sync.js"></script>
 <script>
 (function(){
+const T=(s,v)=>I18N.t(s,v);
 const NEED=5;
 const W4=[8,4,2,1], W8=[128,64,32,16,8,4,2,1];
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
@@ -424,33 +448,34 @@ const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math
 function genSubnet(){
   const c=rnd(24,30),k=rnd(0,2),o1=k===0?192:k===1?10:172,o2=k===0?168:k===1?rnd(0,255):rnd(16,31),o3=rnd(0,255),o4=rnd(1,254);
   const size=2**(32-c),idx=Math.floor(o4/size),start=idx*size,end=start+size-1,pre=o1+'.'+o2+'.'+o3+'.',net=pre+start,bc=pre+end,hosts=size-2,ip=pre+o4+'/'+c;
-  const dec=(o4/size).toFixed(2).replace('.',',').replace(/,?0+$/,'');
+  const dec=(o4/size).toFixed(2).replace(/\.?0+$/,''),decs=I18N.lang==='es'?dec.replace('.',','):dec;
   // Mismos pasos que la explicación: manzana → dividir → red → broadcast
-  const p1='<b>1.</b> /'+c+' → manzanas de <b>'+size+'</b> casas.';
-  const p2=c===24?'<b>2.</b> Con /24 hay una sola manzana (0–255), así que la red es <b>.0</b>.':'<b>2.</b> '+o4+' ÷ '+size+' = '+dec+' → me quedo con <b>'+idx+'</b> → '+idx+' × '+size+' = <b>'+start+'</b> → red <b>.'+start+'</b>.';
-  const p3='<b>3.</b> Broadcast = red + manzana − 1 = '+start+' + '+size+' − 1 = <b>'+end+'</b>.';
+  const p1=T('<b>1.</b> /{c} → manzanas de <b>{size}</b> casas.',{c,size});
+  const p2=c===24?T('<b>2.</b> Con /24 hay una sola manzana (0–255), así que la red es <b>.0</b>.'):T('<b>2.</b> {o4} ÷ {size} = {dec} → me quedo con <b>{idx}</b> → {idx} × {size} = <b>{start}</b> → red <b>.{start}</b>.',{o4,size,dec:decs,idx,start});
+  const p3=T('<b>3.</b> Broadcast = red + manzana − 1 = {start} + {size} − 1 = <b>{end}</b>.',{start,size,end});
   const steps=p1+'<br>'+p2+'<br>'+p3;
   const kind=pick(['net','net','bc','hosts']);
-  if(kind==='net')return{q:'¿Cuál es la dirección de red?',big:ip,answer:net,pre,ph:'0',why:steps+'<br>Respuesta: <b>'+net+'</b>',hint:'/'+c+' son manzanas de '+size+'. Divide '+o4+' entre '+size+', quédate con la parte entera y multiplícala por '+size+'.'};
-  if(kind==='bc')return{q:'¿Cuál es el broadcast?',big:ip,answer:bc,pre,ph:'255',why:steps+'<br>Respuesta: <b>'+bc+'</b>',hint:'Primero saca la red ('+o4+' ÷ '+size+', parte entera × '+size+'). Luego: red + '+size+' − 1. No olvides el − 1.'};
-  return{q:'¿Cuántos equipos usables hay en esta red?',big:'/'+c,answer:String(hosts),ph:'ej. 62',why:'<b>1.</b> /'+c+' → manzanas de <b>'+size+'</b> casas.<br><b>2.</b> Quita la primera (red) y la última (broadcast): '+size+' − 2 = <b>'+hosts+'</b>.',hint:'Mira cuántas casas tiene la manzana en un /'+c+' y réstale 2.'};
+  if(kind==='net')return{q:T('¿Cuál es la dirección de red?'),big:ip,answer:net,pre,ph:'0',why:steps+'<br>'+T('Respuesta')+': <b>'+net+'</b>',hint:T('/{c} son manzanas de {size}. Divide {o4} entre {size}, quédate con la parte entera y multiplícala por {size}.',{c,size,o4})};
+  if(kind==='bc')return{q:T('¿Cuál es el broadcast?'),big:ip,answer:bc,pre,ph:'255',why:steps+'<br>'+T('Respuesta')+': <b>'+bc+'</b>',hint:T('Primero saca la red ({o4} ÷ {size}, parte entera × {size}). Luego: red + {size} − 1. No olvides el − 1.',{o4,size})};
+  return{q:T('¿Cuántos equipos usables hay en esta red?'),big:'/'+c,answer:String(hosts),ph:T('ej. 62'),why:T('<b>1.</b> /{c} → manzanas de <b>{size}</b> casas.',{c,size})+'<br>'+T('<b>2.</b> Quita la primera (red) y la última (broadcast): {size} − 2 = <b>{hosts}</b>.',{size,hosts}),hint:T('Mira cuántas casas tiene la manzana en un /{c} y réstale 2.',{c})};
 }
 const PORTS=[[21,'FTP'],[22,'SSH'],[23,'Telnet'],[25,'SMTP'],[53,'DNS'],[80,'HTTP'],[110,'POP3'],[143,'IMAP'],[443,'HTTPS'],[445,'SMB'],[3306,'MySQL'],[3389,'RDP'],[5432,'PostgreSQL'],[8080,'HTTP alternativo']];
 const PORT_NOTE={21:'Transfiere archivos sin cifrar.',22:'Acceso remoto cifrado. Muy atacado por fuerza bruta.',23:'Acceso remoto SIN cifrar: todo viaja en texto plano.',25:'Envío de correo entre servidores.',53:'Traduce nombres a IPs.',80:'Web sin cifrar.',110:'Descarga de correo (antiguo).',143:'Lectura de correo.',443:'Web cifrada con TLS.',445:'Carpetas compartidas de Windows. WannaCry se propagó por aquí.',3306:'Base de datos. Nunca expuesta a internet.',3389:'Escritorio remoto de Windows. Objetivo clásico de ransomware.',5432:'Base de datos. Nunca expuesta a internet.',8080:'Servidores web de desarrollo o proxies.'};
 const PUBLIC_OK=[80,443];
 function genPort(){
-  const [p,sv]=pick(PORTS),kind=pick(['p2s','p2s','s2p','expose']);
-  if(kind==='p2s'){const opts=shuf([sv].concat(shuf(PORTS.filter(x=>x[1]!==sv).map(x=>x[1])).slice(0,3)));
-    return{q:'¿Qué servicio usa normalmente este puerto?',big:String(p),opts,answer:sv,why:'<b>'+p+' = '+sv+'</b>. '+PORT_NOTE[p],hint:'Mira la tabla de la explicación de arriba.'}}
+  const tr=x=>x==='HTTP alternativo'?T(x):x; // el único nombre de servicio con texto en español
+  const [p,sv0]=pick(PORTS),sv=tr(sv0),kind=pick(['p2s','p2s','s2p','expose']);
+  if(kind==='p2s'){const opts=shuf([sv].concat(shuf(PORTS.filter(x=>x[1]!==sv0).map(x=>tr(x[1]))).slice(0,3)));
+    return{q:T('¿Qué servicio usa normalmente este puerto?'),big:String(p),opts,answer:sv,why:'<b>'+p+' = '+sv+'</b>. '+T(PORT_NOTE[p]),hint:T('Mira la tabla de la explicación de arriba.')}}
   if(kind==='s2p'){const opts=shuf([String(p)].concat(shuf(PORTS.filter(x=>x[0]!==p).map(x=>String(x[0]))).slice(0,3)));
-    return{q:'¿Qué puerto usa normalmente este servicio?',big:sv,opts,answer:String(p),why:'<b>'+sv+' = '+p+'</b>. '+PORT_NOTE[p],hint:'Mira la tabla de la explicación de arriba.'}}
+    return{q:T('¿Qué puerto usa normalmente este servicio?'),big:sv,opts,answer:String(p),why:'<b>'+sv+' = '+p+'</b>. '+T(PORT_NOTE[p]),hint:T('Mira la tabla de la explicación de arriba.')}}
   const pp=pick([[80,'HTTP'],[443,'HTTPS'],[3306,'MySQL'],[3389,'RDP'],[445,'SMB'],[23,'Telnet'],[5432,'PostgreSQL'],[22,'SSH']]),ok=PUBLIC_OK.includes(pp[0]);
-  const ans=pp[0]===22?'Solo con medidas extra':ok?'Sí, es normal':'No, nunca';
-  return{q:'Un servidor de internet tiene este puerto abierto al mundo. ¿Es normal?',big:pp[0]+' · '+pp[1],opts:['Sí, es normal','No, nunca','Solo con medidas extra'],answer:ans,
-    why:pp[0]===22?'SSH se expone a menudo, pero <b>solo con medidas extra</b>: claves en vez de contraseñas, sin login de root y limitando intentos (fail2ban).':ok?'Sí: es la web, está pensada para el público.':'<b>No.</b> '+PORT_NOTE[pp[0]]+' Debe quedar detrás de un firewall o accesible solo por VPN o túnel.',hint:'¿Es un servicio pensado para que lo use cualquier persona de internet?'};
+  const O=[T('Sí, es normal'),T('No, nunca'),T('Solo con medidas extra')];
+  const ans=pp[0]===22?O[2]:ok?O[0]:O[1];
+  return{q:T('Un servidor de internet tiene este puerto abierto al mundo. ¿Es normal?'),big:pp[0]+' · '+pp[1],opts:O,answer:ans,
+    why:pp[0]===22?T('SSH se expone a menudo, pero <b>solo con medidas extra</b>: claves en vez de contraseñas, sin login de root y limitando intentos (fail2ban).'):ok?T('Sí: es la web, está pensada para el público.'):T('<b>No.</b> {note} Debe quedar detrás de un firewall o accesible solo por VPN o túnel.',{note:T(PORT_NOTE[pp[0]])}),hint:T('¿Es un servicio pensado para que lo use cualquier persona de internet?')};
 }
-function genTcp(){
-  const S=[
+const TCP_Q=[
     ['Nmap envía SYN al puerto 443 y recibe SYN-ACK. Estado:',['open','closed','filtered'],'open','SYN-ACK = "aquí hay un servicio escuchando, adelante".'],
     ['Nmap envía SYN al puerto 8080 y recibe RST. Estado:',['open','closed','filtered'],'closed','RST = "el equipo existe, pero aquí no hay nadie".'],
     ['Nmap envía SYN al puerto 22 y no recibe nada, ni siquiera tras reintentar. Estado:',['open','closed','filtered'],'filtered','El silencio es un firewall descartando el paquete.'],
@@ -463,9 +488,12 @@ function genTcp(){
     ['¿Qué estado es MEJOR para el defensor?',['filtered','closed','open'],'filtered','Con filtered el atacante ni siquiera sabe si el equipo existe.'],
     ['¿Por qué "nmap -sS" necesita sudo?',['Fabrica los paquetes a mano','Escanea más rápido','Usa UDP','Lo exige la ley'],'Fabrica los paquetes a mano','Crear paquetes sin completar el saludo requiere privilegios de root.'],
     ['DNS normalmente funciona sobre…',['UDP','TCP','ICMP'],'UDP','DNS usa UDP 53 (rápido, sin saludo). TCP solo para respuestas grandes.'],
-  ];
+];
+function genTcp(){
+  const S=TCP_Q;
+  const tok=x=>/^[A-Z][A-Z\- →]*$|^(open|closed|filtered)$/.test(x)?x:T(x);
   const [q,o,a,w]=pick(S);
-  return{q,big:'',opts:shuf(o),answer:a,why:w,hint:'Repasa la tabla de la explicación de arriba.'};
+  return{q:T(q),big:'',opts:shuf(o.map(tok)),answer:tok(a),why:T(w),hint:T('Repasa la tabla de la explicación de arriba.')};
 }
 
 const LEVELS=[
@@ -551,8 +579,8 @@ const unlocked=i=>i===0||prog.done.includes(LEVELS[i-1].id);
 
 function paintPath(){
   $('#path').innerHTML=LEVELS.map((L,i)=>{const done=prog.done.includes(L.id),open=unlocked(i);
-    return `<button type="button" class="lvl${done?' done':''}" data-i="${i}" ${i===prog.cur?'aria-current="step"':''} ${open?'':'disabled'}><span class="num">${done?'✓':i+1}</span><span><span class="t">${L.title}</span><br><span class="s">${open?L.sub:'Bloqueado'}</span></span></button>`}).join('')+
-   SOON.map((S,j)=>`<button type="button" class="lvl soon" disabled><span class="num">${LEVELS.length+j+1}</span><span><span class="t">${S.title}</span><br><span class="s">Próximamente</span></span></button>`).join('');
+    return `<button type="button" class="lvl${done?' done':''}" data-i="${i}" ${i===prog.cur?'aria-current="step"':''} ${open?'':'disabled'}><span class="num">${done?'✓':i+1}</span><span><span class="t">${T(L.title)}</span><br><span class="s">${open?T(L.sub):T('Bloqueado')}</span></span></button>`}).join('')+
+   SOON.map((S,j)=>`<button type="button" class="lvl soon" disabled><span class="num">${LEVELS.length+j+1}</span><span><span class="t">${T(S.title)}</span><br><span class="s">${T('Próximamente')}</span></span></button>`).join('');
   document.querySelectorAll('#path .lvl[data-i]').forEach(b=>b.addEventListener('click',()=>{prog.cur=+b.dataset.i;save();render()}));
   paintOverall();
 }
@@ -565,20 +593,20 @@ function initStreet(){const box=$('#street');if(!box)return;
     let html='';for(let i=0;i<count;i++){const st=i*size,mine=st===start;
       html+=`<div class="stblk${mine?' mine':''}" style="flex:1" title="${st}–${st+size-1}">${mine||size>=32?`<span>${st}</span>`:''}</div>`}
     $('#st-bar').innerHTML=html;
-    $('#st-out').innerHTML=`<div>/${c} → manzanas de <b>${size}</b> casas (${count} manzana${count>1?'s':''}). El <b>${n}</b> vive en la manzana <b>${start}–${end}</b>.</div>
-      <div class="stparts"><span><i class="sw3 net"></i>Red: <b>.${start}</b></span><span><i class="sw3 host"></i>Equipos: <b>.${start+1} a .${end-1}</b> (${size-2})</span><span><i class="sw3 bc"></i>Broadcast: <b>.${end}</b></span></div>`};
+    $('#st-out').innerHTML=`<div>${T(count>1?'/{c} → manzanas de <b>{size}</b> casas ({count} manzanas). El <b>{n}</b> vive en la manzana <b>{start}–{end}</b>.':'/{c} → manzanas de <b>{size}</b> casas (1 manzana). El <b>{n}</b> vive en la manzana <b>{start}–{end}</b>.',{c,size,count,n,start,end})}</div>
+      <div class="stparts"><span><i class="sw3 net"></i>${T('Red')}: <b>.${start}</b></span><span><i class="sw3 host"></i>${T('Equipos: <b>.{a} a .{b}</b> ({n})',{a:start+1,b:end-1,n:size-2})}</span><span><i class="sw3 bc"></i>Broadcast: <b>.${end}</b></span></div>`};
   $('#st-c').addEventListener('change',draw);$('#st-n').addEventListener('input',draw);draw()}
 function render(){paintPath();const L=LEVELS[prog.cur];
-  $('#main').innerHTML=`<section class="card"><div class="eyebrow">Nivel ${prog.cur+1} · ${L.sub}</div><h2>${L.title}</h2>
-    <details class="teach" ${prog.done.includes(L.id)?'':'open'}><summary>Explicación</summary><div class="teach">${L.teach}</div></details></section>
+  $('#main').innerHTML=`<section class="card"><div class="eyebrow">${T('Nivel {n}',{n:prog.cur+1})} · ${T(L.sub)}</div><h2>${T(L.title)}</h2>
+    <details class="teach" ${prog.done.includes(L.id)?'':'open'}><summary>${T('Explicación')}</summary><div class="teach">${T(L.teach)}</div></details></section>
     <section class="card" id="practice"></section>`;
   initStreet();
   newQ();
 }
 
 function streakHTML(noBtn){const L=LEVELS[prog.cur],s=prog.streak[L.id]||0,done=prog.done.includes(L.id),hasNext=!noBtn&&prog.cur+1<LEVELS.length;
-  if(done)return `<div class="streak"><div class="dots">${Array.from({length:NEED},()=>'<span class="dot on"></span>').join('')}</div><span><b>Nivel completado ✓</b> · estás repasando</span>${hasNext?`<button class="btn" type="button" data-gonext>Ir al nivel ${prog.cur+2} →</button>`:''}</div>`;
-  return `<div class="streak"><div class="dots">${Array.from({length:NEED},(_,i)=>`<span class="dot${i<s?' on':''}"></span>`).join('')}</div><span>${Math.min(s,NEED)} de ${NEED} seguidos</span></div>`}
+  if(done)return `<div class="streak"><div class="dots">${Array.from({length:NEED},()=>'<span class="dot on"></span>').join('')}</div><span><b>${T('Nivel completado ✓')}</b> · ${T('estás repasando')}</span>${hasNext?`<button class="btn" type="button" data-gonext>${T('Ir al nivel {n} →',{n:prog.cur+2})}</button>`:''}</div>`;
+  return `<div class="streak"><div class="dots">${Array.from({length:NEED},(_,i)=>`<span class="dot${i<s?' on':''}"></span>`).join('')}</div><span>${T('{s} de {n} seguidos',{s:Math.min(s,NEED),n:NEED})}</span></div>`}
 function goNext(){if(prog.cur+1<LEVELS.length){prog.cur++;save();render()}}
 document.addEventListener('click',e=>{if(e.target.closest('[data-gonext]'))goNext()});
 
@@ -586,59 +614,59 @@ function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0
   const n=L.bits, ws=n===4?W4:W8;const P=$('#practice');
   if(L.mode==='read'){
     const b=bin(target,n);
-    P.innerHTML=`${streakHTML()}<p class="q">¿Qué número es este?<br><span class="big">${b}</span></p>
+    P.innerHTML=`${streakHTML()}<p class="q">${T('¿Qué número es este?')}<br><span class="big">${b}</span></p>
       <div class="board b${n}">${[...b].map((c,i)=>`<div class="sw${c==='1'?' on':''}"><span class="w">${ws[i]}</span><span class="v">${c}</span></div>`).join('')}</div>
-      <div class="row"><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
+      <div class="row"><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="${T('Tu respuesta')}"><button class="btn" id="chk" type="button">${T('Comprobar')}</button><button class="btn ghost" id="hint" type="button">${T('Pista')}</button></div><div id="fb"></div>`;
   } else if(L.mode==='write'){
-    P.innerHTML=`${streakHTML()}<p class="q">Enciende los interruptores para formar<br><span class="big">${target}</span></p>
-      <div class="board b${n}" id="board">${ws.map((w,i)=>`<button type="button" class="sw" data-w="${w}" aria-pressed="false" aria-label="Interruptor de valor ${w}"><span class="w">${w}</span><span class="v">0</span></button>`).join('')}</div>
-      <div class="live" id="live">Ningún interruptor encendido → 0</div>
-      <div class="row"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
+    P.innerHTML=`${streakHTML()}<p class="q">${T('Enciende los interruptores para formar')}<br><span class="big">${target}</span></p>
+      <div class="board b${n}" id="board">${ws.map((w,i)=>`<button type="button" class="sw" data-w="${w}" aria-pressed="false" aria-label="${T('Interruptor de valor {w}',{w})}"><span class="w">${w}</span><span class="v">0</span></button>`).join('')}</div>
+      <div class="live" id="live">${T('Ningún interruptor encendido → 0')}</div>
+      <div class="row"><button class="btn" id="chk" type="button">${T('Comprobar')}</button><button class="btn ghost" id="hint" type="button">${T('Pista')}</button></div><div id="fb"></div>`;
     P.querySelectorAll('#board .sw').forEach(b=>b.addEventListener('click',()=>{if(state.answered)return;state.on^=+b.dataset.w;paintBoard()}));
   } else if(L.mode==='ask'){
     P.innerHTML=`${streakHTML()}<p class="q">${target.q}${target.big?'<br><span class="big">'+esc(target.big)+'</span>':''}</p>`+
-      (target.opts?`<div class="qopts">${target.opts.map((o,i)=>`<button type="button" class="qopt" data-i="${i}">${esc(o)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="hint" type="button">Pista</button><button id="chk" hidden></button></div><div id="fb"></div>`
-      :`<div class="row">${target.pre?`<label class="ippre" for="ans">${esc(target.pre)}</label>`:''}<input type="text" id="ans" autocomplete="off" spellcheck="false" ${target.pre?'inputmode="numeric" class="lastoct"':''} placeholder="${esc(target.ph||'')}" aria-label="${target.pre?'Último número de la IP':'Tu respuesta'}" style="width:${target.pre?'90px':'min(260px,100%)'}"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`);
+      (target.opts?`<div class="qopts">${target.opts.map((o,i)=>`<button type="button" class="qopt" data-i="${i}">${esc(o)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="hint" type="button">${T('Pista')}</button><button id="chk" hidden></button></div><div id="fb"></div>`
+      :`<div class="row">${target.pre?`<label class="ippre" for="ans">${esc(target.pre)}</label>`:''}<input type="text" id="ans" autocomplete="off" spellcheck="false" ${target.pre?'inputmode="numeric" class="lastoct"':''} placeholder="${esc(target.ph||'')}" aria-label="${target.pre?T('Último número de la IP'):T('Tu respuesta')}" style="width:${target.pre?'90px':'min(260px,100%)'}"><button class="btn" id="chk" type="button">${T('Comprobar')}</button><button class="btn ghost" id="hint" type="button">${T('Pista')}</button></div><div id="fb"></div>`);
     P.querySelectorAll('.qopt').forEach(b=>b.addEventListener('click',()=>{if(state.answered)return;state.choice=target.opts[+b.dataset.i];P.querySelectorAll('.qopt').forEach(x=>{x.disabled=true;if(x.textContent===target.answer)x.classList.add('right');else if(x===b)x.classList.add('wrong')});check()}));
   } else {
     const c=target;const m=c===0?0:(0xFFFFFFFF<<(32-c))>>>0;const o=[m>>>24,(m>>>16)&255,(m>>>8)&255,m&255];state.mask=o;
-    P.innerHTML=`${streakHTML()}<p class="q">¿Qué prefijo (cuántos unos) tiene esta máscara?<br><span class="big">${o.join('.')}</span></p>
-      <div class="row"><span style="font-family:var(--f-mono);font-size:20px">/</span><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="Número de unos"><button class="btn" id="chk" type="button">Comprobar</button><button class="btn ghost" id="hint" type="button">Pista</button></div><div id="fb"></div>`;
+    P.innerHTML=`${streakHTML()}<p class="q">${T('¿Qué prefijo (cuántos unos) tiene esta máscara?')}<br><span class="big">${o.join('.')}</span></p>
+      <div class="row"><span style="font-family:var(--f-mono);font-size:20px">/</span><input type="text" id="ans" inputmode="numeric" autocomplete="off" aria-label="${T('Número de unos')}"><button class="btn" id="chk" type="button">${T('Comprobar')}</button><button class="btn ghost" id="hint" type="button">${T('Pista')}</button></div><div id="fb"></div>`;
   }
   $('#chk').addEventListener('click',check);$('#hint').addEventListener('click',hint);
   const a=$('#ans');if(a){a.focus({preventScroll:true});a.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!state.answered)check();else{const t=$('#nxtlvl')||$('#nxt');if(t)t.click()}}})}
 }
 function paintBoard(){const ws=LEVELS[prog.cur].bits===4?W4:W8;
   document.querySelectorAll('#board .sw').forEach(b=>{const on=!!(state.on&+b.dataset.w);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);b.querySelector('.v').textContent=on?1:0});
-  const parts=ws.filter(w=>state.on&w);$('#live').textContent=parts.length?parts.join(' + ')+' = '+state.on:'Ningún interruptor encendido → 0'}
+  const parts=ws.filter(w=>state.on&w);$('#live').textContent=parts.length?parts.join(' + ')+' = '+state.on:T('Ningún interruptor encendido → 0')}
 
 function hint(){const L=LEVELS[prog.cur],t=state.target,ws=L.bits===4?W4:W8;let h='';state.hinted=true;
-  if(L.mode==='read'){const parts=ws.filter(w=>t&w);h='Los interruptores encendidos valen: <b>'+parts.join(' + ')+'</b>. Ahora súmalos.'}
+  if(L.mode==='read'){const parts=ws.filter(w=>t&w);h=T('Los interruptores encendidos valen: <b>{p}</b>. Ahora súmalos.',{p:parts.join(' + ')})}
   else if(L.mode==='write'){const rem=t-state.on;
-    if(state.on>t)h='Te pasaste: llevas '+state.on+' y necesitas '+t+'. Apaga algún interruptor.';
-    else if(rem===0)h='¡Ya lo tienes! Pulsa Comprobar.';
-    else{const big=ws.find(w=>w<=rem&&!(state.on&w));h=big?'Te faltan <b>'+rem+'</b>. El interruptor más grande que cabe en '+rem+' es el <b>'+big+'</b>.':'Revisa: hay algún interruptor encendido que sobra.'}}
+    if(state.on>t)h=T('Te pasaste: llevas {on} y necesitas {t}. Apaga algún interruptor.',{on:state.on,t});
+    else if(rem===0)h=T('¡Ya lo tienes! Pulsa Comprobar.');
+    else{const big=ws.find(w=>w<=rem&&!(state.on&w));h=big?T('Te faltan <b>{rem}</b>. El interruptor más grande que cabe en {rem} es el <b>{big}</b>.',{rem,big}):T('Revisa: hay algún interruptor encendido que sobra.')}}
   else if(L.mode==='ask'){h=t.hint}
-  else{h='Cuenta los unos de cada octeto con la tabla de arriba: '+state.mask.map(v=>v+' → '+(MASK_VALUES.find(m=>m[0]===v)||[0,'?'])[1]).join(' · ')+'. Ahora súmalos.'}
+  else{h=T('Cuenta los unos de cada octeto con la tabla de arriba: {l}. Ahora súmalos.',{l:state.mask.map(v=>v+' → '+(MASK_VALUES.find(m=>m[0]===v)||[0,'?'])[1]).join(' · ')})}
   $('#fb').innerHTML='<div class="fb hint">'+h+'</div>'}
 
 function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.target,ws=L.bits===4?W4:W8;let ok,expl;
-  if(L.mode==='read'){const v=parseInt(($('#ans').value||'').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
+  if(L.mode==='read'){const v=parseInt(($('#ans').value||'').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">'+T('Escribe un número primero.')+'</div>';return}
     ok=v===t;expl=bin(t,L.bits)+' → '+ws.filter(w=>t&w).join(' + ')+' = <b>'+t+'</b>'}
   else if(L.mode==='write'){ok=state.on===t;expl=t+' = '+ws.filter(w=>t&w).join(' + ')+' → <b>'+bin(t,L.bits)+'</b>'}
   else if(L.mode==='ask'){
-    let v;if(t.opts)v=state.choice;else{v=($('#ans').value||'').trim();if(!v){$('#fb').innerHTML='<div class="fb hint">Escribe tu respuesta primero.</div>';return}
+    let v;if(t.opts)v=state.choice;else{v=($('#ans').value||'').trim();if(!v){$('#fb').innerHTML='<div class="fb hint">'+T('Escribe tu respuesta primero.')+'</div>';return}
       if(t.pre&&!/^\d+\.\d+\.\d+\.\d+$/.test(v))v=t.pre+v.replace(/^\./,'')}
     const n=x=>String(x).toLowerCase().replace(/\s+/g,'').replace(/^\//,'');ok=n(v)===n(t.answer);expl=t.why}
-  else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">Escribe un número primero.</div>';return}
-    ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>Unos: '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
+  else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">'+T('Escribe un número primero.')+'</div>';return}
+    ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>'+T('Unos')+': '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
   state.answered=true;const id=L.id;let s=prog.streak[id]||0;s=ok?s+1:0;prog.streak[id]=s;
-  let justDone=false;if(ok&&s>=NEED&&!prog.done.includes(id)){prog.done.push(id);justDone=true;addLog({type:'lab',title:'Nivel '+(prog.cur+1)+' completado: '+L.title+' ('+L.sub+')',note:NEED+' aciertos seguidos en el laboratorio'})}
+  let justDone=false;if(ok&&s>=NEED&&!prog.done.includes(id)){prog.done.push(id);justDone=true;addLog({type:'lab',title:T('Nivel {n} completado: {title} ({sub})',{n:prog.cur+1,title:T(L.title),sub:T(L.sub)}),note:T('{n} aciertos seguidos en el laboratorio',{n:NEED})})}
   save();
   $('.streak').outerHTML=streakHTML(justDone);
   const fb=$('#fb');
   if(justDone){const next=prog.cur+1<LEVELS.length;
-    fb.innerHTML=`<div class="fb ok win"><b>¡Nivel ${prog.cur+1} completado!</b><span>${expl}</span>${next?'<button class="btn" id="nxtlvl" type="button">Ir al nivel '+(prog.cur+2)+'</button>':'<span>Has completado todos los niveles de Práctica. Sigue con el <a href="#curso">Curso</a> y mantén lo aprendido en <a href="#repaso">Repaso</a>.</span>'}<button class="btn ghost" id="nxt" type="button">Seguir practicando aquí</button></div>`;
+    fb.innerHTML=`<div class="fb ok win"><b>${T('¡Nivel {n} completado!',{n:prog.cur+1})}</b><span>${expl}</span>${next?'<button class="btn" id="nxtlvl" type="button">'+T('Ir al nivel {n}',{n:prog.cur+2})+'</button>':'<span>'+T('Has completado todos los niveles de Práctica. Sigue con el <a href="#curso">Curso</a> y mantén lo aprendido en <a href="#repaso">Repaso</a>.')+'</span>'}<button class="btn ghost" id="nxt" type="button">${T('Seguir practicando aquí')}</button></div>`;
     paintPath();
     const nl=$('#nxtlvl');
     document.querySelectorAll('#chk,#hint').forEach(b=>b.disabled=true);
@@ -646,7 +674,7 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
     if(nl){nl.addEventListener('click',goNext);nl.focus({preventScroll:true})}else $('#nxt').focus({preventScroll:true});
     return;
   } else {
-    fb.innerHTML=`<div class="fb ${ok?'ok':'bad'}">${ok?'¡Correcto! ':'No es correcto. La racha vuelve a 0, no pasa nada. '}<br>${expl}</div><div class="row" style="margin-top:10px"><button class="btn" id="nxt" type="button">Siguiente</button></div>`;
+    fb.innerHTML=`<div class="fb ${ok?'ok':'bad'}">${ok?T('¡Correcto!')+' ':T('No es correcto. La racha vuelve a 0, no pasa nada.')+' '}<br>${expl}</div><div class="row" style="margin-top:10px"><button class="btn" id="nxt" type="button">${T('Siguiente')}</button></div>`;
   }
   document.querySelectorAll('#chk,#hint').forEach(b=>b.disabled=true);
   $('#nxt').addEventListener('click',newQ);$('#nxt').focus({preventScroll:true});
@@ -657,9 +685,9 @@ const C={mode:1,v:[0,0,0,0]};
 const ones=n=>{let c=0;while(n){c+=n&1;n>>=1}return c};
 function buildCalc(){const n=C.mode;
   $('#calc-octs').innerHTML=Array.from({length:n},(_,o)=>`<div class="coct">
-    <div class="chead"><span class="eyebrow">${n>1?'Octeto '+(o+1):'Octeto'}</span>
-    <label class="cin">Decimal <input type="text" inputmode="numeric" autocomplete="off" id="calc-in-${o}" data-o="${o}" value="${C.v[o]}"></label></div>
-    <div class="board b8 cb">${W8.map(w=>`<button type="button" class="sw" data-o="${o}" data-w="${w}" aria-pressed="false" aria-label="Octeto ${o+1}, interruptor ${w}"><span class="w">${w}</span><span class="v">0</span></button>`).join('')}</div>
+    <div class="chead"><span class="eyebrow">${n>1?T('Octeto {n}',{n:o+1}):T('Octeto')}</span>
+    <label class="cin">${T('Decimal')} <input type="text" inputmode="numeric" autocomplete="off" id="calc-in-${o}" data-o="${o}" value="${C.v[o]}"></label></div>
+    <div class="board b8 cb">${W8.map(w=>`<button type="button" class="sw" data-o="${o}" data-w="${w}" aria-pressed="false" aria-label="${T('Octeto {o}, interruptor {w}',{o:o+1,w})}"><span class="w">${w}</span><span class="v">0</span></button>`).join('')}</div>
     <div class="cread" id="calc-r-${o}"></div></div>`).join('');
   document.querySelectorAll('#calc-octs .sw').forEach(b=>b.addEventListener('click',()=>{C.v[+b.dataset.o]^=+b.dataset.w;paintCalc()}));
   document.querySelectorAll('#calc-octs input').forEach(i=>i.addEventListener('input',()=>{const o=+i.dataset.o,t=i.value.trim(),v=parseInt(t,10);
@@ -672,19 +700,19 @@ function paintCalc(src){const n=C.mode;let total=0;
     document.querySelectorAll(`#calc-octs .sw[data-o="${o}"]`).forEach(b=>{const on=!!(v&+b.dataset.w);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));b.querySelector('.v').textContent=on?1:0});
     const inp=$('#calc-in-'+o);if(inp!==src)inp.value=v;
     const parts=W8.filter(w=>v&w);
-    $('#calc-r-'+o).innerHTML=`<span><b>${k}</b> ${k===1?'uno':'unos'}</span><span>${bin(v,8)} → ${parts.length?parts.join(' + ')+' = ':''}<b>${v}</b></span>`;
+    $('#calc-r-'+o).innerHTML=`<span><b>${k}</b> ${k===1?T('uno'):T('unos')}</span><span>${bin(v,8)} → ${parts.length?parts.join(' + ')+' = ':''}<b>${v}</b></span>`;
   }
-  let h=`<div class="ctot"><span class="k">Unos encendidos</span><span class="bigc">${total}</span></div>`;
-  if(n===1){h+=`<div class="ctot"><span class="k">Valor del octeto</span><span class="bigc">${C.v[0]}</span></div>`}
+  let h=`<div class="ctot"><span class="k">${T('Unos encendidos')}</span><span class="bigc">${total}</span></div>`;
+  if(n===1){h+=`<div class="ctot"><span class="k">${T('Valor del octeto')}</span><span class="bigc">${C.v[0]}</span></div>`}
   else{const all=C.v.map(x=>bin(x,8)).join(''),valid=/^1*0*$/.test(all);
-    h+=`<div class="ctot"><span class="k">En decimal</span><span class="v">${C.v.join('.')}</span></div>
-      <div class="ctot"><span class="k">¿Es una máscara?</span><span class="v ${valid?'okc':'badc'}">${valid?'Sí → /'+total:'No: los unos no van seguidos desde la izquierda'}</span></div>`}
+    h+=`<div class="ctot"><span class="k">${T('En decimal')}</span><span class="v">${C.v.join('.')}</span></div>
+      <div class="ctot"><span class="k">${T('¿Es una máscara?')}</span><span class="v ${valid?'okc':'badc'}">${valid?T('Sí → /{n}',{n:total}):T('No: los unos no van seguidos desde la izquierda')}</span></div>`}
   $('#calc-sum').innerHTML=h;
 }
 document.querySelectorAll('.segb').forEach(b=>b.addEventListener('click',()=>{C.mode=+b.dataset.m;buildCalc()}));
 $('#calc-clear').addEventListener('click',()=>{C.v=[0,0,0,0];paintCalc()});
 buildCalc();
-function setCalc(open){$('#calc').hidden=!open;$('#calc-fab').setAttribute('aria-expanded',String(open));$('#calc-fab').textContent=open?'Ocultar calculadora':'Calculadora';
+function setCalc(open){$('#calc').hidden=!open;$('#calc-fab').setAttribute('aria-expanded',String(open));$('#calc-fab').textContent=open?T('Ocultar calculadora'):T('Calculadora');
   document.body.classList.toggle('calc-open',open);try{localStorage.setItem('cyberlab-calc',open?'1':'0')}catch(e){}}
 $('#calc-fab').addEventListener('click',()=>setCalc($('#calc').hidden));
 $('#calc-close').addEventListener('click',()=>{setCalc(false);$('#calc-fab').focus()});
@@ -757,7 +785,7 @@ const topicDone=t=>!!prog.topics[t.id]||(t.lab?t.lab.every(l=>prog.done.includes
 function phaseProgress(p){const items=p.topics.map(topicDone);const cs=p.certs.filter(c=>CERT[c].rec);const certDone=cs.map(c=>certState(c).status==='aprobado');
   const all=items.concat(certDone);return {done:all.filter(Boolean).length,total:all.length}}
 function paintOverall(){const cOk=CERTS.filter(c=>certState(c.id).status==='aprobado').length;
-  $('#overall').innerHTML='Temas <b>'+ALL_TOPICS.filter(topicDone).length+'/'+ALL_TOPICS.length+'</b> · Certificaciones <b>'+cOk+'</b>'}
+  $('#overall').innerHTML=T('Temas')+' <b>'+ALL_TOPICS.filter(topicDone).length+'/'+ALL_TOPICS.length+'</b> · '+T('Certificaciones')+' <b>'+cOk+'</b>'}
 
 function renderRuta(){
   const curPhase=PHASES.findIndex(p=>{const g=phaseProgress(p);return g.done<g.total});
@@ -765,25 +793,25 @@ function renderRuta(){
   const nextTopic=ph.topics.find(t=>!topicDone(t));
   const nextCert=CERTS.find(c=>c.rec&&certState(c.id).status!=='aprobado');
   $('#v-ruta').innerHTML=`
-   <section class="card"><div class="eyebrow">Tu siguiente paso</div>
+   <section class="card"><div class="eyebrow">${T('Tu siguiente paso')}</div>
     <div class="next">
-     <div><div class="k">Fase actual</div><div class="v">${curPhase<0?'Ruta completada':(PHASES.indexOf(ph)+1)+'. '+esc(ph.name)}</div></div>
-     <div><div class="k">Tema</div><div class="v">${nextTopic?esc(nextTopic.t):'Todos los temas de esta fase listos'}</div></div>
-     <div><div class="k">Próxima certificación</div><div class="v">${nextCert?esc(nextCert.name):'Todas las recomendadas aprobadas'}</div></div>
-    </div>${window.Course?(()=>{const g=Course.progress();return `<div class="row"><a class="btn" href="#curso">${g.done?'Continuar el curso':'Empezar el curso'} →</a><span class="muted">${g.done} de ${g.total} lecciones de la Fase 1 completadas</span></div>`})():''}</section>
+     <div><div class="k">${T('Fase actual')}</div><div class="v">${curPhase<0?T('Ruta completada'):(PHASES.indexOf(ph)+1)+'. '+esc(T(ph.name))}</div></div>
+     <div><div class="k">${T('Tema')}</div><div class="v">${nextTopic?esc(T(nextTopic.t)):T('Todos los temas de esta fase listos')}</div></div>
+     <div><div class="k">${T('Próxima certificación')}</div><div class="v">${nextCert?esc(nextCert.name):T('Todas las recomendadas aprobadas')}</div></div>
+    </div>${window.Course?(()=>{const g=Course.progress();return `<div class="row"><a class="btn" href="#curso">${g.done?T('Continuar el curso'):T('Empezar el curso')} →</a><span class="muted">${T('{d} de {n} lecciones de la Fase 1 completadas',{d:g.done,n:g.total})}</span></div>`})():''}</section>
    <div class="phases">${PHASES.map((p,i)=>{const g=phaseProgress(p),pct=g.total?Math.round(g.done/g.total*100):0;const complete=g.done===g.total;
     return `<div class="phase${complete?' complete':''}${i===curPhase?' active':''}"><div class="pn">${complete?'✓':i+1}</div>
-     <section class="card"><div class="phead"><h2>${esc(p.name)}</h2><span class="muted">${p.time} · ${pct}%</span></div>
-      <p class="muted">${esc(p.goal)}</p><div class="bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
-      <div class="cols"><div><h3>Temas</h3><ul class="checks">${p.topics.map(t=>{const d=topicDone(t);
+     <section class="card"><div class="phead"><h2>${esc(T(p.name))}</h2><span class="muted">${T(p.time)} · ${pct}%</span></div>
+      <p class="muted">${esc(T(p.goal))}</p><div class="bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+      <div class="cols"><div><h3>${T('Temas')}</h3><ul class="checks">${p.topics.map(t=>{const d=topicDone(t);
         const lid=window.Course&&Course.lessonForTopic(t.id);
-        const lab=(t.lab?` <a href="#practica" data-lab="${t.lab.find(l=>!prog.done.includes(l))||t.lab[0]}">Practicar →</a>`:'')+(lid?` <a href="#curso" data-lesson="${lid}">Lección →</a>`:'');
-        return `<li class="${d?'done':''}"><input type="checkbox" id="tp-${t.id}" data-t="${t.id}" ${d?'checked':''} ${t.lab&&t.lab.every(l=>prog.done.includes(l))?'disabled title="Completado en el laboratorio"':''}><label for="tp-${t.id}">${esc(t.t)}${lab}</label></li>`}).join('')}</ul></div>
-      ${p.certs.length?`<div><h3>Certificaciones</h3><div class="minicerts">${p.certs.map(id=>{const c=CERT[id],s=certState(id);
-        return `<a class="mc" href="#certs" data-focus="${id}"><span>${esc(c.name)}${c.rec?' <span class="tag rec">Recomendada</span>':''}${c.top?' <span class="tag top">Cumbre</span>':''}</span><span class="pill ${s.status}">${STATUS[s.status]}</span></a>`}).join('')}</div></div>`:''}
+        const lab=(t.lab?` <a href="#practica" data-lab="${t.lab.find(l=>!prog.done.includes(l))||t.lab[0]}">${T('Practicar →')}</a>`:'')+(lid?` <a href="#curso" data-lesson="${lid}">${T('Lección →')}</a>`:'');
+        return `<li class="${d?'done':''}"><input type="checkbox" id="tp-${t.id}" data-t="${t.id}" ${d?'checked':''} ${t.lab&&t.lab.every(l=>prog.done.includes(l))?'disabled title="'+T('Completado en el laboratorio')+'"':''}><label for="tp-${t.id}">${esc(T(t.t))}${lab}</label></li>`}).join('')}</ul></div>
+      ${p.certs.length?`<div><h3>${T('Certificaciones')}</h3><div class="minicerts">${p.certs.map(id=>{const c=CERT[id],s=certState(id);
+        return `<a class="mc" href="#certs" data-focus="${id}"><span>${esc(c.name)}${c.rec?' <span class="tag rec">'+T('Recomendada')+'</span>':''}${c.top?' <span class="tag top">'+T('Cumbre')+'</span>':''}</span><span class="pill ${s.status}">${T(STATUS[s.status])}</span></a>`}).join('')}</div></div>`:''}
       </div></section></div>`}).join('')}</div>`;
   document.querySelectorAll('#v-ruta input[data-t]').forEach(i=>i.addEventListener('change',()=>{const t=ALL_TOPICS.find(x=>x.id===i.dataset.t);
-    if(i.checked){prog.topics[t.id]=today();addLog({type:'tema',title:'Tema completado: '+t.t})}else delete prog.topics[t.id];save();renderRuta();paintOverall()}));
+    if(i.checked){prog.topics[t.id]=today();addLog({type:'tema',title:T('Tema completado: {t}',{t:T(t.t)})})}else delete prog.topics[t.id];save();renderRuta();paintOverall()}));
   document.querySelectorAll('#v-ruta a[data-lesson]').forEach(a=>a.addEventListener('click',()=>Course.open(a.dataset.lesson)));
   document.querySelectorAll('#v-ruta a[data-lab]').forEach(a=>a.addEventListener('click',()=>{prog.cur=Math.max(0,LEVELS.findIndex(L=>L.id===a.dataset.lab));save();render()}));
   document.querySelectorAll('#v-ruta a[data-focus]').forEach(a=>a.addEventListener('click',()=>{focusCert=a.dataset.focus}));
@@ -792,28 +820,28 @@ function renderRuta(){
 let focusCert=null;
 function renderCerts(){
   const groups=['Inicial','Asociado','Intermedio','Profesional','Experto'];
-  $('#v-certs').innerHTML=`<section class="card"><h2>Certificaciones</h2>
-    <p class="muted" style="max-width:65ch">No necesitas todas. Las marcadas como <span class="tag rec">Recomendada</span> forman la ruta sugerida, centrada en Cisco, desde la primera hasta la <span class="tag top">Cumbre</span>. Guarda aquí el estado, la fecha del examen y tu nota. Los precios y versiones cambian: confírmalos siempre en la web oficial antes de pagar.</p></section>
-   ${groups.map(g=>{const cs=CERTS.filter(c=>c.lvl===g);return `<div class="lvlhead">${g}</div><div class="certgrid">${cs.map(c=>{const s=certState(c.id);
+  $('#v-certs').innerHTML=`<section class="card"><h2>${T('Certificaciones')}</h2>
+    <p class="muted" style="max-width:65ch">${T('No necesitas todas. Las marcadas como <span class="tag rec">Recomendada</span> forman la ruta sugerida, centrada en Cisco, desde la primera hasta la <span class="tag top">Cumbre</span>. Guarda aquí el estado, la fecha del examen y tu nota. Los precios y versiones cambian: confírmalos siempre en la web oficial antes de pagar.')}</p></section>
+   ${groups.map(g=>{const cs=CERTS.filter(c=>c.lvl===g);return `<div class="lvlhead">${T(g)}</div><div class="certgrid">${cs.map(c=>{const s=certState(c.id);
     return `<section class="card cert is-${s.status}" id="cert-${c.id}">
-     <div class="ctop"><div><div class="corg">${esc(c.org)} · ${esc(c.code)}</div><h3>${esc(c.name)}</h3></div><span class="pill ${s.status}">${STATUS[s.status]}</span></div>
-     ${c.rec||c.top?`<div class="ctags">${c.rec?'<span class="tag rec">Recomendada</span>':''}${c.top?'<span class="tag top">Cumbre</span>':''}</div>`:''}
-     <p class="muted">${esc(c.desc)}</p>
+     <div class="ctop"><div><div class="corg">${esc(c.org)} · ${esc(c.code)}</div><h3>${esc(c.name)}</h3></div><span class="pill ${s.status}">${T(STATUS[s.status])}</span></div>
+     ${c.rec||c.top?`<div class="ctags">${c.rec?'<span class="tag rec">'+T('Recomendada')+'</span>':''}${c.top?'<span class="tag top">'+T('Cumbre')+'</span>':''}</div>`:''}
+     <p class="muted">${esc(T(c.desc))}</p>
      <div class="form" data-c="${c.id}">
-      <label>Estado<select data-f="status">${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${s.status===k?'selected':''}>${v}</option>`).join('')}</select></label>
-      <label>Fecha del examen<input type="date" data-f="date" value="${esc(s.date)}"></label>
-      <label>Nota obtenida<input type="text" data-f="score" value="${esc(s.score)}" placeholder="ej. 812/1000"></label>
-      <label>ID de credencial<input type="text" data-f="cred" value="${esc(s.cred)}" placeholder="opcional"></label>
-      <label class="full">Notas<textarea data-f="notes" placeholder="Recursos, fechas, qué te costó…">${esc(s.notes)}</textarea></label>
+      <label>${T('Estado')}<select data-f="status">${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${s.status===k?'selected':''}>${T(v)}</option>`).join('')}</select></label>
+      <label>${T('Fecha del examen')}<input type="date" data-f="date" value="${esc(s.date)}"></label>
+      <label>${T('Nota obtenida')}<input type="text" data-f="score" value="${esc(s.score)}" placeholder="${T('ej. 812/1000')}"></label>
+      <label>${T('ID de credencial')}<input type="text" data-f="cred" value="${esc(s.cred)}" placeholder="${T('opcional')}"></label>
+      <label class="full">${T('Notas')}<textarea data-f="notes" placeholder="${T('Recursos, fechas, qué te costó…')}">${esc(s.notes)}</textarea></label>
      </div>
-     <a class="clink" href="${c.url}" target="_blank" rel="noopener">Página oficial ↗</a></section>`}).join('')}</div>`}).join('')}`;
+     <a class="clink" href="${c.url}" target="_blank" rel="noopener">${T('Página oficial ↗')}</a></section>`}).join('')}</div>`}).join('')}`;
   document.querySelectorAll('#v-certs .form').forEach(f=>{const id=f.dataset.c;
     f.querySelectorAll('[data-f]').forEach(el=>el.addEventListener('change',()=>{const before=certState(id).status;const s=certState(id);s[el.dataset.f]=el.value;prog.certs[id]=s;
       if(el.dataset.f==='status'&&before!==el.value){const c=CERT[id];
-        if(el.value==='aprobado'){if(!s.date){s.date=today();f.querySelector('[data-f=date]').value=s.date}addLog({type:'oficial',title:'¡Certificación aprobada: '+c.name+'!',cert:id,score:s.score,date:s.date})}
-        else if(el.value==='programado')addLog({type:'otro',title:'Examen programado: '+c.name,cert:id});
-        else if(el.value==='estudiando')addLog({type:'estudio',title:'Empiezo a estudiar: '+c.name,cert:id});
-        const card=$('#cert-'+id);card.className='card cert is-'+el.value;const p=card.querySelector('.pill');p.className='pill '+el.value;p.textContent=STATUS[el.value]}
+        if(el.value==='aprobado'){if(!s.date){s.date=today();f.querySelector('[data-f=date]').value=s.date}addLog({type:'oficial',title:T('¡Certificación aprobada: {c}!',{c:c.name}),cert:id,score:s.score,date:s.date})}
+        else if(el.value==='programado')addLog({type:'otro',title:T('Examen programado: {c}',{c:c.name}),cert:id});
+        else if(el.value==='estudiando')addLog({type:'estudio',title:T('Empiezo a estudiar: {c}',{c:c.name}),cert:id});
+        const card=$('#cert-'+id);card.className='card cert is-'+el.value;const p=card.querySelector('.pill');p.className='pill '+el.value;p.textContent=T(STATUS[el.value])}
       save();paintOverall()}))});
   if(focusCert){const el=$('#cert-'+focusCert);focusCert=null;if(el)setTimeout(()=>el.scrollIntoView({block:'center'}),0)}
 }
@@ -825,47 +853,52 @@ function renderResultados(){
   const list=prog.log.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(+b.id)-(+a.id));
   $('#v-resultados').innerHTML=`
    <div class="tiles">
-    <div class="tile"><span class="k">Certificaciones aprobadas</span><span class="v">${cOk}</span></div>
-    <div class="tile"><span class="k">Temas completados</span><span class="v">${ALL_TOPICS.filter(topicDone).length}<span class="muted" style="font-size:20px">/${ALL_TOPICS.length}</span></span></div>
-    <div class="tile"><span class="k">Niveles del laboratorio</span><span class="v">${prog.done.length}<span class="muted" style="font-size:20px">/${LEVELS.length}</span></span></div>
-    <div class="tile"><span class="k">Horas registradas</span><span class="v">${Math.round(hours*10)/10}</span></div>
+    <div class="tile"><span class="k">${T('Certificaciones aprobadas')}</span><span class="v">${cOk}</span></div>
+    <div class="tile"><span class="k">${T('Temas completados')}</span><span class="v">${ALL_TOPICS.filter(topicDone).length}<span class="muted" style="font-size:20px">/${ALL_TOPICS.length}</span></span></div>
+    <div class="tile"><span class="k">${T('Niveles del laboratorio')}</span><span class="v">${prog.done.length}<span class="muted" style="font-size:20px">/${LEVELS.length}</span></span></div>
+    <div class="tile"><span class="k">${T('Horas registradas')}</span><span class="v">${Math.round(hours*10)/10}</span></div>
    </div>
-   <section class="card"><h2>Añadir un resultado</h2>
+   <section class="card"><h2>${T('Añadir un resultado')}</h2>
     <form class="lf" id="logf">
-     <label>Fecha<input type="date" id="lg-date" value="${today()}" required></label>
-     <label>Tipo<select id="lg-type">${['estudio','practica','lab','oficial','otro'].map(k=>`<option value="${k}">${TYPES[k]}</option>`).join('')}</select></label>
-     <label>Certificación relacionada<select id="lg-cert"><option value="">Ninguna</option>${CERTS.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label>
-     <label>Horas<input type="number" id="lg-hours" min="0" step="0.25" placeholder="ej. 1.5"></label>
-     <label>Nota o resultado<input type="text" id="lg-score" placeholder="ej. 78% o máquina resuelta"></label>
-     <label class="full">Qué hiciste<input type="text" id="lg-title" required placeholder="ej. Sala 'Nmap' de TryHackMe, examen de práctica Security+ #2"></label>
-     <label class="full">Notas<textarea id="lg-note" placeholder="Qué aprendiste, qué falló, qué repasar"></textarea></label>
-     <div class="row full"><button class="btn" type="submit">Guardar resultado</button></div>
+     <label>${T('Fecha')}<input type="date" id="lg-date" value="${today()}" required></label>
+     <label>${T('Tipo')}<select id="lg-type">${['estudio','practica','lab','oficial','otro'].map(k=>`<option value="${k}">${T(TYPES[k])}</option>`).join('')}</select></label>
+     <label>${T('Certificación relacionada')}<select id="lg-cert"><option value="">${T('Ninguna')}</option>${CERTS.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label>
+     <label>${T('Horas')}<input type="number" id="lg-hours" min="0" step="0.25" placeholder="${T('ej. 1.5')}"></label>
+     <label>${T('Nota o resultado')}<input type="text" id="lg-score" placeholder="${T('ej. 78% o máquina resuelta')}"></label>
+     <label class="full">${T('Qué hiciste')}<input type="text" id="lg-title" required placeholder="${esc(T("ej. Sala 'Nmap' de TryHackMe, examen de práctica Security+ #2"))}"></label>
+     <label class="full">${T('Notas')}<textarea id="lg-note" placeholder="${T('Qué aprendiste, qué falló, qué repasar')}"></textarea></label>
+     <div class="row full"><button class="btn" type="submit">${T('Guardar resultado')}</button></div>
     </form></section>
-   <section class="card"><h2>Historial</h2>
+   <section class="card"><h2>${T('Historial')}</h2>
     ${list.length?`<ul class="log">${list.map(e=>`<li><span class="d">${esc(e.date)}</span><div><div class="t">${esc(e.title)}</div>
-      <div class="n">${esc(TYPES[e.type]||'')}${e.cert&&CERT[e.cert]?' · '+esc(CERT[e.cert].name):''}${e.hours?' · '+esc(e.hours)+' h':''}${e.score?' · '+esc(e.score):''}</div>${e.note?`<div class="n">${esc(e.note)}</div>`:''}</div>
-      <button type="button" data-del="${esc(e.id)}" aria-label="Borrar esta entrada">Borrar</button></li>`).join('')}</ul>`
-     :'<p class="empty">Todavía no hay nada. Cada nivel del laboratorio, tema marcado o certificación aprobada aparecerá aquí, y puedes añadir tus sesiones de estudio y exámenes de práctica con el formulario.</p>'}
+      <div class="n">${esc(T(TYPES[e.type]||''))}${e.cert&&CERT[e.cert]?' · '+esc(CERT[e.cert].name):''}${e.hours?' · '+esc(e.hours)+' h':''}${e.score?' · '+esc(e.score):''}</div>${e.note?`<div class="n">${esc(e.note)}</div>`:''}</div>
+      <button type="button" data-del="${esc(e.id)}" aria-label="${T('Borrar esta entrada')}">${T('Borrar')}</button></li>`).join('')}</ul>`
+     :'<p class="empty">'+T('Todavía no hay nada. Cada nivel del laboratorio, tema marcado o certificación aprobada aparecerá aquí, y puedes añadir tus sesiones de estudio y exámenes de práctica con el formulario.')+'</p>'}
    </section>
-   <section class="card"><h2>Copia de seguridad</h2>
-    <p class="muted" style="max-width:65ch">Todo se guarda en este navegador. Descarga una copia para no perder tu progreso, y usa Importar para recuperarlo en otro equipo o navegador.</p>
-    <div class="row"><button class="btn" type="button" id="bk-out">Descargar copia</button><label class="btn ghost" style="display:inline-block;cursor:pointer">Importar copia<input type="file" id="bk-in" accept="application/json,.json" hidden></label></div>
+   <section class="card"><h2>${T('Copia de seguridad')}</h2>
+    <p class="muted" style="max-width:65ch">${T('Todo se guarda en este navegador. Descarga una copia para no perder tu progreso, y usa Importar para recuperarlo en otro equipo o navegador.')}</p>
+    <div class="row"><button class="btn" type="button" id="bk-out">${T('Descargar copia')}</button><label class="btn ghost" style="display:inline-block;cursor:pointer">${T('Importar copia')}<input type="file" id="bk-in" accept="application/json,.json" hidden></label></div>
     <div id="bk-msg"></div></section>`;
   $('#logf').addEventListener('submit',e=>{e.preventDefault();const title=$('#lg-title').value.trim();if(!title)return;
     addLog({date:$('#lg-date').value||today(),type:$('#lg-type').value,cert:$('#lg-cert').value,hours:$('#lg-hours').value,score:$('#lg-score').value.trim(),title,note:$('#lg-note').value.trim()});save();renderResultados()});
   document.querySelectorAll('#v-resultados [data-del]').forEach(b=>b.addEventListener('click',()=>{prog.log=prog.log.filter(x=>x.id!==b.dataset.del);save();renderResultados()}));
   $('#bk-out').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(Object.assign({app:'cyber-lab',exported:new Date().toISOString()},prog),null,2)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cyber-lab-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    $('#bk-msg').innerHTML='<div class="fb ok">Copia descargada.</div>'});
+    $('#bk-msg').innerHTML='<div class="fb ok">'+T('Copia descargada.')+'</div>'});
   $('#bk-in').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.done))throw 0;
-      delete d.app;delete d.exported;prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d);save();render();renderResultados();$('#bk-msg').innerHTML='<div class="fb ok">Copia importada. Tu progreso está restaurado.</div>'}
-    catch(err){$('#bk-msg').innerHTML='<div class="fb bad">Ese archivo no es una copia de Cyber Lab. Elige el archivo .json que descargaste con "Descargar copia".</div>'}};r.readAsText(f)});
+      delete d.app;delete d.exported;prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d);save();render();renderResultados();$('#bk-msg').innerHTML='<div class="fb ok">'+T('Copia importada. Tu progreso está restaurado.')+'</div>'}
+    catch(err){$('#bk-msg').innerHTML='<div class="fb bad">'+T('Ese archivo no es una copia de Cyber Lab. Elige el archivo .json que descargaste con "Descargar copia".')+'</div>'}};r.readAsText(f)});
 }
 
 /* navegación */
 const VIEWS=['ruta','curso','repaso','terminal','practica','certs','resultados'];
 window.CL={get prog(){return prog},save,addLog,paintOverall,
-  replace(d){prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d||{});try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}render();route()}};
+  _i18nData:()=>({LEVELS,PHASES,CERTS,STATUS,TYPES,PORT_NOTE,PORTS,TCP_Q}),
+  replace(d){prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d||{});try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}applyPrefs();render();route()}};
+// Idioma y tema: se guardan también en el progreso para que viajen con tu cuenta
+function applyPrefs(){const p=prog.prefs||{};if(p.lang&&p.lang!==I18N.lang)I18N.setLang(p.lang,true);if(p.theme&&p.theme!==I18N.theme)I18N.setTheme(p.theme,true);I18N.applyStatic()}
+I18N.onChange((kind,v)=>{prog.prefs=Object.assign({},prog.prefs,{[kind]:v});save();
+  if(kind==='lang'){render();route();$('#calc-fab').textContent=$('#calc').hidden?T('Calculadora'):T('Ocultar calculadora');buildCalc()}});
 function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'ruta';
   VIEWS.forEach(x=>{$('#v-'+x).hidden=x!==v});
   document.querySelectorAll('.tabs a').forEach(a=>a.dataset.v===v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
@@ -876,6 +909,8 @@ function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'rut
   paintOverall();window.scrollTo(0,0)}
 window.addEventListener('hashchange',route);
 
+applyPrefs();I18N.bindControls();
+$('#calc-fab').textContent=$('#calc').hidden?T('Calculadora'):T('Ocultar calculadora');
 render();
 route();
 if(window.Sync)Sync.init();

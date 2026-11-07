@@ -97,7 +97,13 @@ function next(s, g) {
   s.ivl = ivl; s.reps++; s.due = addDays(today(), ivl);
   return s;
 }
-const ivlLabel = n => n === 0 ? 'hoy' : n === 1 ? '1 día' : n < 30 ? n + ' días' : Math.round(n / 30) + ' mes' + (Math.round(n / 30) > 1 ? 'es' : '');
+const ivlLabel = n => {
+  if (n === 0) return t('hoy');
+  if (n === 1) return t('1 día');
+  if (n < 30) return t('{n} días', { n });
+  const m = Math.round(n / 30);
+  return m > 1 ? t('{n} meses', { n: m }) : t('1 mes');
+};
 
 /* ---------------- Vista ---------------- */
 let root = null, session = null, shown = false;
@@ -121,15 +127,15 @@ function render(container) {
   const s = stats();
   root.innerHTML = `
     <div class="tiles">
-      <div class="tile"><span class="k">Para hoy</span><span class="v">${c.total}</span></div>
-      <div class="tile"><span class="k">Dominadas (21+ días)</span><span class="v">${s.mastered}<span class="muted" style="font-size:20px">/${s.unlocked}</span></span></div>
-      <div class="tile"><span class="k">Desbloqueadas</span><span class="v">${s.unlocked}<span class="muted" style="font-size:20px">/${s.total}</span></span></div>
-      <div class="tile"><span class="k">Racha de días</span><span class="v">${s.streak}</span></div>
+      <div class="tile"><span class="k">${t('Para hoy')}</span><span class="v">${c.total}</span></div>
+      <div class="tile"><span class="k">${t('Dominadas (21+ días)')}</span><span class="v">${s.mastered}<span class="muted" style="font-size:20px">/${s.unlocked}</span></span></div>
+      <div class="tile"><span class="k">${t('Desbloqueadas')}</span><span class="v">${s.unlocked}<span class="muted" style="font-size:20px">/${s.total}</span></span></div>
+      <div class="tile"><span class="k">${t('Racha de días')}</span><span class="v">${s.streak}</span></div>
     </div>
     <section class="card rv" id="rv-card"></section>
-    <section class="card"><h3>Cómo funciona</h3>
-      <p class="muted" style="max-width:68ch">Lee la pregunta, <b>piensa la respuesta antes de darle la vuelta</b> y sé honesto al calificarte. Lo que fallas vuelve pronto; lo que dominas, cada vez más tarde. Cada lección del curso que completas desbloquea sus tarjetas. Atajos: <kbd>Espacio</kbd> mostrar respuesta, <kbd>1</kbd>–<kbd>4</kbd> calificar.</p>
-      <label class="rv-all"><input type="checkbox" id="rv-all" ${st().all ? 'checked' : ''}> Incluir tarjetas de lecciones que aún no he hecho</label>
+    <section class="card"><h3>${t('Cómo funciona')}</h3>
+      <p class="muted" style="max-width:68ch">${t('Lee la pregunta, <b>piensa la respuesta antes de darle la vuelta</b> y sé honesto al calificarte. Lo que fallas vuelve pronto; lo que dominas, cada vez más tarde. Cada lección del curso que completas desbloquea sus tarjetas. Atajos: <kbd>Espacio</kbd> mostrar respuesta, <kbd>1</kbd>–<kbd>4</kbd> calificar.')}</p>
+      <label class="rv-all"><input type="checkbox" id="rv-all" ${st().all ? 'checked' : ''}> ${t('Incluir tarjetas de lecciones que aún no he hecho')}</label>
     </section>`;
   root.querySelector('#rv-all').addEventListener('change', e => { st().all = e.target.checked; CL().save(); session = null; render(root); global.Review.badge(); });
   paintCard();
@@ -142,8 +148,8 @@ function paintCard() {
     const any = unlocked().length;
     const nextDue = Object.values(st().c).map(x => x.due).filter(d => d > today()).sort()[0];
     box.innerHTML = any
-      ? `<div class="rv-empty"><h2>Hecho por hoy</h2><p class="muted">${nextDue ? 'Las siguientes tarjetas te esperan el ' + new Date(nextDue + 'T12:00').toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }) + '.' : 'No hay más tarjetas pendientes.'} Sigue con el curso para desbloquear más.</p><div class="row"><a class="btn" href="#curso">Ir al curso</a></div></div>`
-      : `<div class="rv-empty"><h2>Aún no tienes tarjetas</h2><p class="muted">Se desbloquean al completar lecciones del curso. También puedes marcar abajo "Incluir tarjetas de lecciones que aún no he hecho".</p><div class="row"><a class="btn" href="#curso">Empezar el curso</a></div></div>`;
+      ? `<div class="rv-empty"><h2>${t('Hecho por hoy')}</h2><p class="muted">${nextDue ? escH(t('Las siguientes tarjetas te esperan el {date}.', { date: I18N.date(nextDue + 'T12:00', { weekday: 'long', day: 'numeric', month: 'long' }) })) : t('No hay más tarjetas pendientes.')} ${t('Sigue con el curso para desbloquear más.')}</p><div class="row"><a class="btn" href="#curso">${t('Ir al curso')}</a></div></div>`
+      : `<div class="rv-empty"><h2>${t('Aún no tienes tarjetas')}</h2><p class="muted">${t('Se desbloquean al completar lecciones del curso. También puedes marcar abajo "Incluir tarjetas de lecciones que aún no he hecho".')}</p><div class="row"><a class="btn" href="#curso">${t('Empezar el curso')}</a></div></div>`;
     session.done = true; global.Review.badge(); return;
   }
   const c = BY[id], s = st().c[id];
@@ -151,16 +157,16 @@ function paintCard() {
   const lesson = global.Course && global.Course.LESSONS.find(l => l.id === c[1]);
   shown = false;
   box.innerHTML = `
-    <div class="rv-top"><span class="eyebrow">${escH(lesson ? lesson.title : '')}</span><span class="muted">${session.i + 1} de ${session.list.length}${s ? '' : ' · <span class="pill estudiando">Nueva</span>'}</span></div>
-    <div class="rv-q">${escH(c[2])}</div>
+    <div class="rv-top"><span class="eyebrow">${escH(lesson ? t(lesson.title) : '')}</span><span class="muted">${t('{i} de {n}', { i: session.i + 1, n: session.list.length })}${s ? '' : ' · <span class="pill estudiando">' + t('Nueva') + '</span>'}</span></div>
+    <div class="rv-q">${escH(t(c[2]))}</div>
     <div class="rv-a" id="rv-a" hidden>
-      <div class="rv-ans ${isCmd ? 'cmd' : ''}">${escH(c[3])}</div>
-      <p class="muted">${escH(c[4])}</p>
-      ${isCmd ? `<div class="row"><button class="btn ghost" type="button" id="rv-try">Probar en la terminal →</button></div>` : ''}
+      <div class="rv-ans ${isCmd ? 'cmd' : ''}">${escH(isCmd ? c[3] : t(c[3]))}</div>
+      <p class="muted">${escH(t(c[4]))}</p>
+      ${isCmd ? `<div class="row"><button class="btn ghost" type="button" id="rv-try">${t('Probar en la terminal →')}</button></div>` : ''}
     </div>
-    <div class="row" id="rv-show-row"><button class="btn" type="button" id="rv-show">Mostrar respuesta <kbd>Espacio</kbd></button></div>
+    <div class="row" id="rv-show-row"><button class="btn" type="button" id="rv-show">${t('Mostrar respuesta')} <kbd>${t('Espacio')}</kbd></button></div>
     <div class="rv-grades" id="rv-grades" hidden>
-      ${['Otra vez', 'Difícil', 'Bien', 'Fácil'].map((t, g) => `<button type="button" class="rvg g${g}" data-g="${g}"><b>${t}</b><span>${g === 0 ? 'en esta sesión' : ivlLabel(next(s, g).ivl)}</span><kbd>${g + 1}</kbd></button>`).join('')}
+      ${[t('Otra vez'), t('Difícil'), t('Bien'), t('Fácil')].map((label, g) => `<button type="button" class="rvg g${g}" data-g="${g}"><b>${label}</b><span>${g === 0 ? t('en esta sesión') : ivlLabel(next(s, g).ivl)}</span><kbd>${g + 1}</kbd></button>`).join('')}
     </div>`;
   box.querySelector('#rv-show').addEventListener('click', reveal);
   box.querySelectorAll('.rvg').forEach(b => b.addEventListener('click', () => grade(+b.dataset.g)));
@@ -172,9 +178,10 @@ function logOne() {
   const r = st(), t = today();
   if (!r.days.includes(t)) { r.days.push(t); r.days = r.days.slice(-400); }
   const log = CL().prog.log, ex = log.find(e => e.kind === 'repaso' && e.date === t);
-  const total = (ex ? ex.cards : 0) + 1, title = `Repaso: ${total} tarjeta${total === 1 ? '' : 's'}`;
+  // El título se guarda en el idioma activo (las entradas antiguas pueden quedar en español)
+  const total = (ex ? ex.cards : 0) + 1, title = total === 1 ? I18N.t('Repaso: 1 tarjeta') : I18N.t('Repaso: {n} tarjetas', { n: total });
   if (ex) { ex.cards = total; ex.title = title; }
-  else CL().addLog({ type: 'estudio', kind: 'repaso', cards: total, title, note: 'Repetición espaciada de comandos y conceptos' });
+  else CL().addLog({ type: 'estudio', kind: 'repaso', cards: total, title, note: I18N.t('Repetición espaciada de comandos y conceptos') });
 }
 function reveal() {
   if (shown || !root) return; shown = true;
@@ -197,6 +204,14 @@ document.addEventListener('keydown', e => {
   if (e.target.closest('input, textarea, select, .term')) return;
   if (e.key === ' ' && !shown && root.querySelector('#rv-show')) { e.preventDefault(); reveal(); }
   else if (shown && /^[1-4]$/.test(e.key)) { e.preventDefault(); grade(+e.key - 1); }
+});
+
+// Al cambiar de idioma, repinta la vista si está visible, conservando la sesión y la tarjeta actual
+if (global.I18N) global.I18N.onChange(kind => {
+  if (kind !== 'lang' || !root || !root.isConnected || root.hidden || root.closest('[hidden]')) return;
+  const wasShown = shown && session && !session.done;
+  render(root);
+  if (wasShown) reveal();
 });
 
 global.Review = {
