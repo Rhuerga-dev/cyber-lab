@@ -405,6 +405,34 @@ body.exam-mode .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(m
 #nl-term .term-row{white-space:pre}
 .nl-plist{margin-top:4px}
 #nl-dev h4{margin:12px 0 0;font-size:15px}
+.nl-help{gap:10px}
+.nl-agent{display:flex;gap:10px;align-items:center}
+.nl-msgs{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+.nl-msgs:empty{display:none}
+.nl-msg{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px}
+.nl-msg p{margin:4px 0 0}
+.nl-msg.me{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-color:var(--accent);max-width:90%}
+.nl-msg.me p{margin:0}
+.nl-msg.diag{border-color:var(--warn);background:var(--warn-bg)}
+.nl-msg.bad{border-color:var(--bad);background:var(--bad-bg)}
+.nl-msg code{font-size:.92em}
+.nl-ask{display:flex;flex-direction:column;gap:6px}
+.nl-ask textarea{font:inherit;font-size:15px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.nl-mode{display:flex;gap:16px}
+.nl-mode label,.nl-chk{flex-direction:row!important;align-items:center;gap:6px!important}
+.nl-page:empty{display:none}
+.nl-page{margin-top:10px}
+.nl-site{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.nl-site-bar{font:12px var(--f-mono);background:var(--bg);border-bottom:1px solid var(--line);padding:6px 10px;color:var(--muted)}
+.nl-site h3{margin:14px 12px 4px}
+.nl-site p{margin:0 12px 12px}
+.nl-recs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.nl-recs .btn{padding:2px 8px;font-size:13px}
+.nl-recrow{display:flex;gap:6px;flex-wrap:wrap}
+.nl-recrow input{flex:1 1 130px;font:14px var(--f-mono);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+.nl-file{cursor:pointer}
+#nl-dev h4,#nl-httpf h4,#nl-dnsf h4{margin:12px 0 0;font-size:15px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 .nl-ev{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:4px;font-size:14px}
 .nl-ev li.back{color:var(--muted)}
 .nl-ev li.head{font-weight:600;color:var(--ink)}
