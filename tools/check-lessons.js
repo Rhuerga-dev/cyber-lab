@@ -45,7 +45,7 @@ for (const L of all.filter(l => mine.includes(l.id))) {
   const w = L.id;
   if (ids.get(L.id) > 1) E(w, 'id repetido');
   const ph = (C.LESSONS.indexOf(L) >= 0) && L.id.split('-')[0];
-  if (!/^f[123]-[a-z0-9-]+$/.test(L.id)) W(w, 'el id debería ser tipo f3-algo (minúsculas y guiones)');
+  if (!/^(f[123]|cisco)-[a-z0-9-]+$/.test(L.id)) W(w, 'el id debería ser tipo f3-algo (minúsculas y guiones)');
   if (!AGENTS.includes(L.agent)) E(w, 'agent debe ser ' + AGENTS.join(' / '));
   if (!Array.isArray(L.topics)) E(w, 'topics debe ser una lista');
   if (!Array.isArray(L.steps) || !L.steps.length) { E(w, 'sin pasos'); continue; }

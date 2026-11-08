@@ -1,6 +1,12 @@
 /* Diccionario español → inglés (ui) */
 (window.I18N_DICT = window.I18N_DICT || { en: {} }).en = window.I18N_DICT.en || {};
 Object.assign(window.I18N_DICT.en, {
+  // Redes Cisco
+  "Redes Cisco (CCNA)": "Cisco Networking (CCNA)",
+  "Módulo extra Redes Cisco (en el Curso)": "Extra Cisco Networking module (in the Course)",
+  "Cisco Packet Tracer (gratis, en Networking Academy)": "Cisco Packet Tracer (free, on Networking Academy)",
+  "Demo del dashboard de Cisco Meraki": "Cisco Meraki dashboard demo",
+  "Cisco DevNet Sandbox (laboratorios gratis)": "Cisco DevNet Sandbox (free labs)",
   "Mi lab": "My lab",
   "Mi laboratorio": "My lab",
   "Mi lab: Juice Shop y DVWA con Docker en tu Mac": "My lab: Juice Shop and DVWA with Docker on your Mac",

@@ -52,6 +52,15 @@ En `say` puedes usar `**negrita**` y `` `código` ``.
 - `line(/\|\s*wc/)`: la línea completa encaja con la expresión (útil para tuberías).
 - `ok(has('nmap'))`: además, el comando no dio error.
 
+Para lecciones de **Cisco** (módulo extra, `phase: 'cisco'`) hay más ayudantes:
+
+- `ios(/^sh\w*\s+vl/i)`: el alumno escribió ese comando dentro de IOS. Con un segundo argumento exige el modo en que queda, por ejemplo `ios(/^en/i, 'priv')`. Los modos son `user`, `priv`, `config`, `vlan`, `if`, `range`, `subif` y `linux` (salió de la consola).
+- `net(sw => sw.vlans[30] === 'INVITADOS')`: comprueba el **estado** del switch y del router con `net((sw, r) => ...)`. Así vale cualquier forma de configurarlo.
+- `reach('PC-Ventas1', '192.168.20.11')`: verdadero si ese PC llega a esa IP con la configuración actual.
+- `all(a, b)`: se tienen que cumplir las dos condiciones.
+
+En el simulador: `consola sw1` / `consola r1` para entrar en los equipos y `pcping <PC> <IP>` para probar desde los PCs.
+
 Pon siempre **`try: 'el comando correcto'`**. El comprobador lo ejecuta en el simulador y avisa si tu `check` no lo acepta.
 
 ## Banco del examen y tarjetas
@@ -67,7 +76,7 @@ cards: [
 ],
 ```
 
-Temas existentes: Fase 2 `cia` `cripto` `vulns` `web` `tools` `lab` · Fase 3 `rama` `siem` `auditar` `informe`.
+Temas existentes: Fase 2 `cia` `cripto` `vulns` `web` `tools` `lab` · Fase 3 `rama` `siem` `auditar` `informe` · Cisco `ios` `vlan` `trunk` `rout` `acl` `hard`.
 Si necesitas otro, decláralo en `topics: { recon: ['Reconocimiento', 'f2-mi-leccion'] }`.
 
 ## Inglés
