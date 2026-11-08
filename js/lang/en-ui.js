@@ -1,6 +1,8 @@
 /* Diccionario español → inglés (ui) */
 (window.I18N_DICT = window.I18N_DICT || { en: {} }).en = window.I18N_DICT.en || {};
 Object.assign(window.I18N_DICT.en, {
+  "Seguir sin cuenta": "Continue without an account",
+  "Entra para guardar tu progreso en la nube y hablar con los agentes con IA. También puedes seguir sin cuenta: tu progreso se queda en este navegador.": "Sign in to save your progress in the cloud and talk to the AI agents. You can also continue without an account: your progress stays in this browser.",
   // Redes Cisco
   "Redes Cisco (CCNA)": "Cisco Networking (CCNA)",
   "Módulo extra Redes Cisco (en el Curso)": "Extra Cisco Networking module (in the Course)",
