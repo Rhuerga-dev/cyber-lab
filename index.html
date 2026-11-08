@@ -342,6 +342,75 @@ body.exam-mode .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(m
 .minicerts{display:flex;flex-direction:column;gap:6px}
 .xlinks{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .xlinks summary{cursor:pointer;font-weight:600}
+/* Laboratorio de redes */
+.nl-list{display:flex;flex-wrap:wrap;gap:8px}
+.nl-ex{display:flex;align-items:center;gap:8px;font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left}
+.nl-ex .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--bg);font-weight:700;font-size:13px;flex:none}
+.nl-ex.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.nl-ex.done .n{background:var(--ok-bg);color:var(--ok)}
+#nl-main{display:flex;flex-direction:column;gap:16px;margin-top:16px}
+.nl-intro p{margin:0 0 8px}
+.nl-work{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,380px);gap:16px;align-items:start}
+@media (max-width:980px){.nl-work{grid-template-columns:1fr}}
+.nl-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.nl-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.nl-tools .btn{padding:5px 11px;font-size:14px}
+.nl-tools [aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.nl-sep{width:1px;height:24px;background:var(--line);margin:0 4px}
+.nl-canvas{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--bg);background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px;touch-action:none}
+.nl-canvas[data-mode="cable"] .nl-dev{cursor:crosshair}
+.nl-canvas[data-mode="delete"] .nl-link{cursor:pointer}
+#nl-svg{display:block;width:100%;height:auto;user-select:none}
+.nl-dev{cursor:grab;outline:none}
+.nl-dev .nl-body{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.nl-dev .nl-screen{fill:var(--accent);opacity:.35}
+.nl-dev .nl-glyph{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.nl-dev.k-r .nl-body{fill:var(--accent);stroke:var(--accent)}
+.nl-dev.k-r .nl-glyph{stroke:var(--accent-ink)}
+.nl-dev.k-cloud .nl-body{fill:var(--surface);stroke:var(--muted);stroke-dasharray:4 3}
+.nl-cloudtx{font:600 11px var(--f-mono);fill:var(--muted)}
+.nl-dev.sel .nl-body,.nl-dev:focus-visible .nl-body{stroke:var(--bit);stroke-width:3.5}
+.nl-dev.pend .nl-body{stroke:var(--bit);stroke-dasharray:5 3;stroke-width:3}
+.nl-name{font:600 13px var(--f-body);fill:var(--ink)}
+.nl-ip{font:12px var(--f-mono);fill:var(--muted)}
+.nl-port{font:11px var(--f-mono);fill:var(--muted);paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+.nl-wire{stroke-width:3;stroke-linecap:round}
+.nl-hit{stroke:transparent;stroke-width:16}
+.nl-link.up .nl-wire{stroke:var(--ok)}
+.nl-link.down .nl-wire{stroke:var(--bad);stroke-dasharray:6 5}
+.nl-pkt{stroke:var(--surface);stroke-width:2}
+.nl-pkt.go{fill:var(--bit)}
+.nl-pkt.back{fill:var(--accent)}
+.nl-pop{position:absolute;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;box-shadow:0 6px 24px rgba(0,0,0,.18);display:flex;flex-wrap:wrap;gap:4px;max-width:200px}
+.nl-pop-h{width:100%;font-weight:600;font-size:13px;margin-bottom:2px}
+.nl-pop button{font:13px var(--f-mono);padding:4px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);cursor:pointer}
+.nl-pop button:hover{border-color:var(--accent)}
+.nl-goals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.nl-goals li{display:flex;gap:8px;align-items:baseline}
+.nl-goals li.ok{color:var(--ok)}
+#nl-goals h3,#nl-sim h3{margin:0 0 8px;display:flex;justify-content:space-between}
+.nl-devh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.nl-tabs{display:flex;gap:4px;margin-bottom:10px}
+.nl-tabs button{font:inherit;padding:5px 12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;cursor:pointer}
+.nl-tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.nl-ipf,.nl-pingf,.nl-simf{display:flex;flex-direction:column;gap:8px}
+.nl-ipf label,.nl-pingf label,.nl-simf label{display:flex;flex-direction:column;gap:3px;font-size:14px}
+.nl-ipf input,.nl-pingf input,.nl-simf input,.nl-simf select{font:15px var(--f-mono);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+@media (min-width:640px){.nl-simf{flex-direction:row;align-items:flex-end;flex-wrap:wrap}.nl-simf label{flex:1 1 160px}}
+.nl-out{white-space:pre-wrap;font:13px var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;margin:8px 0 0;min-height:1em;overflow-x:auto}
+.nl-plist,.nl-ports ul{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.nl-ports summary{cursor:pointer;margin-top:10px;font-weight:600}
+#nl-term .term{height:auto;min-height:0}
+#nl-term .term-out{height:300px;max-height:45vh;white-space:pre;overflow-x:auto}
+#nl-term .term-row{white-space:pre}
+.nl-plist{margin-top:4px}
+#nl-dev h4{margin:12px 0 0;font-size:15px}
+.nl-ev{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.nl-ev li.back{color:var(--muted)}
+.nl-ev li.head{font-weight:600;color:var(--ink)}
+.nl-ev li.res{font-weight:700}
+.nl-ev li.res.ok{color:var(--ok)}
+.nl-ev li.res.bad{color:var(--bad)}
 .lab-cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
 .lab-cmd pre{flex:1 1 280px;margin:0;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;font-family:var(--f-mono);font-size:14px;white-space:pre-wrap;word-break:break-all}
 .lab-apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
@@ -418,6 +487,7 @@ footer a{color:var(--accent)}
     <a href="#repaso" data-v="repaso"><span data-i18n>Repaso</span> <span class="tabbadge" id="rv-badge" hidden></span></a>
     <a href="#terminal" data-v="terminal" data-i18n>Terminal</a>
     <a href="#practica" data-v="practica" data-i18n>Práctica</a>
+    <a href="#redes" data-v="redes" data-i18n>Redes</a>
     <a href="#milab" data-v="milab" data-i18n>Mi lab</a>
     <a href="#certs" data-v="certs" data-i18n>Certificaciones</a>
     <a href="#resultados" data-v="resultados" data-i18n>Resultados</a>
@@ -430,6 +500,7 @@ footer a{color:var(--accent)}
   <section class="view" id="v-certs" hidden></section>
   <section class="view" id="v-resultados" hidden></section>
   <section class="view" id="v-milab" hidden></section>
+  <section class="view" id="v-redes" hidden></section>
 
   <section class="view" id="v-practica" hidden>
   <div class="layout">
@@ -463,9 +534,11 @@ footer a{color:var(--accent)}
 <script src="js/lang/en-course.js"></script>
 <script src="js/lang/en-terminal.js"></script>
 <script src="js/lang/en-review.js"></script>
+<script src="js/lang/en-netlab.js"></script>
 <script src="js/lessons/mis-lecciones.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/terminal.js"></script>
+<script src="js/netlab.js"></script>
 <script src="js/course.js"></script>
 <script src="js/review.js"></script>
 <script src="js/sync.js"></script>
@@ -796,6 +869,7 @@ const PHASES=[
   links:[
    {g:'Redes Cisco (CCNA)',items:[
     ['Módulo extra Redes Cisco (en el Curso)','#curso'],
+    ['Laboratorio de redes: 6 ejercicios visuales','#redes'],
     ['Cisco Packet Tracer (gratis, en Networking Academy)','https://www.netacad.com/cisco-packet-tracer'],
     ['Demo del dashboard de Cisco Meraki','https://www.cisco.com/c/en/us/solutions/small-business/meraki-demo.html'],
     ['Cisco DevNet Sandbox (laboratorios gratis)','https://developer.cisco.com/site/sandbox/']]}],
@@ -1013,7 +1087,7 @@ function renderMiLab(){
 }
 
 /* navegación */
-const VIEWS=['ruta','curso','repaso','terminal','practica','certs','resultados','milab'];
+const VIEWS=['ruta','curso','repaso','terminal','practica','certs','resultados','milab','redes'];
 window.CL={get prog(){return prog},save,addLog,paintOverall,
   _i18nData:()=>({LEVELS,PHASES,CERTS,STATUS,TYPES,PORT_NOTE,PORTS,TCP_Q}),
   replace(d){prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d||{});try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}applyPrefs();render();route()}};
@@ -1024,7 +1098,7 @@ I18N.onChange((kind,v)=>{prog.prefs=Object.assign({},prog.prefs,{[kind]:v});save
 function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'ruta';
   VIEWS.forEach(x=>{$('#v-'+x).hidden=x!==v});
   document.querySelectorAll('.tabs a').forEach(a=>a.dataset.v===v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
-  if(v==='ruta')renderRuta();else if(v==='milab')renderMiLab();else if(v==='certs')renderCerts();else if(v==='resultados')renderResultados();
+  if(v==='ruta')renderRuta();else if(v==='milab')renderMiLab();else if(v==='redes'&&window.NetLab)NetLab.render($('#v-redes'));else if(v==='certs')renderCerts();else if(v==='resultados')renderResultados();
   else if(v==='curso'&&window.Course)Course.render($('#v-curso'));else if(v==='terminal'&&window.Course)Course.renderFree($('#v-terminal'));
   else if(v==='repaso'&&window.Review)Review.render($('#v-repaso'));
   if(window.Review)Review.badge();
