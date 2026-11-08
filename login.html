@@ -557,12 +557,13 @@ footer a{color:var(--accent)}
   </header>
 </div>
 <main class="login-wrap"><section class="login-card" id="login-root" aria-labelledby="acct-h"><p class="muted">…</p></section></main>
-<script src="js/lang/en-ui.js"></script>
-<script src="js/i18n.js"></script>
-<script src="js/sync.js"></script>
+<script src="js/lang/en-ui.js?v=20261108a"></script>
+<script src="js/i18n.js?v=20261108a"></script>
+<script src="js/sync.js?v=20261108a"></script>
 <script>
 I18N.applyStatic(); I18N.bindControls();
-Sync.initLoginPage(document.getElementById('login-root'));
+if (window.Sync && Sync.initLoginPage) Sync.initLoginPage(document.getElementById('login-root'));
+else document.getElementById('login-root').innerHTML = '<p>No se pudo cargar el formulario. Recarga la página (Cmd + Shift + R).</p>';
 </script>
 </body>
 </html>
