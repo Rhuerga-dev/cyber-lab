@@ -1,0 +1,39 @@
+# Cyber Lab · Laboratorio local con apps vulnerables A PROPÓSITO, para practicar.
+# Todo escucha solo en 127.0.0.1: nadie de tu red ni de internet puede entrar.
+#   Encender:  cd ~/cyber-lab/lab && docker compose up -d
+#   Apagar:    cd ~/cyber-lab/lab && docker compose stop
+#   Borrar:    cd ~/cyber-lab/lab && docker compose down -v
+# Nunca cambies 127.0.0.1 por 0.0.0.0 ni subas esto a un servidor.
+name: cyberlab
+
+services:
+  juice-shop:            # OWASP Juice Shop → http://localhost:3000
+    image: bkimminich/juice-shop:latest
+    ports: ["127.0.0.1:3000:3000"]
+    restart: "no"
+
+  dvwa:                  # DVWA → http://localhost:4280 (admin / password)
+    image: ghcr.io/digininja/dvwa:latest
+    environment:
+      DB_SERVER: db
+    depends_on: [db]
+    ports: ["127.0.0.1:4280:80"]
+    networks: [dvwa]
+    restart: "no"
+
+  db:                    # Base de datos de DVWA (contraseñas de ejemplo, solo para el lab)
+    image: docker.io/library/mariadb:10
+    environment:
+      MYSQL_ROOT_PASSWORD: dvwa
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: p@ssw0rd
+    volumes: [dvwa:/var/lib/mysql]
+    networks: [dvwa]
+    restart: "no"
+
+volumes:
+  dvwa: {}
+
+networks:
+  dvwa: {}

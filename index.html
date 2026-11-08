@@ -342,6 +342,12 @@ body.exam-mode .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(m
 .minicerts{display:flex;flex-direction:column;gap:6px}
 .xlinks{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .xlinks summary{cursor:pointer;font-weight:600}
+.lab-cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.lab-cmd pre{flex:1 1 280px;margin:0;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;font-family:var(--f-mono);font-size:14px;white-space:pre-wrap;word-break:break-all}
+.lab-apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.lab-app{border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.lab-app h3{margin:0;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.lab-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .xl{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
 .mc{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-decoration:none;color:var(--ink);font-size:15px}
 .mc:hover{border-color:var(--accent)}
@@ -412,6 +418,7 @@ footer a{color:var(--accent)}
     <a href="#repaso" data-v="repaso"><span data-i18n>Repaso</span> <span class="tabbadge" id="rv-badge" hidden></span></a>
     <a href="#terminal" data-v="terminal" data-i18n>Terminal</a>
     <a href="#practica" data-v="practica" data-i18n>Práctica</a>
+    <a href="#milab" data-v="milab" data-i18n>Mi lab</a>
     <a href="#certs" data-v="certs" data-i18n>Certificaciones</a>
     <a href="#resultados" data-v="resultados" data-i18n>Resultados</a>
   </nav>
@@ -422,6 +429,7 @@ footer a{color:var(--accent)}
   <section class="view" id="v-terminal" hidden></section>
   <section class="view" id="v-certs" hidden></section>
   <section class="view" id="v-resultados" hidden></section>
+  <section class="view" id="v-milab" hidden></section>
 
   <section class="view" id="v-practica" hidden>
   <div class="layout">
@@ -807,7 +815,8 @@ const PHASES=[
     ['Nmap: The Basics (búscala en TryHackMe)','https://tryhackme.com/hacktivities?tab=search&query=nmap']]},
    {g:'Laboratorio en casa',items:[
     ['UTM: máquinas virtuales en el Mac','https://mac.getutm.app'],
-    ['Kali Linux (elige ARM64 si tu Mac tiene chip Apple)','https://www.kali.org/get-kali/']]}],
+    ['Kali Linux (elige ARM64 si tu Mac tiene chip Apple)','https://www.kali.org/get-kali/'],
+    ['Mi lab: Juice Shop y DVWA con Docker en tu Mac','#milab']]}],
   certs:['ccna','netplus','secplus']},
  {id:'f3',name:'Especialidad',time:'6–12 meses',goal:'Elegir una rama y practicar en serio.',topics:[
    {id:'rama',t:'Elegir rama: AppSec, Pentesting, Blue Team o Cloud'},
@@ -862,7 +871,7 @@ function renderRuta(){
         return `<li class="${d?'done':''}"><input type="checkbox" id="tp-${t.id}" data-t="${t.id}" ${d?'checked':''} ${t.lab&&t.lab.every(l=>prog.done.includes(l))?'disabled title="'+T('Completado en el laboratorio')+'"':''}><label for="tp-${t.id}">${esc(T(t.t))}${lab}</label></li>`}).join('')}</ul></div>
       ${p.certs.length?`<div><h3>${T('Certificaciones')}</h3><div class="minicerts">${p.certs.map(id=>{const c=CERT[id],s=certState(id);
         return `<a class="mc" href="#certs" data-focus="${id}"><span>${esc(c.name)}${c.rec?' <span class="tag rec">'+T('Recomendada')+'</span>':''}${c.top?' <span class="tag top">'+T('Cumbre')+'</span>':''}</span><span class="pill ${s.status}">${T(STATUS[s.status])}</span></a>`}).join('')}</div></div>`:''}
-      </div>${p.links?`<details class="xlinks"${i===curPhase?' open':''}><summary>${T('Práctica externa')}</summary><p class="muted">${T('Plataformas legales para practicar. Al terminar algo, anótalo en Resultados.')}</p><div class="cols">${p.links.map(g=>`<div><h3>${esc(T(g.g))}</h3><ul class="xl">${g.items.map(([n,u])=>`<li><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(T(n))} ↗</a></li>`).join('')}</ul></div>`).join('')}</div></details>`:''}</section></div>`}).join('')}</div>`;
+      </div>${p.links?`<details class="xlinks"${i===curPhase?' open':''}><summary>${T('Práctica externa')}</summary><p class="muted">${T('Plataformas legales para practicar. Al terminar algo, anótalo en Resultados.')}</p><div class="cols">${p.links.map(g=>`<div><h3>${esc(T(g.g))}</h3><ul class="xl">${g.items.map(([n,u])=>`<li>${u.startsWith('#')?`<a href="${esc(u)}">${esc(T(n))} →</a>`:`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(T(n))} ↗</a>`}</li>`).join('')}</ul></div>`).join('')}</div></details>`:''}</section></div>`}).join('')}</div>`;
   document.querySelectorAll('#v-ruta input[data-t]').forEach(i=>i.addEventListener('change',()=>{const t=ALL_TOPICS.find(x=>x.id===i.dataset.t);
     if(i.checked){prog.topics[t.id]=today();addLog({type:'tema',title:T('Tema completado: {t}',{t:T(t.t)})})}else delete prog.topics[t.id];save();renderRuta();paintOverall()}));
   document.querySelectorAll('#v-ruta a[data-lesson]').forEach(a=>a.addEventListener('click',()=>Course.open(a.dataset.lesson)));
@@ -943,8 +952,62 @@ function renderResultados(){
     catch(err){$('#bk-msg').innerHTML='<div class="fb bad">'+T('Ese archivo no es una copia de Cyber Lab. Elige el archivo .json que descargaste con "Descargar copia".')+'</div>'}};r.readAsText(f)});
 }
 
+/* Mi lab: apps vulnerables a propósito en Docker, solo en localhost */
+const LAB_APPS=[
+ {id:'juice',name:'OWASP Juice Shop',url:'http://localhost:3000',login:'Sin usuario: regístrate dentro de la tienda.',
+  what:'Tienda web moderna con más de 100 retos (inyección, XSS, control de acceso, lógica de negocio…).',
+  tip:'Primer reto: encontrar el "Score Board" oculto. Desde ahí ves todos los retos y cuáles llevas.'},
+ {id:'dvwa',name:'DVWA',url:'http://localhost:4280',login:'admin / password',
+  what:'App PHP clásica con un módulo por vulnerabilidad y cuatro niveles de dificultad.',
+  tip:'La primera vez pulsa "Create / Reset Database". Empieza con el nivel de seguridad en Low y súbelo cuando lo domines.'}];
+const LAB_CMDS={
+ up:'cd ~/cyber-lab/lab && docker compose up -d',
+ ps:'cd ~/cyber-lab/lab && docker compose ps',
+ stop:'cd ~/cyber-lab/lab && docker compose stop',
+ down:'cd ~/cyber-lab/lab && docker compose down -v'};
+function labCmd(k){return `<div class="lab-cmd"><pre>${esc(LAB_CMDS[k])}</pre><button class="btn ghost" type="button" data-copy="${k}">${T('Copiar')}</button></div>`}
+function renderMiLab(){
+  $('#v-milab').innerHTML=`
+  <section class="card"><h2>${T('Mi laboratorio')}</h2>
+   <p>${T('Dos aplicaciones hechas <b>vulnerables a propósito</b> para practicar en tu Mac, sin riesgo para nadie. Funcionan con Docker y solo escuchan en <code>localhost</code>: nadie de tu red ni de internet puede entrar.')}</p>
+   <p class="muted">${T('El navegador no puede instalar nada en tu ordenador, por eso los pasos se hacen en la Terminal del Mac. Solo la primera vez tarda (descarga ~1 GB).')}</p></section>
+  <section class="card"><h2>${T('1. Instala Docker Desktop (una vez)')}</h2>
+   <p>${T('Descárgalo, ábrelo y espera a que diga que está en marcha.')} <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener noreferrer">Docker Desktop ↗</a></p>
+   <p class="muted">${T('En Ajustes → Resources puedes limitar la memoria (con 4 GB basta) para que el Mac no se ponga lento.')}</p></section>
+  <section class="card"><h2>${T('2. Enciende el laboratorio')}</h2>
+   <p>${T('Pega esto en la Terminal del Mac:')}</p>${labCmd('up')}
+   <p class="muted">${T('Para ver si está todo en marcha:')}</p>${labCmd('ps')}</section>
+  <section class="card"><h2>${T('3. Practica')}</h2>
+   <div class="lab-apps">${LAB_APPS.map(a=>`<div class="lab-app"><h3>${esc(a.name)} <span class="pill pendiente" id="st-${a.id}">${T('Sin comprobar')}</span></h3>
+     <p>${esc(T(a.what))}</p><p><b>${T('Acceso:')}</b> ${esc(T(a.login))}</p><p class="muted">${esc(T(a.tip))}</p>
+     <div class="row"><a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">${T('Abrir')} ${esc(a.url.replace('http://',''))} ↗</a></div></div>`).join('')}</div>
+   <div class="row"><button class="btn ghost" type="button" id="lab-check">${T('Comprobar si están encendidas')}</button><span class="muted" id="lab-msg"></span></div>
+   <ul class="lab-steps">
+    <li>${T('Combínalas con la teoría: lo que veas en PortSwigger, pruébalo aquí.')}</li>
+    <li>${T('Cuando resuelvas algo, anótalo en <a href="#resultados">Resultados</a> (tipo Laboratorio) y, si quieres, escribe una lección propia (mira CONTENIDO.md).')}</li>
+    <li>${T('Después de atacar, piensa cómo lo arreglarías en tu propio código Laravel. Esa es la parte que más vale.')}</li></ul></section>
+  <section class="card"><h2>${T('4. Apágalo al terminar')}</h2>
+   <p>${T('Así no gasta memoria ni batería:')}</p>${labCmd('stop')}
+   <p class="muted">${T('Para borrarlo todo y empezar de cero (también la base de datos de DVWA):')}</p>${labCmd('down')}</section>
+  <section class="card"><h2>${T('Reglas del laboratorio')}</h2>
+   <ul class="lab-steps">
+    <li>${T('Ataca solo estas apps, tu home lab o plataformas que lo permitan. Nunca webs o equipos de otros sin permiso por escrito.')}</li>
+    <li>${T('No cambies <code>127.0.0.1</code> por <code>0.0.0.0</code> en <code>lab/docker-compose.yml</code> ni lo subas a un servidor: son apps rotas a propósito.')}</li>
+    <li>${T('Apágalo cuando no lo uses.')}</li></ul></section>`;
+  document.querySelectorAll('#v-milab [data-copy]').forEach(b=>b.addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText(LAB_CMDS[b.dataset.copy]);b.textContent=T('Copiado ✓')}catch(e){b.textContent=T('Selecciónalo y copia')}
+    setTimeout(()=>{b.textContent=T('Copiar')},1800)}));
+  $('#lab-check').addEventListener('click',async()=>{
+    $('#lab-msg').textContent=T('Comprobando…');let on=0;
+    await Promise.all(LAB_APPS.map(async a=>{const el=$('#st-'+a.id);
+      const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),2500);
+      try{await fetch(a.url,{mode:'no-cors',cache:'no-store',signal:ctl.signal});on++;el.className='pill aprobado';el.textContent=T('Encendida')}
+      catch(e){el.className='pill pendiente';el.textContent=T('No responde')}finally{clearTimeout(tm)}}));
+    $('#lab-msg').textContent=on===LAB_APPS.length?T('Todo listo. ¡A practicar!'):T('Si acabas de encenderlo, espera un minuto. Si el navegador pide permiso para acceder a la red local, acéptalo; si lo bloquea, ábrelas con los botones.')});
+}
+
 /* navegación */
-const VIEWS=['ruta','curso','repaso','terminal','practica','certs','resultados'];
+const VIEWS=['ruta','curso','repaso','terminal','practica','certs','resultados','milab'];
 window.CL={get prog(){return prog},save,addLog,paintOverall,
   _i18nData:()=>({LEVELS,PHASES,CERTS,STATUS,TYPES,PORT_NOTE,PORTS,TCP_Q}),
   replace(d){prog=Object.assign({done:[],streak:{},cur:0,topics:{},certs:{},log:[]},d||{});try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}applyPrefs();render();route()}};
@@ -955,7 +1018,7 @@ I18N.onChange((kind,v)=>{prog.prefs=Object.assign({},prog.prefs,{[kind]:v});save
 function route(){const h=(location.hash||'').slice(1),v=VIEWS.includes(h)?h:'ruta';
   VIEWS.forEach(x=>{$('#v-'+x).hidden=x!==v});
   document.querySelectorAll('.tabs a').forEach(a=>a.dataset.v===v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
-  if(v==='ruta')renderRuta();else if(v==='certs')renderCerts();else if(v==='resultados')renderResultados();
+  if(v==='ruta')renderRuta();else if(v==='milab')renderMiLab();else if(v==='certs')renderCerts();else if(v==='resultados')renderResultados();
   else if(v==='curso'&&window.Course)Course.render($('#v-curso'));else if(v==='terminal'&&window.Course)Course.renderFree($('#v-terminal'));
   else if(v==='repaso'&&window.Review)Review.render($('#v-repaso'));
   if(window.Review)Review.badge();
