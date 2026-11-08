@@ -36,7 +36,8 @@ console.log('Lecciones propias: ' + (mine.length ? mine.join(', ') : '(ninguna t
 const ids = new Map();
 all.forEach(l => ids.set(l.id, (ids.get(l.id) || 0) + 1));
 const AGENTS = ['nova', 'marco', 'lia'];
-const needEN = s => typeof s === 'string' && !(s in EN) && /\s/.test(s.trim()) && /[a-záéíóúñ]{3}/i.test(s);
+const isCommand = s => /^[a-z][\w.-]*(\s+(-{1,2}[\w=-]+|[\w.\/:@=-]+|"[^"]*"|'[^']*'|\|))*$/.test(s.trim()) && !/[áéíóúñ¿¡]/i.test(s) && /\s-\w|[\/|]|\d\.\d/.test(s);
+const needEN = s => typeof s === 'string' && !(s in EN) && /\s/.test(s.trim()) && /[a-záéíóúñ]{3}/i.test(s) && !isCommand(s);
 const missEN = [];
 
 for (const L of all.filter(l => mine.includes(l.id))) {
