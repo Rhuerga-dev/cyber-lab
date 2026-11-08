@@ -67,7 +67,7 @@ cards: [
 ],
 ```
 
-Temas existentes de la Fase 2: `cia` `cripto` `vulns` `web` `tools` `lab`.
+Temas existentes: Fase 2 `cia` `cripto` `vulns` `web` `tools` `lab` · Fase 3 `rama` `siem` `auditar` `informe`.
 Si necesitas otro, decláralo en `topics: { recon: ['Reconocimiento', 'f2-mi-leccion'] }`.
 
 ## Inglés
@@ -127,8 +127,12 @@ Después de cada lab o sala, escribe una lección con lo que aprendiste:
 - [ ] `f2-wireshark`: el simulador ya tiene `captura.pcap` y `tcpdump`. Haz una lección que lea esa captura (mira la de la Fase 1 como modelo).
 - [ ] Añade 2–3 preguntas al `bank` por cada lección, para que el examen crezca.
 
-## 4. Cuando termines la Fase 2
+## 4. Fase 3 · Especialidad (ya está en el curso)
 
-- [ ] Aprueba el examen de la Fase 2 (80 %).
-- [ ] La Fase 3 está como `soon: true` en `COURSE`, dentro de `js/course.js`. Para activarla hay que crear `F3`, `BANK_F3` y su entrada en `EXAMS`; sigue el modelo de `F2`.
-  Cuando la tengas, pídeselo a Claude: el motor es lo que yo puedo montar. El contenido práctico ofensivo lo escribes tú desde lo que hagas en las plataformas.
+- [ ] Haz las lecciones de la Fase 3: ramas, investigar un incidente en los logs, SIEM, auditar tu app y método e informes. Luego, su examen.
+- [ ] Prueba las dos caras para decidir tu rama: **Mi lab** + PortSwigger (AppSec / pentesting web) y la intro de **SOC Level 1** en TryHackMe (Blue Team).
+- [ ] Audita de verdad uno de tus proyectos con la lista de `f3-auditar`: `composer audit`, `npm audit`, `.gitignore`, `APP_DEBUG`, `curl -I` y gitleaks.
+- [ ] Escribe un informe con `reporte_modelo.txt` (está en la terminal del curso) por cada lab que resuelvas. Al cabo de unos meses tendrás un portafolio.
+- [ ] Cuando tengas clara tu rama, pide a Claude el motor de la Fase 4. Igual que en las anteriores, el contenido práctico ofensivo lo escribes tú, desde lo que hagas en las plataformas.
+
+Temas de examen de la Fase 3 para tu `bank`: `rama` `siem` `auditar` `informe`.
