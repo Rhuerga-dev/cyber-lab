@@ -340,6 +340,9 @@ body.exam-mode .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(m
 .checks .done label{color:var(--muted);text-decoration:line-through}
 .checks a{font-size:14px;color:var(--accent);text-decoration:none;font-weight:600}
 .minicerts{display:flex;flex-direction:column;gap:6px}
+.xlinks{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.xlinks summary{cursor:pointer;font-weight:600}
+.xl{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
 .mc{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-decoration:none;color:var(--ink);font-size:15px}
 .mc:hover{border-color:var(--accent)}
 .pill{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
@@ -790,6 +793,21 @@ const PHASES=[
    {id:'tools',t:'Nmap, Wireshark y Burp Suite'},
    {id:'homelab',t:'Laboratorio en casa: Kali + máquinas vulnerables'},
    {id:'vulns',t:'Gestión de vulnerabilidades y parches'}],
+  links:[
+   {g:'PortSwigger Web Security Academy (gratis, labs Apprentice)',items:[
+    ['SQL injection','https://portswigger.net/web-security/sql-injection'],
+    ['Cross-site scripting (XSS)','https://portswigger.net/web-security/cross-site-scripting'],
+    ['Control de acceso','https://portswigger.net/web-security/access-control'],
+    ['Autenticación y enumeración de usuarios','https://portswigger.net/web-security/authentication']]},
+   {g:'TryHackMe',items:[
+    ['Pre Security (ruta de introducción)','https://tryhackme.com/path/outline/presecurity'],
+    ['OWASP Top 10 - 2021','https://tryhackme.com/room/owasptop102021'],
+    ['Burp Suite: The Basics','https://tryhackme.com/room/burpsuitebasics'],
+    ['Wireshark: The Basics','https://tryhackme.com/room/wiresharkthebasics'],
+    ['Nmap: The Basics (búscala en TryHackMe)','https://tryhackme.com/hacktivities?tab=search&query=nmap']]},
+   {g:'Laboratorio en casa',items:[
+    ['UTM: máquinas virtuales en el Mac','https://mac.getutm.app'],
+    ['Kali Linux (elige ARM64 si tu Mac tiene chip Apple)','https://www.kali.org/get-kali/']]}],
   certs:['ccna','netplus','secplus']},
  {id:'f3',name:'Especialidad',time:'6–12 meses',goal:'Elegir una rama y practicar en serio.',topics:[
    {id:'rama',t:'Elegir rama: AppSec, Pentesting, Blue Team o Cloud'},
@@ -797,6 +815,10 @@ const PHASES=[
    {id:'thm',t:'Rutas de TryHackMe / Hack The Box'},
    {id:'siem',t:'SIEM y análisis de logs (Splunk, Elastic)'},
    {id:'auditar',t:'Auditar tus propios proyectos'}],
+  links:[
+   {g:'Para elegir rama',items:[
+    ['PortSwigger: todos los temas (AppSec / pentesting web)','https://portswigger.net/web-security'],
+    ['TryHackMe SOC Level 1 (Blue Team)','https://tryhackme.com/path/outline/soclevel1']]}],
   certs:['ccna-cyber','cysa','ejpt','pentest']},
  {id:'f4',name:'Experiencia real',time:'Continuo',goal:'Demostrar lo que sabes con trabajo real.',topics:[
    {id:'writeups',t:'Portafolio de writeups en GitHub'},
@@ -840,7 +862,7 @@ function renderRuta(){
         return `<li class="${d?'done':''}"><input type="checkbox" id="tp-${t.id}" data-t="${t.id}" ${d?'checked':''} ${t.lab&&t.lab.every(l=>prog.done.includes(l))?'disabled title="'+T('Completado en el laboratorio')+'"':''}><label for="tp-${t.id}">${esc(T(t.t))}${lab}</label></li>`}).join('')}</ul></div>
       ${p.certs.length?`<div><h3>${T('Certificaciones')}</h3><div class="minicerts">${p.certs.map(id=>{const c=CERT[id],s=certState(id);
         return `<a class="mc" href="#certs" data-focus="${id}"><span>${esc(c.name)}${c.rec?' <span class="tag rec">'+T('Recomendada')+'</span>':''}${c.top?' <span class="tag top">'+T('Cumbre')+'</span>':''}</span><span class="pill ${s.status}">${T(STATUS[s.status])}</span></a>`}).join('')}</div></div>`:''}
-      </div></section></div>`}).join('')}</div>`;
+      </div>${p.links?`<details class="xlinks"${i===curPhase?' open':''}><summary>${T('Práctica externa')}</summary><p class="muted">${T('Plataformas legales para practicar. Al terminar algo, anótalo en Resultados.')}</p><div class="cols">${p.links.map(g=>`<div><h3>${esc(T(g.g))}</h3><ul class="xl">${g.items.map(([n,u])=>`<li><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(T(n))} ↗</a></li>`).join('')}</ul></div>`).join('')}</div></details>`:''}</section></div>`}).join('')}</div>`;
   document.querySelectorAll('#v-ruta input[data-t]').forEach(i=>i.addEventListener('change',()=>{const t=ALL_TOPICS.find(x=>x.id===i.dataset.t);
     if(i.checked){prog.topics[t.id]=today();addLog({type:'tema',title:T('Tema completado: {t}',{t:T(t.t)})})}else delete prog.topics[t.id];save();renderRuta();paintOverall()}));
   document.querySelectorAll('#v-ruta a[data-lesson]').forEach(a=>a.addEventListener('click',()=>Course.open(a.dataset.lesson)));

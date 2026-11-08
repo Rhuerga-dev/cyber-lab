@@ -1,6 +1,19 @@
 /* Diccionario español → inglés (ui) */
 (window.I18N_DICT = window.I18N_DICT || { en: {} }).en = window.I18N_DICT.en || {};
 Object.assign(window.I18N_DICT.en, {
+  "Práctica externa": "External practice",
+  "Plataformas legales para practicar. Al terminar algo, anótalo en Resultados.": "Legal platforms to practice on. When you finish something, log it in Results.",
+  "PortSwigger Web Security Academy (gratis, labs Apprentice)": "PortSwigger Web Security Academy (free, Apprentice labs)",
+  "Control de acceso": "Access control",
+  "Autenticación y enumeración de usuarios": "Authentication and username enumeration",
+  "Pre Security (ruta de introducción)": "Pre Security (intro path)",
+  "Nmap: The Basics (búscala en TryHackMe)": "Nmap: The Basics (search for it on TryHackMe)",
+  "Laboratorio en casa": "Home lab",
+  "UTM: máquinas virtuales en el Mac": "UTM: virtual machines on the Mac",
+  "Kali Linux (elige ARM64 si tu Mac tiene chip Apple)": "Kali Linux (pick ARM64 if your Mac has Apple silicon)",
+  "Para elegir rama": "To choose a track",
+  "PortSwigger: todos los temas (AppSec / pentesting web)": "PortSwigger: all topics (AppSec / web pentesting)",
+  "TryHackMe SOC Level 1 (Blue Team)": "TryHackMe SOC Level 1 (Blue Team)",
   "{d} de {n} lecciones de la Fase {p} completadas": "{d} of {n} Phase {p} lessons completed",
   "Apariencia": "Appearance",
   "Leer binario": "Read binary",
