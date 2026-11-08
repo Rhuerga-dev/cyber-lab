@@ -343,6 +343,8 @@ body.exam-mode .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(m
 .xlinks{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .xlinks summary{cursor:pointer;font-weight:600}
 /* Laboratorio de redes */
+
+.cl-content-err{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:50;max-width:min(560px,calc(100% - 32px));display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 6px 24px rgba(0,0,0,.18)}
 body[data-view="redes"] #calc-fab,body[data-view="redes"] #calc{display:none}
 /* Laboratorio de redes: maqueta a pantalla completa (en escritorio cabe sin hacer scroll) */
 .nl-app{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,370px);grid-template-rows:auto minmax(0,1fr);gap:10px;min-height:0}
@@ -598,16 +600,8 @@ footer a{color:var(--accent)}
 </aside>
 
 <script src="js/lang/en-ui.js"></script>
-<script src="js/lang/en-course.js"></script>
-<script src="js/lang/en-terminal.js"></script>
-<script src="js/lang/en-review.js"></script>
-<script src="js/lang/en-netlab.js"></script>
-<script src="js/lessons/mis-lecciones.js"></script>
 <script src="js/i18n.js"></script>
-<script src="js/terminal.js"></script>
-<script src="js/netlab.js"></script>
-<script src="js/course.js"></script>
-<script src="js/review.js"></script>
+<!-- Lecciones, simuladores y ejercicios: los entrega la API tras iniciar sesión (ver js/sync.js → loadContent). -->
 <script src="js/sync.js"></script>
 <script>
 (function(){
@@ -1176,6 +1170,7 @@ applyPrefs();I18N.bindControls();
 $('#calc-fab').textContent=$('#calc').hidden?T('Calculadora'):T('Ocultar calculadora');
 render();
 route();
+document.addEventListener('cl-content',()=>{route()});
 if(window.Sync)Sync.init();
 })();
 </script>

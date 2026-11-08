@@ -1,6 +1,8 @@
 # Escribir lecciones propias en Cyber Lab
 
-Escribes en **`js/lessons/mis-lecciones.js`** y el motor hace el resto. No hace falta tocar `course.js`.
+> **Dónde está el contenido.** Las lecciones, los simuladores y los ejercicios están en `private/js/`, que **no** se sube al repo público. La web publicada los pide a la API (`GET /api/content`) solo después de iniciar sesión. En tu Mac, con `python3 -m http.server`, se cargan directamente de `private/js/` sin cuenta. Haz copia de `private/` en su propio repo **privado** de GitHub.
+
+Escribes en **`private/js/lessons/mis-lecciones.js`** y el motor hace el resto. No hace falta tocar `course.js`.
 Tus lecciones aparecen al final de su fase, antes del examen. También añaden preguntas al examen y tarjetas al Repaso.
 
 ## Flujo de trabajo
@@ -11,12 +13,12 @@ node tools/check-lessons.js
 python3 -m http.server 8090
 ```
 
-1. Edita `js/lessons/mis-lecciones.js`. Copia el ejemplo comentado que trae y cámbialo.
+1. Edita `private/js/lessons/mis-lecciones.js`. Copia el ejemplo comentado que trae y cámbialo.
 2. Comprueba con `node tools/check-lessons.js`. Tiene que decir **✓ Sin errores**.
 3. Prueba en el navegador con `python3 -m http.server 8090` y abre http://localhost:8090. Ctrl+C para pararlo.
 4. Haz `git add -A`, `git commit -m "Lección: ..."` y `git push`.
 
-¿Quieres más archivos? Crea `js/lessons/otra.js` con el mismo formato y añade su `<script>` en `index.html`, junto al de `mis-lecciones.js`.
+¿Quieres más archivos? Crea `private/js/lessons/otra.js` con el mismo formato y añádelo a la lista `content.files` de `cyber-lab-api/config/cyberlab.php` y a `CONTENT_FILES` en `js/sync.js`.
 
 ## Formato de una lección
 
@@ -84,14 +86,14 @@ Si necesitas otro, decláralo en `topics: { recon: ['Reconocimiento', 'f2-mi-lec
 Sin traducción, el texto sale en español. El comprobador imprime un bloque `Object.assign(window.I18N_DICT.en, {...})` con los textos que faltan.
 Pégalo al final de tu archivo y rellena las traducciones. La clave es el texto en español **exacto**.
 
-## Archivos y comandos del simulador (opcional, en `js/terminal.js`)
+## Archivos y comandos del simulador (opcional, en `private/js/terminal.js`)
 
 - **Archivo nuevo en el home del alumno.** Busca `descargas: D('alumno', '755', {` y añade antes una línea como:
   `"mi_archivo.txt": F('alumno', '644', t("contenido"), 'alumno', 'Nov  7 09:00'),`
 - **Comando nuevo.** Añade una función en `const CMDS = {` (fíjate en `pwd` o `wc`, que son cortos) y una línea en `EXPLICA`.
   Añádelo también al texto de `help`.
 - **Herramientas grandes** (Burp, Metasploit, sqlmap…). No las simules: la lección explica y pregunta, y la práctica se hace en las plataformas de abajo.
-- Si tocas `terminal.js`, pasa `node --check js/terminal.js` y luego el comprobador.
+- Si tocas `terminal.js`, pasa `node --check private/js/terminal.js` y luego el comprobador.
 
 ## Reglas de contenido
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Comprueba tus lecciones (js/lessons/*.js) sin abrir el navegador.
+/* Comprueba tus lecciones (private/js/lessons/*.js) sin abrir el navegador.
    Uso, desde la carpeta del proyecto:  node tools/check-lessons.js
    Errores (✗) = la lección no funcionará bien. Avisos (!) = funciona pero mejorable. */
 const fs = require('fs'), vm = require('vm'), path = require('path');
@@ -15,8 +15,8 @@ ctx.localStorage = { getItem() { return null }, setItem() {} };
 ctx.CL = { prog: { course: { cur: 'f1-terminal', l: {} }, topics: {} } };
 vm.createContext(ctx);
 
-const extra = fs.readdirSync(path.join(ROOT, 'js/lessons')).filter(f => f.endsWith('.js')).map(f => 'js/lessons/' + f);
-const files = ['js/lang/en-course.js', 'js/lang/en-review.js', 'js/lang/en-terminal.js', 'js/lang/en-ui.js', 'js/terminal.js', ...extra, 'js/course.js', 'js/review.js'];
+const extra = fs.readdirSync(path.join(ROOT, 'private/js/lessons')).filter(f => f.endsWith('.js')).map(f => 'private/js/lessons/' + f);
+const files = ['private/js/lang/en-course.js', 'private/js/lang/en-review.js', 'private/js/lang/en-terminal.js', 'js/lang/en-ui.js', 'private/js/terminal.js', ...extra, 'private/js/course.js', 'private/js/review.js'];
 for (const f of files) {
   try { vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f }); }
   catch (e) { console.log('✗ ' + f + ': ' + e.message); process.exit(1); }

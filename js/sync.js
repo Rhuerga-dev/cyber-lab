@@ -105,6 +105,56 @@ function expired() {
   setStatus('out'); open('login', 'Tu sesión ha caducado. Vuelve a entrar para seguir sincronizando.'); // se traduce al pintar
 }
 
+/* ---------------- Contenido protegido ---------------- */
+// Las lecciones, los simuladores y los ejercicios no están en la web pública: la API los entrega
+// solo con sesión iniciada. En local (localhost) sin API, se leen de la carpeta private/js.
+const CONTENT_FILES = ['lang/en-course.js', 'lang/en-terminal.js', 'lang/en-review.js', 'lang/en-netlab.js', 'lessons/mis-lecciones.js', 'terminal.js', 'netlab.js', 'course.js', 'review.js'];
+let contentLoaded = false, contentLoading = null;
+function runCode(code) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+    const s = document.createElement('script'); s.src = url;
+    s.onload = () => { URL.revokeObjectURL(url); resolve(); };
+    s.onerror = () => { URL.revokeObjectURL(url); reject(new Error('script')); };
+    document.head.appendChild(s);
+  });
+}
+async function devContent() {
+  try {
+    const parts = await Promise.all(CONTENT_FILES.map(f => fetch('private/js/' + f, { cache: 'no-cache' }).then(r => r.ok ? r.text() : Promise.reject(r.status))));
+    return parts.join('\n;\n');
+  } catch (e) { return null; }
+}
+function contentBanner(show) {
+  let b = document.getElementById('cl-content-err');
+  if (!show) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.id = 'cl-content-err'; b.className = 'fb bad cl-content-err'; b.setAttribute('role', 'alert'); document.body.appendChild(b); }
+  b.innerHTML = `${escH(t('No se pudieron cargar las lecciones. Comprueba tu conexión o que la API está encendida.'))} <button type="button" class="btn ghost">${escH(t('Reintentar'))}</button>`;
+  b.querySelector('button').addEventListener('click', () => loadContent());
+}
+function loadContent() {
+  if (contentLoaded) return Promise.resolve(true);
+  if (contentLoading) return contentLoading;
+  contentLoading = (async () => {
+    let code = null;
+    const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    if (token) {
+      try {
+        const res = await fetch(API() + '/content', { headers: { Authorization: 'Bearer ' + token, Accept: 'application/javascript' }, cache: 'no-cache' });
+        if (res.status === 401) { expired(); return false; }
+        if (res.ok) code = await res.text();
+      } catch (e) {}
+    }
+    if (!code && local) code = await devContent();
+    if (!code) { contentBanner(true); return false; }
+    try { await runCode(code); } catch (e) { contentBanner(true); return false; }
+    contentLoaded = true; contentBanner(false);
+    document.dispatchEvent(new CustomEvent('cl-content'));
+    return true;
+  })().finally(() => { contentLoading = null; });
+  return contentLoading;
+}
+
 /* ---------------- UI ---------------- */
 let dlg = null;
 let view = null; // lo que muestra el diálogo, para repintarlo al cambiar de idioma
@@ -171,6 +221,7 @@ function open(mode, notice) {
 }
 
 async function afterLogin() {
+  loadContent();
   setStatus('saving');
   let r;
   try { r = await call('GET', '/progress'); } catch (e) { setStatus(e.offline ? 'offline' : 'error'); dlg.close(); return; }
@@ -212,7 +263,8 @@ function openAccount(d) {
   d.querySelector('#acct-sync').addEventListener('click', async () => { await (meta.dirty ? push(false) : pull()); openAccount(d); });
   d.querySelector('#acct-out').addEventListener('click', async () => {
     try { await call('POST', '/logout'); } catch (e) {}
-    token = null; user = null; set(K.token, null); set(K.user, null); meta.version = 0; saveMeta(); setStatus('out'); d.close();
+    token = null; user = null; set(K.token, null); set(K.user, null); meta.version = 0; saveMeta(); setStatus('out');
+    location.reload();
   });
   if (!d.open) d.showModal();
 }
@@ -249,13 +301,15 @@ function init() {
   const b = document.getElementById('acct-btn');
   if (b) b.addEventListener('click', () => open('login'));
   paintButton();
-  if (token) pull();
-  // Sin sesión, lo primero es el login, y es obligatorio.
+  if (token) { pull(); loadContent(); }
+  // En tu Mac (localhost) se puede probar sin cuenta: el contenido sale de private/js.
+  else if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) loadContent();
+  // En la web publicada, sin sesión lo primero es el login, y es obligatorio.
   else setTimeout(() => open('start'), 0);
   global.addEventListener('online', () => { if (token) (meta.dirty ? push(false) : pull()); });
   setInterval(() => { if (token && (status === 'offline' || status === 'error') ) (meta.dirty ? push(false) : pull()); }, 60000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token && !meta.dirty) pull(); });
 }
 
-global.Sync = { init, changed, open, tr, ask: body => call('POST', '/ask', body), get loggedIn() { return !!token; }, get status() { return status; } };
+global.Sync = { init, changed, open, tr, loadContent, get contentLoaded() { return contentLoaded; }, ask: body => call('POST', '/ask', body), get loggedIn() { return !!token; }, get status() { return status; } };
 })(window);
