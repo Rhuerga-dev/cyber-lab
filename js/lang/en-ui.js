@@ -1,6 +1,7 @@
 /* Diccionario español → inglés (ui) */
 (window.I18N_DICT = window.I18N_DICT || { en: {} }).en = window.I18N_DICT.en || {};
 Object.assign(window.I18N_DICT.en, {
+  "{d} de {n} lecciones de la Fase {p} completadas": "{d} of {n} Phase {p} lessons completed",
   "Apariencia": "Appearance",
   "Leer binario": "Read binary",
   "4 bits": "4 bits",

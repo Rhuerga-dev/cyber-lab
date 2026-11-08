@@ -828,7 +828,7 @@ function renderRuta(){
      <div><div class="k">${T('Fase actual')}</div><div class="v">${curPhase<0?T('Ruta completada'):(PHASES.indexOf(ph)+1)+'. '+esc(T(ph.name))}</div></div>
      <div><div class="k">${T('Tema')}</div><div class="v">${nextTopic?esc(T(nextTopic.t)):T('Todos los temas de esta fase listos')}</div></div>
      <div><div class="k">${T('Próxima certificación')}</div><div class="v">${nextCert?esc(nextCert.name):T('Todas las recomendadas aprobadas')}</div></div>
-    </div>${window.Course?(()=>{const g=Course.progress();return `<div class="row"><a class="btn" href="#curso">${g.done?T('Continuar el curso'):T('Empezar el curso')} →</a><span class="muted">${T('{d} de {n} lecciones de la Fase 1 completadas',{d:g.done,n:g.total})}</span></div>`})():''}</section>
+    </div>${window.Course?(()=>{const g=Course.progress();return `<div class="row"><a class="btn" href="#curso">${g.done?T('Continuar el curso'):T('Empezar el curso')} →</a><span class="muted">${T('{d} de {n} lecciones de la Fase {p} completadas',{d:g.done,n:g.total,p:g.phase})}</span></div>`})():''}</section>
    <div class="phases">${PHASES.map((p,i)=>{const g=phaseProgress(p),pct=g.total?Math.round(g.done/g.total*100):0;const complete=g.done===g.total;
     return `<div class="phase${complete?' complete':''}${i===curPhase?' active':''}"><div class="pn">${complete?'✓':i+1}</div>
      <section class="card"><div class="phead"><h2>${esc(T(p.name))}</h2><span class="muted">${T(p.time)} · ${pct}%</span></div>
