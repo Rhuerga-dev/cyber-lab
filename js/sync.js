@@ -112,17 +112,20 @@ function ensureDialog() {
   if (dlg) return dlg;
   dlg = document.createElement('dialog'); dlg.className = 'acct'; dlg.setAttribute('aria-labelledby', 'acct-h');
   document.body.appendChild(dlg);
-  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('click', e => { if (e.target === dlg && token) dlg.close(); });
+  // Sin sesión no se puede usar Cyber Lab: el login no se cierra (ni con Escape) y, si se cierra, vuelve.
+  dlg.addEventListener('cancel', e => { if (!token) e.preventDefault(); });
+  dlg.addEventListener('close', () => { if (!token) setTimeout(() => { if (!token && !dlg.open) open('start'); }, 0); });
   return dlg;
 }
 function open(mode, notice) {
   const d = ensureDialog();
   if (token && user && mode !== 'conflict') return openAccount(d);
   const isReg = mode === 'register';
-  if (mode === 'start' && !notice) notice = t('Entra para guardar tu progreso en la nube y hablar con los agentes con IA. También puedes seguir sin cuenta: tu progreso se queda en este navegador.');
+  if (mode === 'start' && !notice) notice = t('Para usar Cyber Lab, entra con tu cuenta o crea una. Tu progreso se guarda en la nube y puedes hablar con los agentes con IA.');
   view = { kind: 'form', mode, notice };
   d.innerHTML = `
-    <div class="acct-head"><h2 id="acct-h">${isReg ? t('Crear cuenta') : t('Entrar')}</h2><button type="button" class="btn ghost" data-close>${t('Cerrar')}</button></div>
+    <div class="acct-head"><h2 id="acct-h">${isReg ? t('Crear cuenta') : t('Entrar')}</h2>${token ? `<button type="button" class="btn ghost" data-close>${t('Cerrar')}</button>` : ''}</div>
     <p class="muted">${t('Con una cuenta, tu progreso se guarda en la base de datos y lo recuperas en cualquier dispositivo.')}</p>
     ${notice ? `<div class="fb hint">${escH(tr(notice))}</div>` : ''}
     <form class="acct-form" id="acct-form" novalidate>
@@ -133,12 +136,10 @@ function open(mode, notice) {
       <label>${t('Código de invitación')} <span class="muted small">${t('(si te dieron uno)')}</span><input type="text" id="acct-invite" autocomplete="off" autocapitalize="characters" maxlength="40"></label>` : ''}
       <div id="acct-err" aria-live="polite"></div>
       <div class="row"><button class="btn" type="submit" id="acct-go">${isReg ? t('Crear cuenta') : t('Entrar')}</button>
-      <button class="btn ghost" type="button" data-switch>${isReg ? t('Ya tengo cuenta') : t('Crear una cuenta')}</button>
-      ${!isReg && mode === 'start' ? `<button class="btn ghost" type="button" data-guest>${t('Seguir sin cuenta')}</button>` : ''}</div>
+      <button class="btn ghost" type="button" data-switch>${isReg ? t('Ya tengo cuenta') : t('Crear una cuenta')}</button></div>
     </form>
     <details class="acct-adv"><summary>${t('Servidor')}</summary><label>${t('URL de la API')}<input type="url" id="acct-api" value="${escH(API())}"></label></details>`;
-  d.querySelector('[data-close]').addEventListener('click', () => d.close());
-  const g = d.querySelector('[data-guest]'); if (g) g.addEventListener('click', () => d.close());
+  const cl = d.querySelector('[data-close]'); if (cl) cl.addEventListener('click', () => d.close());
   d.querySelector('[data-switch]').addEventListener('click', () => open(isReg ? 'login' : 'register'));
   d.querySelector('#acct-api').addEventListener('change', e => { const v = e.target.value.trim(); set(K.api, v && v !== DEFAULT_API ? v : null); });
   d.querySelector('#acct-form').addEventListener('submit', async e => {
@@ -249,14 +250,8 @@ function init() {
   if (b) b.addEventListener('click', () => open('login'));
   paintButton();
   if (token) pull();
-  // Al abrir Cyber Lab sin sesión, lo primero es el login (una vez por visita; se puede seguir sin cuenta).
-  else {
-    let guest = false; try { guest = sessionStorage.getItem('cl-guest') === '1'; } catch (e) {}
-    if (!guest) setTimeout(() => {
-      open('start');
-      if (dlg) dlg.addEventListener('close', () => { if (!token) { try { sessionStorage.setItem('cl-guest', '1'); } catch (e) {} } }, { once: true });
-    }, 0);
-  }
+  // Sin sesión, lo primero es el login, y es obligatorio.
+  else setTimeout(() => open('start'), 0);
   global.addEventListener('online', () => { if (token) (meta.dirty ? push(false) : pull()); });
   setInterval(() => { if (token && (status === 'offline' || status === 'error') ) (meta.dirty ? push(false) : pull()); }, 60000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token && !meta.dirty) pull(); });

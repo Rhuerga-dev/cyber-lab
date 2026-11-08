@@ -1,6 +1,7 @@
 /* Diccionario español → inglés (ui) */
 (window.I18N_DICT = window.I18N_DICT || { en: {} }).en = window.I18N_DICT.en || {};
 Object.assign(window.I18N_DICT.en, {
+  "Para usar Cyber Lab, entra con tu cuenta o crea una. Tu progreso se guarda en la nube y puedes hablar con los agentes con IA.": "To use Cyber Lab, sign in with your account or create one. Your progress is saved in the cloud and you can talk to the AI agents.",
   "Seguir sin cuenta": "Continue without an account",
   "Entra para guardar tu progreso en la nube y hablar con los agentes con IA. También puedes seguir sin cuenta: tu progreso se queda en este navegador.": "Sign in to save your progress in the cloud and talk to the AI agents. You can also continue without an account: your progress stays in this browser.",
   // Redes Cisco
