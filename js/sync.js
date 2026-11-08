@@ -102,7 +102,7 @@ function changed() {
 
 function expired() {
   token = null; user = null; set(K.token, null); set(K.user, null);
-  setStatus('out'); open('login', 'Tu sesión ha caducado. Vuelve a entrar para seguir sincronizando.'); // se traduce al pintar
+  setStatus('out'); if (!LOCAL) goLogin('expired');
 }
 
 /* ---------------- Contenido protegido ---------------- */
@@ -163,21 +163,33 @@ function ensureDialog() {
   dlg = document.createElement('dialog'); dlg.className = 'acct'; dlg.setAttribute('aria-labelledby', 'acct-h');
   document.body.appendChild(dlg);
   dlg.addEventListener('click', e => { if (e.target === dlg && token) dlg.close(); });
-  // Sin sesión no se puede usar Cyber Lab: el login no se cierra (ni con Escape) y, si se cierra, vuelve.
-  dlg.addEventListener('cancel', e => { if (!token) e.preventDefault(); });
-  dlg.addEventListener('close', () => { if (!token) setTimeout(() => { if (!token && !dlg.open) open('start'); }, 0); });
   return dlg;
 }
+// El login vive en su propia página (login.html). Desde la app, "Entrar" lleva allí.
+const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+const safeNext = h => (/^#[a-z]{2,20}$/.test(h || '') ? h : '');
+function goLogin(reason) {
+  const q = new URLSearchParams();
+  const next = safeNext(location.hash); if (next) q.set('next', next);
+  if (reason) q.set('r', reason);
+  location.replace('login.html' + (q.toString() ? '?' + q : ''));
+}
 function open(mode, notice) {
-  const d = ensureDialog();
-  if (token && user && mode !== 'conflict') return openAccount(d);
-  const isReg = mode === 'register';
-  if (mode === 'start' && !notice) notice = t('Para usar Cyber Lab, entra con tu cuenta o crea una. Tu progreso se guarda en la nube y puedes hablar con los agentes con IA.');
-  view = { kind: 'form', mode, notice };
-  d.innerHTML = `
-    <div class="acct-head"><h2 id="acct-h">${isReg ? t('Crear cuenta') : t('Entrar')}</h2>${token ? `<button type="button" class="btn ghost" data-close>${t('Cerrar')}</button>` : ''}</div>
-    <p class="muted">${t('Con una cuenta, tu progreso se guarda en la base de datos y lo recuperas en cualquier dispositivo.')}</p>
-    ${notice ? `<div class="fb hint">${escH(tr(notice))}</div>` : ''}
+  if (token && user) return openAccount(ensureDialog());
+  goLogin(notice ? 'expired' : '');
+}
+
+/* ---------------- Página de login ---------------- */
+let loginEl = null, loginMode = 'login';
+function renderLogin(el, mode) {
+  loginEl = el; loginMode = mode || 'login';
+  const isReg = loginMode === 'register';
+  const params = new URLSearchParams(location.search);
+  const notice = params.get('r') === 'expired' ? t('Tu sesión ha caducado. Vuelve a entrar para seguir sincronizando.') : '';
+  el.innerHTML = `
+    <h1 id="acct-h">${isReg ? t('Crear cuenta') : t('Entrar')}</h1>
+    <p class="muted">${t('Para usar Cyber Lab, entra con tu cuenta o crea una. Tu progreso se guarda en la nube y puedes hablar con los agentes con IA.')}</p>
+    ${notice ? `<div class="fb hint">${escH(notice)}</div>` : ''}
     <form class="acct-form" id="acct-form" novalidate>
       ${isReg ? `<label>${t('Nombre')}<input type="text" id="acct-name" autocomplete="name" required maxlength="80"></label>` : ''}
       <label>${t('Correo')}<input type="email" id="acct-email" autocomplete="email" required></label>
@@ -189,23 +201,23 @@ function open(mode, notice) {
       <button class="btn ghost" type="button" data-switch>${isReg ? t('Ya tengo cuenta') : t('Crear una cuenta')}</button></div>
     </form>
     <details class="acct-adv"><summary>${t('Servidor')}</summary><label>${t('URL de la API')}<input type="url" id="acct-api" value="${escH(API())}"></label></details>`;
-  const cl = d.querySelector('[data-close]'); if (cl) cl.addEventListener('click', () => d.close());
-  d.querySelector('[data-switch]').addEventListener('click', () => open(isReg ? 'login' : 'register'));
-  d.querySelector('#acct-api').addEventListener('change', e => { const v = e.target.value.trim(); set(K.api, v && v !== DEFAULT_API ? v : null); });
-  d.querySelector('#acct-form').addEventListener('submit', async e => {
+  el.querySelector('[data-switch]').addEventListener('click', () => { renderLogin(el, isReg ? 'login' : 'register'); });
+  el.querySelector('#acct-api').addEventListener('change', e => { const v = e.target.value.trim(); set(K.api, v && v !== DEFAULT_API ? v : null); });
+  el.querySelector('#acct-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const err = d.querySelector('#acct-err'), go = d.querySelector('#acct-go');
-    const body = { email: d.querySelector('#acct-email').value.trim(), password: d.querySelector('#acct-pass').value, device: navigator.platform || 'navegador' };
+    const err = el.querySelector('#acct-err'), go = el.querySelector('#acct-go');
+    const body = { email: el.querySelector('#acct-email').value.trim(), password: el.querySelector('#acct-pass').value, device: navigator.platform || 'navegador' };
     if (isReg) {
-      body.name = d.querySelector('#acct-name').value.trim(); body.password_confirmation = d.querySelector('#acct-pass2').value;
-      const inv = d.querySelector('#acct-invite').value.trim(); if (inv) body.invite = inv;
+      body.name = el.querySelector('#acct-name').value.trim(); body.password_confirmation = el.querySelector('#acct-pass2').value;
+      const inv = el.querySelector('#acct-invite').value.trim(); if (inv) body.invite = inv;
     }
     go.disabled = true; err.innerHTML = '';
     try {
       const r = await call('POST', isReg ? '/register' : '/login', body);
       token = r.token; user = r.user; set(K.token, token); set(K.user, JSON.stringify(user));
       meta.version = 0; saveMeta();
-      await afterLogin();
+      try { sessionStorage.setItem('cl-fresh-login', '1'); } catch (x) {}
+      location.replace('index.html' + safeNext(params.get('next')));
     } catch (ex) {
       go.disabled = false;
       let msg;
@@ -216,18 +228,31 @@ function open(mode, notice) {
       err.innerHTML = `<div class="fb bad">${escH(msg)}</div>`;
     }
   });
-  if (!d.open) d.showModal();
-  setTimeout(() => { const f = d.querySelector(isReg ? '#acct-name' : '#acct-email'); if (f) f.focus(); }, 0);
+  setTimeout(() => { const f = el.querySelector(isReg ? '#acct-name' : '#acct-email'); if (f) f.focus(); }, 0);
+}
+function initLoginPage(el) {
+  // Con sesión ya iniciada no hace falta el login: directo a la app.
+  if (token) { location.replace('index.html' + safeNext(new URLSearchParams(location.search).get('next'))); return; }
+  renderLogin(el, 'login');
+  if (global.I18N) global.I18N.onChange(kind => {
+    if (kind !== 'lang' || !loginEl) return;
+    const keep = {}; loginEl.querySelectorAll('input').forEach(i => { if (i.id) keep[i.id] = i.value; });
+    const errHtml = (loginEl.querySelector('#acct-err') || {}).innerHTML || '';
+    renderLogin(loginEl, loginMode);
+    Object.keys(keep).forEach(id => { const i = loginEl.querySelector('#' + id); if (i) i.value = keep[id]; });
+    const e2 = loginEl.querySelector('#acct-err'); if (e2) e2.innerHTML = errHtml;
+  });
 }
 
+const closeDlg = () => { if (dlg && dlg.open) dlg.close(); };
 async function afterLogin() {
   loadContent();
   setStatus('saving');
   let r;
-  try { r = await call('GET', '/progress'); } catch (e) { setStatus(e.offline ? 'offline' : 'error'); dlg.close(); return; }
+  try { r = await call('GET', '/progress'); } catch (e) { setStatus(e.offline ? 'offline' : 'error'); closeDlg(); return; }
   const local = CL().prog;
-  if (!r.data || r.version === 0) { meta.version = 0; saveMeta(); dlg.close(); await push(false); return; }
-  if (isEmpty(local)) { apply(r.data, r.version); setStatus('ok'); dlg.close(); return; }
+  if (!r.data || r.version === 0) { meta.version = 0; saveMeta(); closeDlg(); await push(false); return; }
+  if (isEmpty(local)) { apply(r.data, r.version); setStatus('ok'); closeDlg(); return; }
   conflict(r, true);
 }
 
@@ -264,7 +289,7 @@ function openAccount(d) {
   d.querySelector('#acct-out').addEventListener('click', async () => {
     try { await call('POST', '/logout'); } catch (e) {}
     token = null; user = null; set(K.token, null); set(K.user, null); meta.version = 0; saveMeta(); setStatus('out');
-    location.reload();
+    location.replace(LOCAL ? location.pathname : 'login.html');
   });
   if (!d.open) d.showModal();
 }
@@ -285,15 +310,6 @@ function relang() {
   if (!dlg || !dlg.open || !view) return;
   if (view.kind === 'conflict') return conflict(view.server, view.fromLogin);
   if (view.kind === 'account') { if (token && user) return openAccount(dlg); return dlg.close(); }
-  // Formulario: conserva lo escrito y el mensaje de error visible
-  const keep = {};
-  dlg.querySelectorAll('input').forEach(i => { if (i.id) keep[i.id] = i.value; });
-  const err = dlg.querySelector('#acct-err'), errHtml = err ? err.innerHTML : '';
-  const active = document.activeElement && dlg.contains(document.activeElement) ? document.activeElement.id : null;
-  open(view.mode, view.notice);
-  Object.keys(keep).forEach(id => { const i = dlg.querySelector('#' + id); if (i) i.value = keep[id]; });
-  const err2 = dlg.querySelector('#acct-err'); if (err2) err2.innerHTML = errHtml;
-  if (active) setTimeout(() => { const f = dlg.querySelector('#' + active); if (f) f.focus(); }, 0);
 }
 if (global.I18N) global.I18N.onChange(kind => { if (kind === 'lang') relang(); });
 
@@ -301,15 +317,18 @@ function init() {
   const b = document.getElementById('acct-btn');
   if (b) b.addEventListener('click', () => open('login'));
   paintButton();
-  if (token) { pull(); loadContent(); }
+  if (token) {
+    let fresh = false; try { fresh = sessionStorage.getItem('cl-fresh-login') === '1'; sessionStorage.removeItem('cl-fresh-login'); } catch (e) {}
+    if (fresh) afterLogin(); else { pull(); loadContent(); }   // recién entrado: decide qué progreso conservar
+  }
   // En tu Mac (localhost) se puede probar sin cuenta: el contenido sale de private/js.
-  else if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) loadContent();
-  // En la web publicada, sin sesión lo primero es el login, y es obligatorio.
-  else setTimeout(() => open('start'), 0);
+  else if (LOCAL) loadContent();
+  // En la web publicada, sin sesión no hay app: a la página de login.
+  else goLogin();
   global.addEventListener('online', () => { if (token) (meta.dirty ? push(false) : pull()); });
   setInterval(() => { if (token && (status === 'offline' || status === 'error') ) (meta.dirty ? push(false) : pull()); }, 60000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token && !meta.dirty) pull(); });
 }
 
-global.Sync = { init, changed, open, tr, loadContent, get contentLoaded() { return contentLoaded; }, ask: body => call('POST', '/ask', body), get loggedIn() { return !!token; }, get status() { return status; } };
+global.Sync = { init, initLoginPage, changed, open, tr, loadContent, get contentLoaded() { return contentLoaded; }, ask: body => call('POST', '/ask', body), get loggedIn() { return !!token; }, get status() { return status; } };
 })(window);
