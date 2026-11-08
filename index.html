@@ -611,7 +611,7 @@ function paintPath(){
   $('#path').innerHTML=LEVELS.map((L,i)=>{const done=prog.done.includes(L.id),open=unlocked(i);
     return `<button type="button" class="lvl${done?' done':''}" data-i="${i}" ${i===prog.cur?'aria-current="step"':''} ${open?'':'disabled'}><span class="num">${done?'✓':i+1}</span><span><span class="t">${T(L.title)}</span><br><span class="s">${open?T(L.sub):T('Bloqueado')}</span></span></button>`}).join('')+
    SOON.map((S,j)=>`<button type="button" class="lvl soon" disabled><span class="num">${LEVELS.length+j+1}</span><span><span class="t">${T(S.title)}</span><br><span class="s">${T('Próximamente')}</span></span></button>`).join('');
-  document.querySelectorAll('#path .lvl[data-i]').forEach(b=>b.addEventListener('click',()=>{prog.cur=+b.dataset.i;save();render()}));
+  document.querySelectorAll('#path .lvl[data-i]').forEach(b=>b.addEventListener('click',()=>{prog.cur=+b.dataset.i;save();render();window.scrollTo({top:0,behavior:'smooth'})}));
   paintOverall();
 }
 
@@ -637,7 +637,7 @@ function render(){paintPath();const L=LEVELS[prog.cur];
 function streakHTML(noBtn){const L=LEVELS[prog.cur],s=prog.streak[L.id]||0,done=prog.done.includes(L.id),hasNext=!noBtn&&prog.cur+1<LEVELS.length;
   if(done)return `<div class="streak"><div class="dots">${Array.from({length:NEED},()=>'<span class="dot on"></span>').join('')}</div><span><b>${T('Nivel completado ✓')}</b> · ${T('estás repasando')}</span>${hasNext?`<button class="btn" type="button" data-gonext>${T('Ir al nivel {n} →',{n:prog.cur+2})}</button>`:''}</div>`;
   return `<div class="streak"><div class="dots">${Array.from({length:NEED},(_,i)=>`<span class="dot${i<s?' on':''}"></span>`).join('')}</div><span>${T('{s} de {n} seguidos',{s:Math.min(s,NEED),n:NEED})}</span></div>`}
-function goNext(){if(prog.cur+1<LEVELS.length){prog.cur++;save();render()}}
+function goNext(){if(prog.cur+1<LEVELS.length){prog.cur++;save();render();window.scrollTo({top:0,behavior:'smooth'})}}
 document.addEventListener('click',e=>{if(e.target.closest('[data-gonext]'))goNext()});
 
 function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0,answered:false,hinted:false};
