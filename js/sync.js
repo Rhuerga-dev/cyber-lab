@@ -379,5 +379,8 @@ function init() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token && !meta.dirty) pull(); });
 }
 
-global.Sync = { init, initLoginPage, changed, open, tr, loadContent, get contentLoaded() { return contentLoaded; }, ask: body => call('POST', '/ask', body), get loggedIn() { return !!token; }, get status() { return status; } };
+global.Sync = { init, initLoginPage, changed, open, tr, loadContent, get contentLoaded() { return contentLoaded; }, ask: body => call('POST', '/ask', body),
+  // Laboratorios aislados (Mi lab): la API habla con el Runner de Docker; el navegador nunca.
+  labs: { list: () => call('GET', '/labs'), create: scenario => call('POST', '/labs', { scenario }), get: id => call('GET', '/labs/' + encodeURIComponent(id)), stop: id => call('DELETE', '/labs/' + encodeURIComponent(id)) },
+  get loggedIn() { return !!token; }, get status() { return status; } };
 })(window);

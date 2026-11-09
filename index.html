@@ -154,6 +154,14 @@ button.cph:hover{background:var(--bg)}
 .cl.done .num{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
 .rgoal{margin-top:8px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--bg);border-radius:4px;font-size:.92em}
 .rgoal p{margin:4px 0 0}
+.ml-or{margin:6px 2px -8px}
+.lb-cur{border-color:var(--accent)}
+.lb-step{display:flex;align-items:center;gap:8px}
+.lb-spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:lbspin .8s linear infinite;flex:0 0 auto}
+@keyframes lbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.lb-spin{animation:none}}
+.lb-past{margin-top:10px;font-size:14px}
+.lb-past ul{margin:6px 0 0;padding-left:18px}
 .cl.half .num{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
 .cmask{display:inline-block;padding:0 8px;border-radius:5px;border:1px dashed var(--line);background:var(--bg);color:var(--muted);font-family:var(--f-mono);font-size:.85em;letter-spacing:.02em}
 .cl[aria-current="step"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
@@ -631,11 +639,12 @@ footer a{color:var(--accent)}
   <div class="row"><button class="btn ghost" id="calc-clear" type="button" data-i18n>Apagar todo</button></div>
 </aside>
 
-<script src="js/lang/en-ui.js?v=20261109a"></script>
-<script src="js/i18n.js?v=20261109a"></script>
+<script src="js/lang/en-ui.js?v=20261109b"></script>
+<script src="js/i18n.js?v=20261109b"></script>
 <!-- Lecciones, simuladores y ejercicios: los entrega la API tras iniciar sesión (ver js/sync.js → loadContent). -->
-<script src="env.js?v=20261109a"></script>
-<script src="js/sync.js?v=20261109a"></script>
+<script src="env.js?v=20261109b"></script>
+<script src="js/sync.js?v=20261109b"></script>
+<script src="js/labs.js?v=20261109b"></script>
 <script>
 (function(){
 const T=(s,v)=>I18N.t(s,v);
@@ -1145,6 +1154,8 @@ function renderMiLab(){
   <section class="card"><h2>${T('Mi laboratorio')}</h2>
    <p>${T('Dos aplicaciones hechas <b>vulnerables a propósito</b> para practicar en tu Mac, sin riesgo para nadie. Funcionan con Docker y solo escuchan en <code>localhost</code>: nadie de tu red ni de internet puede entrar.')}</p>
    <p class="muted">${T('El navegador no puede instalar nada en tu ordenador, por eso los pasos se hacen en la Terminal del Mac. Solo la primera vez tarda (descarga ~1 GB).')}</p></section>
+  <section class="card" id="ml-isolated"></section>
+  <p class="eyebrow ml-or">${T('Otra opción: encenderlo tú con docker compose')}</p>
   <section class="card"><h2>${T('1. Instala Docker Desktop (una vez)')}</h2>
    <p>${T('Descárgalo, ábrelo y espera a que diga que está en marcha.')} <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener noreferrer">Docker Desktop ↗</a></p>
    <p class="muted">${T('En Ajustes → Resources puedes limitar la memoria (con 4 GB basta) para que el Mac no se ponga lento.')}</p></section>
@@ -1171,6 +1182,7 @@ function renderMiLab(){
   document.querySelectorAll('#v-milab [data-copy]').forEach(b=>b.addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText(LAB_CMDS[b.dataset.copy]);b.textContent=T('Copiado ✓')}catch(e){b.textContent=T('Selecciónalo y copia')}
     setTimeout(()=>{b.textContent=T('Copiar')},1800)}));
+  if(window.Labs)Labs.render($('#ml-isolated'));else $('#ml-isolated').hidden=true;
   $('#lab-check').addEventListener('click',async()=>{
     $('#lab-msg').textContent=T('Comprobando…');let on=0;
     await Promise.all(LAB_APPS.map(async a=>{const el=$('#st-'+a.id);
