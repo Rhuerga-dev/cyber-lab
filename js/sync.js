@@ -285,13 +285,55 @@ function openAccount(d) {
     <p><b>${escH(user.name)}</b><br><span class="muted">${escH(user.email)}</span></p>
     <p class="muted">${statusText()}${meta.last ? ' · ' + escH(t('Último guardado: {date}', { date: I18N.dateTime(meta.last) })) : ''}</p>
     <div class="row"><button class="btn" type="button" id="acct-sync">${t('Sincronizar ahora')}</button><button class="btn ghost" type="button" id="acct-out">${t('Cerrar sesión')}</button></div>
-    <p class="muted small">${t('Al cerrar sesión, el progreso sigue en este navegador y en tu cuenta.')}</p>`;
+    <p class="muted small">${t('Al cerrar sesión, el progreso sigue en este navegador y en tu cuenta.')}</p>
+    <div class="acct-danger"><button class="btn ghost danger" type="button" id="acct-reset">${t('Reiniciar todo mi progreso')}</button></div>`;
   d.querySelector('[data-close]').addEventListener('click', () => d.close());
+  d.querySelector('#acct-reset').addEventListener('click', () => openReset(d));
   d.querySelector('#acct-sync').addEventListener('click', async () => { await (meta.dirty ? push(false) : pull()); openAccount(d); });
   d.querySelector('#acct-out').addEventListener('click', async () => {
     try { await call('POST', '/logout'); } catch (e) {}
     token = null; user = null; set(K.token, null); set(K.user, null); meta.version = 0; saveMeta(); setStatus('out');
     location.replace(LOCAL ? location.pathname : 'login.html');
+  });
+  if (!d.open) d.showModal();
+}
+
+// Reiniciar el progreso: pide la contraseña, la API vacía la copia de la nube y este navegador borra la suya.
+const PROGRESS_KEYS = ['cyberlab-v1', 'cyberlab-netlab-v1', 'cyberlab-netlab', 'cyberlab-ios-v1'];
+function openReset(d) {
+  view = { kind: 'reset' };
+  d.innerHTML = `
+    <div class="acct-head"><h2 id="acct-h">${t('Reiniciar todo el progreso')}</h2><button type="button" class="btn ghost" data-close>${t('Cancelar')}</button></div>
+    <div class="fb bad"><p><b>${t('Esto no se puede deshacer.')}</b> ${t('Se borran las lecciones, los exámenes, los niveles de Práctica, los ejercicios de Redes, la configuración guardada de los switches y routers, el repaso, las certificaciones y el historial, en este navegador y en tu cuenta. Tus otros dispositivos también empezarán de cero al sincronizar.')}</p></div>
+    <p class="muted small">${t('Si quieres guardar una copia antes, descárgala desde Resultados.')}</p>
+    <form id="rs-f" class="acct-form">
+      <label>${t('Escribe tu contraseña para confirmar')}<input id="rs-pw" type="password" autocomplete="current-password" required maxlength="72"></label>
+      <p class="acct-err" id="rs-err" role="alert"></p>
+      <div class="row"><button class="btn danger" type="submit" id="rs-go">${t('Borrar todo mi progreso')}</button><button class="btn ghost" type="button" id="rs-back">${t('Volver')}</button></div>
+    </form>`;
+  d.querySelector('[data-close]').addEventListener('click', () => openAccount(d));
+  d.querySelector('#rs-back').addEventListener('click', () => openAccount(d));
+  const f = d.querySelector('#rs-f'), pw = d.querySelector('#rs-pw'), err = d.querySelector('#rs-err'), go = d.querySelector('#rs-go');
+  pw.focus();
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); if (!pw.value) return;
+    go.disabled = true; err.textContent = '';
+    try {
+      clearTimeout(timer); timer = null;
+      const r = await call('POST', '/progress/reset', { password: pw.value });
+      pw.value = '';
+      PROGRESS_KEYS.forEach(k => set(k, null));
+      meta.version = r.version; meta.dirty = false; meta.last = r.updated_at; saveMeta();
+      applying = true; try { CL().replace(null); } finally { applying = false; }
+      try { sessionStorage.setItem('cl-reset-done', '1'); } catch (x) {}
+      location.replace(location.pathname + '#ruta'); location.reload();
+    } catch (x) {
+      go.disabled = false; pw.select();
+      if (x.offline) err.textContent = t('No puedo conectar con el servidor ahora mismo. Comprueba que tu API está encendida.');
+      else if (x.status === 401) return expired();
+      else if (x.status === 429) err.textContent = t('Demasiados intentos. Espera un minuto y vuelve a probar.');
+      else err.textContent = tr((x.body && x.body.errors && x.body.errors.password && x.body.errors.password[0]) || (x.body && x.body.message) || t('No se ha podido reiniciar. Inténtalo otra vez.'));
+    }
   });
   if (!d.open) d.showModal();
 }
@@ -321,6 +363,11 @@ function init() {
   paintButton();
   if (token) {
     let fresh = false; try { fresh = sessionStorage.getItem('cl-fresh-login') === '1'; sessionStorage.removeItem('cl-fresh-login'); } catch (e) {}
+    let wasReset = false; try { wasReset = sessionStorage.getItem('cl-reset-done') === '1'; sessionStorage.removeItem('cl-reset-done'); } catch (e) {}
+    if (wasReset) {
+      const b = document.createElement('div'); b.className = 'fb ok cl-content-err'; b.setAttribute('role', 'status');
+      b.textContent = t('Progreso reiniciado. Empiezas de cero.'); document.body.appendChild(b); setTimeout(() => b.remove(), 6000);
+    }
     if (fresh) afterLogin(); else { pull(); loadContent(); }   // recién entrado: decide qué progreso conservar
   }
   // En tu Mac (localhost) se puede probar sin cuenta: el contenido sale de private/js.
