@@ -391,7 +391,18 @@ body[data-view="redes"] #calc-fab,body[data-view="redes"] #calc{display:none}
 #nl-goals{margin-top:12px}
 #nl-goals h3{font-size:16px}
 #nl-term{height:100%}
-#nl-term .term{height:100%;min-height:0}
+#nl-term .term{height:100%;min-height:0;box-sizing:border-box;margin:0}
+#nl-term .nl-empty{margin:0}
+/* Redes en escritorio: cabecera compacta y sin pie, para que el laboratorio quepa entero en la ventana */
+@media (min-width:980px){
+ body[data-view="redes"] .wrap{padding-block:10px 10px;gap:10px}
+ body[data-view="redes"] header{align-items:center}
+ body[data-view="redes"] header .eyebrow{display:none}
+ body[data-view="redes"] h1{font-size:24px;margin:0}
+ body[data-view="redes"] .tabs{padding-bottom:6px}
+ body[data-view="redes"] .tabs a{font-size:16px;padding:4px 12px}
+ body[data-view="redes"] footer{display:none}
+}
 #nl-term .term-out{flex:1;min-height:0;white-space:pre;overflow-x:auto}
 .nl-empty{margin:8px 4px}
 @media (max-width:979px){
