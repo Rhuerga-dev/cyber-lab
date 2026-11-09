@@ -112,7 +112,7 @@ function expired() {
 /* ---------------- Contenido protegido ---------------- */
 // Las lecciones, los simuladores y los ejercicios no están en la web pública: la API los entrega
 // solo con sesión iniciada. En local (localhost) sin API, se leen de la carpeta private/js.
-const CONTENT_FILES = ['lang/en-course.js', 'lang/en-terminal.js', 'lang/en-review.js', 'lang/en-netlab.js', 'lessons/mis-lecciones.js', 'terminal.js', 'netlab.js', 'course.js', 'review.js'];
+const CONTENT_FILES = ['lang/en-course.js', 'lang/en-terminal.js', 'lang/en-review.js', 'lang/en-netlab.js', 'lessons/mis-lecciones.js', 'lessons/mis-retos.js', 'terminal.js', 'netlab.js', 'course.js', 'review.js'];
 let contentLoaded = false, contentLoading = null;
 function runCode(code) {
   return new Promise((resolve, reject) => {

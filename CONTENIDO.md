@@ -95,6 +95,18 @@ Pégalo al final de tu archivo y rellena las traducciones. La clave es el texto 
 - **Herramientas grandes** (Burp, Metasploit, sqlmap…). No las simules: la lección explica y pregunta, y la práctica se hace en las plataformas de abajo.
 - Si tocas `terminal.js`, pasa `node --check private/js/terminal.js` y luego el comprobador.
 
+## Retos de Mi lab (`private/js/lessons/mis-retos.js`)
+
+Retos cortos sobre lo que practicas en el laboratorio aislado o en plataformas legales, con los mismos niveles que Redes:
+
+- **Guiado**: enunciado con pasos (`guiado`) y pistas sin límite, que se cuentan. Si lo resuelves **sin ninguna pista**, pasas directo a Dominio.
+- **Práctica**: enunciado breve (`reto`) y como mucho **1 pista**.
+- **Dominio**: enunciado breve y **sin pistas**. Al dominarlo se abre el siguiente reto.
+
+Copia la plantilla del archivo. La respuesta puede ir en claro (`accept`) o como hash para no tenerla a la vista:
+`node tools/hash-respuesta.js "la respuesta"` → `respuesta: { sha256: '…' }`. Con `variantes` (otra pregunta y otra respuesta),
+Práctica y Dominio no repiten exactamente lo del Guiado. Pasa `node tools/check-lessons.js` antes de guardar.
+
 ## Reglas de contenido
 
 - Todo ataque se practica **solo** en el laboratorio, en tu home lab o en plataformas que lo permiten. Que cada lección lo diga.

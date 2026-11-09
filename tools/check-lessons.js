@@ -101,6 +101,30 @@ const bankAll = { f1: C._exam.BANK_F1, f2: C._exam.BANK_F2 };
   });
 });
 
+// retos de Mi lab (private/js/lessons/mis-retos.js)
+const retos = Array.isArray(ctx.CL_RETOS) ? ctx.CL_RETOS : [];
+console.log('\nRetos de Mi lab: ' + (retos.length ? retos.map(r => r && r.id).join(', ') : '(ninguno todavía)'));
+const rids = new Set();
+retos.forEach((r, i) => {
+  const at = 'reto ' + (r && r.id || '#' + (i + 1));
+  if (!r || typeof r !== 'object') return E(at, 'cada reto es un objeto { id, title, ... }');
+  if (!/^r-[a-z0-9-]+$/.test(r.id || '')) E(at, 'id debe ser tipo r-algo (minúsculas y guiones)');
+  if (rids.has(r.id)) E(at, 'id repetido'); rids.add(r.id);
+  if (!r.title) E(at, 'falta title');
+  if (!['juice-shop', 'dvwa', 'otro'].includes(r.app)) W(at, "app debería ser 'juice-shop', 'dvwa' u 'otro'");
+  if (!r.guiado) E(at, 'falta guiado (enunciado con pasos)');
+  if (!r.reto) W(at, 'sin reto breve: Práctica y Dominio mostrarán el guiado entero');
+  if (!Array.isArray(r.pistas) || !r.pistas.length) W(at, 'sin pistas');
+  const checkAns = (R, w) => {
+    if (!R || typeof R !== 'object') return E(w, 'falta respuesta: { accept: [...] } o { sha256: "..." }');
+    const okA = Array.isArray(R.accept) && R.accept.length, okH = R.sha256 && [].concat(R.sha256).every(h => /^[0-9a-f]{64}$/.test(h));
+    if (!okA && !okH) E(w, 'respuesta necesita accept: [...] o sha256 (64 caracteres hex; usa node tools/hash-respuesta.js)');
+  };
+  checkAns(r.respuesta, at);
+  (r.variantes || []).forEach((v, k) => { if (!v.reto) E(at + ' variante ' + (k + 1), 'falta reto'); checkAns(v.respuesta, at + ' variante ' + (k + 1)); });
+  [r.title, r.guiado, r.reto, r.explicacion, ...(r.pistas || [])].forEach(s => needEN(s) && missEN.push(s));
+});
+
 for (const ph of ['f1', 'f2']) {
   try { const ex = C._exam.buildExam(12, ph); if (!ex.every(q => q.options[q.a] !== undefined)) E('examen ' + ph, 'pregunta sin respuesta correcta'); }
   catch (e) { E('examen ' + ph, e.message); }
