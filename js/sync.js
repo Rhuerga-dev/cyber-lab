@@ -5,11 +5,15 @@
 (function (global) {
 'use strict';
 
-const DEFAULT_API = 'https://cyber-api.huergalabs.dev/api';
+const DEFAULT_API = 'https://cyber-api.huergalabs.dev/api';   // si falta env.js
 const K = { token: 'cyberlab-token', user: 'cyberlab-user', meta: 'cyberlab-sync', api: 'cyberlab-api' };
 const get = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const set = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
-const API = () => (get(K.api) || DEFAULT_API).replace(/\/$/, '');
+// La URL de la API sale de env.js (window.CL_ENV), no de la pantalla de login.
+const IS_LOCALHOST = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+const ENV = global.CL_ENV || {};
+const API = () => String((IS_LOCALHOST && ENV.API_URL_LOCAL) || ENV.API_URL || DEFAULT_API).replace(/\/$/, '');
+set(K.api, null);   // limpia la URL que se guardaba antes desde el login
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let token = get(K.token);
@@ -199,10 +203,8 @@ function renderLogin(el, mode) {
       <div id="acct-err" aria-live="polite"></div>
       <div class="row"><button class="btn" type="submit" id="acct-go">${isReg ? t('Crear cuenta') : t('Entrar')}</button>
       <button class="btn ghost" type="button" data-switch>${isReg ? t('Ya tengo cuenta') : t('Crear una cuenta')}</button></div>
-    </form>
-    <details class="acct-adv"><summary>${t('Servidor')}</summary><label>${t('URL de la API')}<input type="url" id="acct-api" value="${escH(API())}"></label></details>`;
+    </form>`;
   el.querySelector('[data-switch]').addEventListener('click', () => { renderLogin(el, isReg ? 'login' : 'register'); });
-  el.querySelector('#acct-api').addEventListener('change', e => { const v = e.target.value.trim(); set(K.api, v && v !== DEFAULT_API ? v : null); });
   el.querySelector('#acct-form').addEventListener('submit', async e => {
     e.preventDefault();
     const err = el.querySelector('#acct-err'), go = el.querySelector('#acct-go');
