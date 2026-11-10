@@ -14,7 +14,7 @@ const SCEN = {
 const STATUS = { pending: ['En cola', 'pendiente'], starting: ['Preparando', 'programado'], ready: ['Listo', 'aprobado'], stopping: ['Apagando', 'programado'], stopped: ['Detenido', 'pendiente'], failed: ['Error', 'pendiente'] };
 const START_CMD = 'cd ~/Code/cyber-lab-api/runner && ./start.sh';
 
-let root = null, labs = [], runner = { configured: true, error: null }, ttl = 120, msg = '', busy = false, timer = null, tick = null, armed = 0, loaded = false;
+let root = null, labs = [], runner = { configured: true, error: null }, ttl = 120, msg = '', busy = false, timer = null, armed = 0, loaded = false;
 
 function render(el) {
   root = el;
@@ -52,7 +52,6 @@ function left(iso) {
 
 function paint() {
   if (!root || !root.isConnected) return;
-  clearInterval(tick);
   const cur = labs.find(l => ACTIVE.includes(l.status));
   const past = labs.filter(l => !ACTIVE.includes(l.status)).slice(0, 3);
   const needRunner = !runner.configured || !!runner.error;

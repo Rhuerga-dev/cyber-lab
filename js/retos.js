@@ -72,7 +72,7 @@ function paint() {
   const L = list(), r = L.find(x => x.id === curId); if (!r || !root) return;
   const all = readAll(), want = (all[r.id] || {}).tier || bestTier(r.id), tier = tierOpen(r.id, want) ? want : 'g';
   const a = attempt(r, tier), rv = variant(r, a), x = pr(r.id), nDone = L.filter(z => mastered(z.id)).length;
-  const hints = (tier === 'g' ? rv.pistas : rv.pistas) || [];
+  const hints = rv.pistas || [];
   const brief = tier === 'g' ? (rv.guiado || rv.reto) : (rv.reto || rv.guiado);
   const opt = z => `${!isOpen(z.id) ? '🔒' : mastered(z.id) ? '★' : (pr(z.id).g || pr(z.id).p) ? '◐' : '·'} ${t(z.title)}`;
   const counter = tier === 'g' ? (a.helps ? t('Pistas usadas: {n} · al terminar irás a Práctica', { n: a.helps }) : t('Sin pistas: si lo resuelves así, pasas directo a Dominio')) : tier === 'p' ? t('Pistas usadas: {n} de 1', { n: a.helps }) : t('En Dominio no hay pistas.');
