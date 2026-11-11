@@ -375,12 +375,17 @@ body[data-view="redes"] #calc-fab,body[data-view="redes"] #calc{display:none}
 .nl-app{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,370px);grid-template-rows:auto minmax(0,1fr);gap:10px;min-height:0}
 .nl-top{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .nl-pick select{font:inherit;font-weight:600;font-size:15px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);max-width:min(100%,360px)}
-.nl-left{display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0}
+.nl-left{display:flex;flex-direction:column;gap:0;min-height:0;min-width:0}
+/* Barra para cambiar el alto de la consola arrastrando (o con las flechas del teclado) */
+.nl-split{flex:0 0 12px;cursor:row-resize;display:flex;align-items:center;justify-content:center;touch-action:none;border-radius:6px}
+.nl-split::before{content:"";width:48px;height:4px;border-radius:2px;background:var(--line)}
+.nl-split:hover::before,.nl-split:focus-visible::before,.nl-split.drag::before{background:var(--accent,#0f6b8a)}
+.nl-app.folded .nl-split{visibility:hidden}
 .nl-left .nl-canvas{flex:1 1 auto;min-height:0}
 .nl-left #nl-svg{width:100%;height:100%}
 .nl-status{position:absolute;left:8px;top:6px;right:8px;margin:0;font-size:13px;color:var(--muted);pointer-events:none}
 .nl-status:empty{display:none}
-.nl-bottom{flex:0 0 36%;display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.nl-bottom{flex:0 0 var(--nl-bh,52%);min-height:190px;display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
 .nl-app.folded .nl-bottom{flex:0 0 auto}
 .nl-app.folded .nl-bpane{display:none}
 .nl-bpane{flex:1;min-height:0;overflow:auto}
@@ -430,6 +435,8 @@ body[data-view="redes"] #calc-fab,body[data-view="redes"] #calc{display:none}
  .nl-app{grid-template-columns:1fr;grid-template-rows:auto}
  .nl-left #nl-svg{height:auto}
  .nl-bottom{flex:none}
+ .nl-left{gap:10px}
+ .nl-split{display:none}
  .nl-bpane{max-height:380px}
  #nl-term .term{height:340px}
  .nl-rpane{max-height:none}
