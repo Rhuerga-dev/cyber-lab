@@ -464,4 +464,7 @@ Object.assign(window.I18N_DICT.en, {
   "¡Dominado!": "Mastered!",
   "Se abre el siguiente reto.": "The next challenge is now unlocked.",
   "Siguiente reto": "Next challenge",
+  "Si vuelves a {to} para ver el enunciado guiado o las pistas, este intento de {from} se descarta y al volver tendrás otra variante.": "If you go back to {to} to see the guided brief or the hints, this {from} attempt is discarded and you'll get a different variant when you come back.",
+  "Descartar e ir a {to}": "Discard and go to {to}",
+  "Seguir con {from}": "Stay in {from}",
 });

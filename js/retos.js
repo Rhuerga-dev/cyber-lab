@@ -87,7 +87,24 @@ function paint() {
     ${msg ? `<p class="fb bad" role="alert">${esc(msg)}</p>` : ''}`;
   msg = null;
   root.querySelector('#rt-sel').addEventListener('change', e => { curId = e.target.value; paint(); });
-  root.querySelectorAll('[data-rt-tier]').forEach(b => b.addEventListener('click', () => { if (b.disabled) return; const all2 = readAll(); all2[r.id] = all2[r.id] || {}; all2[r.id].tier = b.dataset.rtTier; writeAll(all2); paint(); }));
+  const goTier = (to, discard) => { const all2 = readAll(); all2[r.id] = all2[r.id] || {}; if (discard) delete all2[r.id][tier]; all2[r.id].tier = to; writeAll(all2); paint(); };
+  root.querySelectorAll('[data-rt-tier]').forEach(b => b.addEventListener('click', () => {
+    const to = b.dataset.rtTier;
+    if (b.disabled || to === tier) return;
+    // Bajar de nivel con un intento de Práctica/Dominio a medias (para ver el enunciado guiado o las pistas)
+    // lo descarta: al volver tendrás otra variante.
+    if (TIERS.indexOf(to) < TIERS.indexOf(tier) && tier !== 'g' && !a.res) {
+      let box = root.querySelector('#rt-leave');
+      if (!box) { box = document.createElement('div'); box.id = 'rt-leave'; box.className = 'fb hint'; box.setAttribute('role', 'alert'); root.querySelector('.nl-tiers').after(box); }
+      box.innerHTML = `<p>${esc(t('Si vuelves a {to} para ver el enunciado guiado o las pistas, este intento de {from} se descarta y al volver tendrás otra variante.', { to: t(TNAME[to]), from: t(TNAME[tier]) }))}</p>
+        <div class="row"><button type="button" class="btn" data-leave="go">${esc(t('Descartar e ir a {to}', { to: t(TNAME[to]) }))}</button><button type="button" class="btn ghost" data-leave="stay">${esc(t('Seguir con {from}', { from: t(TNAME[tier]) }))}</button></div>`;
+      box.querySelector('[data-leave="stay"]').addEventListener('click', () => box.remove());
+      box.querySelector('[data-leave="go"]').addEventListener('click', () => goTier(to, true));
+      box.querySelector('[data-leave="stay"]').focus();
+      return;
+    }
+    goTier(to, false);
+  }));
   const hb = root.querySelector('#rt-hint');
   if (hb) hb.addEventListener('click', () => { const next = hints.findIndex((h, i) => !a.shown.includes(i)); if (next < 0) return; a.shown.push(next); a.helps++; putAttempt(r, tier, a); paint(); });
   const f = root.querySelector('#rt-f');
