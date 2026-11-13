@@ -189,7 +189,11 @@ function renderLogin(el, mode) {
   loginEl = el; loginMode = mode || 'login';
   const isReg = loginMode === 'register';
   const params = new URLSearchParams(location.search);
-  const notice = params.get('r') === 'expired' ? t('Tu sesión ha caducado. Vuelve a entrar para seguir sincronizando.') : '';
+  const notice = params.get('r') === 'expired' ? t('Tu sesión ha caducado. Vuelve a entrar para seguir sincronizando.')
+    : params.get('verified') === '1' ? t('Correo confirmado. Ya puedes usar los agentes con IA y los laboratorios.')
+    : params.get('verified') === '0' ? t('El enlace de confirmación no es válido o ha caducado. Entra y pide otro desde Tu cuenta.')
+    : params.get('r') === 'reset' ? t('Contraseña cambiada. Ya puedes entrar con la nueva.')
+    : params.get('r') === 'deleted' ? t('Tu cuenta y tu progreso se han borrado.') : '';
   el.innerHTML = `
     <h1 id="acct-h">${isReg ? t('Crear cuenta') : t('Entrar')}</h1>
     <p class="muted">${t('Para usar Cyber Lab, entra con tu cuenta o crea una. Tu progreso se guarda en la nube y puedes hablar con los agentes con IA.')}</p>
@@ -203,8 +207,10 @@ function renderLogin(el, mode) {
       <div id="acct-err" aria-live="polite"></div>
       <div class="row"><button class="btn" type="submit" id="acct-go">${isReg ? t('Crear cuenta') : t('Entrar')}</button>
       <button class="btn ghost" type="button" data-switch>${isReg ? t('Ya tengo cuenta') : t('Crear una cuenta')}</button></div>
+      ${isReg ? '' : `<p class="small"><button class="btn ghost" type="button" data-forgot>${t('¿Olvidaste tu contraseña?')}</button></p>`}
     </form>`;
   el.querySelector('[data-switch]').addEventListener('click', () => { renderLogin(el, isReg ? 'login' : 'register'); });
+  const fg = el.querySelector('[data-forgot]'); if (fg) fg.addEventListener('click', () => renderForgot(el));
   el.querySelector('#acct-form').addEventListener('submit', async e => {
     e.preventDefault();
     const err = el.querySelector('#acct-err'), go = el.querySelector('#acct-go');
@@ -234,10 +240,18 @@ function renderLogin(el, mode) {
 }
 function initLoginPage(el) {
   // Con sesión ya iniciada no hace falta el login: directo a la app.
+  // Enlace del correo "Nueva contraseña": login.html#reset=CÓDIGO&email=… (el código va tras "#": no viaja al servidor de la web).
+  const hp = new URLSearchParams(location.hash.slice(1));
+  if (hp.get('reset')) {
+    const rt = hp.get('reset'), em = hp.get('email') || '';
+    history.replaceState(null, '', location.pathname + location.search);   // quita el código de la barra
+    loginEl = el; loginMode = 'reset';
+    return renderReset(el, rt, em);
+  }
   if (token) { location.replace('index.html' + safeNext(new URLSearchParams(location.search).get('next'))); return; }
   renderLogin(el, 'login');
   if (global.I18N) global.I18N.onChange(kind => {
-    if (kind !== 'lang' || !loginEl) return;
+    if (kind !== 'lang' || !loginEl || loginMode === 'forgot' || loginMode === 'reset') return;
     const keep = {}; loginEl.querySelectorAll('input').forEach(i => { if (i.id) keep[i.id] = i.value; });
     const errHtml = (loginEl.querySelector('#acct-err') || {}).innerHTML || '';
     renderLogin(loginEl, loginMode);
@@ -286,9 +300,21 @@ function openAccount(d) {
     <p class="muted">${statusText()}${meta.last ? ' · ' + escH(t('Último guardado: {date}', { date: I18N.dateTime(meta.last) })) : ''}</p>
     <div class="row"><button class="btn" type="button" id="acct-sync">${t('Sincronizar ahora')}</button><button class="btn ghost" type="button" id="acct-out">${t('Cerrar sesión')}</button></div>
     <p class="muted small">${t('Al cerrar sesión, el progreso sigue en este navegador y en tu cuenta.')}</p>
-    <div class="acct-danger"><button class="btn ghost danger" type="button" id="acct-reset">${t('Reiniciar todo mi progreso')}</button></div>`;
+    ${user.must_verify ? `<div class="fb hint"><p>${t('Confirma tu correo para usar los agentes con IA y los laboratorios. Te enviamos un enlace al crear la cuenta.')}</p>
+      <div class="row"><button class="btn ghost" type="button" id="acct-verify">${t('Enviarme otro enlace')}</button></div><p class="small" id="acct-verify-msg" aria-live="polite"></p></div>` : ''}
+    <div class="row"><button class="btn ghost" type="button" id="acct-pw">${t('Cambiar la contraseña')}</button></div>
+    <div class="acct-danger"><button class="btn ghost danger" type="button" id="acct-reset">${t('Reiniciar todo mi progreso')}</button>
+      <button class="btn ghost danger" type="button" id="acct-del">${t('Borrar mi cuenta')}</button></div>`;
   d.querySelector('[data-close]').addEventListener('click', () => d.close());
   d.querySelector('#acct-reset').addEventListener('click', () => openReset(d));
+  d.querySelector('#acct-pw').addEventListener('click', () => openPassword(d));
+  d.querySelector('#acct-del').addEventListener('click', () => openDelete(d));
+  const vb = d.querySelector('#acct-verify');
+  if (vb) vb.addEventListener('click', async () => {
+    const m = d.querySelector('#acct-verify-msg'); vb.disabled = true;
+    try { const r = await call('POST', '/email/resend'); m.textContent = tr(r.message); }
+    catch (x) { vb.disabled = false; if (x.status === 401) return expired(); m.textContent = x.status === 429 ? t('Demasiados intentos. Espera un rato y vuelve a probar.') : tr((x.body && x.body.message) || x.message); }
+  });
   d.querySelector('#acct-sync').addEventListener('click', async () => { await (meta.dirty ? push(false) : pull()); openAccount(d); });
   d.querySelector('#acct-out').addEventListener('click', async () => {
     try { await call('POST', '/logout'); } catch (e) {}
@@ -338,6 +364,142 @@ function openReset(d) {
   if (!d.open) d.showModal();
 }
 
+// Datos de la cuenta al día (por ejemplo, si ya confirmó el correo desde otro dispositivo).
+async function refreshUser() {
+  try { const r = await call('GET', '/me'); if (r && r.user) { user = r.user; set(K.user, JSON.stringify(user)); paintButton(); } }
+  catch (e) { if (e.status === 401) expired(); }
+}
+
+// Mensaje de error de un formulario: primero el del campo, luego el general.
+function formError(x, field) {
+  if (x.offline) return t('No puedo conectar con el servidor ahora mismo. Comprueba que tu API está encendida.');
+  if (x.status === 429) return t('Demasiados intentos. Espera un minuto y vuelve a probar.');
+  const errs = x.body && x.body.errors;
+  if (errs) return (field && errs[field] ? errs[field] : Object.values(errs).flat()).map(tr).join(' ');
+  return tr((x.body && x.body.message) || x.message);
+}
+
+/* ---------- Recuperar la contraseña (página de login) ---------- */
+function renderForgot(el) {
+  loginEl = el; loginMode = 'forgot';
+  el.innerHTML = `
+    <h1 id="acct-h">${t('Recuperar la contraseña')}</h1>
+    <p class="muted">${t('Escribe el correo de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.')}</p>
+    <form class="acct-form" id="fg-form" novalidate>
+      <label>${t('Correo')}<input type="email" id="fg-email" autocomplete="email" required></label>
+      <div id="fg-msg" aria-live="polite"></div>
+      <div class="row"><button class="btn" type="submit" id="fg-go">${t('Enviar el enlace')}</button>
+      <button class="btn ghost" type="button" data-back>${t('Volver a Entrar')}</button></div>
+    </form>`;
+  el.querySelector('[data-back]').addEventListener('click', () => renderLogin(el, 'login'));
+  el.querySelector('#fg-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const go = el.querySelector('#fg-go'), m = el.querySelector('#fg-msg');
+    go.disabled = true; m.innerHTML = '';
+    try {
+      const r = await call('POST', '/forgot-password', { email: el.querySelector('#fg-email').value.trim() });
+      m.innerHTML = `<div class="fb ok">${escH(tr(r.message))}</div>`;
+    } catch (x) { go.disabled = false; m.innerHTML = `<div class="fb bad">${escH(formError(x, 'email'))}</div>`; }
+  });
+  setTimeout(() => { const f = el.querySelector('#fg-email'); if (f) f.focus(); }, 0);
+}
+
+function renderReset(el, resetToken, email) {
+  el.innerHTML = `
+    <h1 id="acct-h">${t('Crear una contraseña nueva')}</h1>
+    <p class="muted">${escH(email)}</p>
+    <form class="acct-form" id="np-form" novalidate>
+      <label>${t('Contraseña nueva')}<input type="password" id="np-pass" autocomplete="new-password" required maxlength="72"></label>
+      <label>${t('Repite la contraseña')}<input type="password" id="np-pass2" autocomplete="new-password" required maxlength="72"></label>
+      <p class="muted small">${t('Mínimo 10 caracteres, con letras y números.')}</p>
+      <div id="np-msg" aria-live="polite"></div>
+      <div class="row"><button class="btn" type="submit" id="np-go">${t('Guardar la contraseña')}</button>
+      <button class="btn ghost" type="button" data-back>${t('Volver a Entrar')}</button></div>
+    </form>`;
+  el.querySelector('[data-back]').addEventListener('click', () => renderLogin(el, 'login'));
+  el.querySelector('#np-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const go = el.querySelector('#np-go'), m = el.querySelector('#np-msg');
+    go.disabled = true; m.innerHTML = '';
+    try {
+      await call('POST', '/reset-password', { token: resetToken, email, password: el.querySelector('#np-pass').value, password_confirmation: el.querySelector('#np-pass2').value });
+      // Las sesiones anteriores ya no valen: limpia la de este navegador y a Entrar.
+      token = null; user = null; set(K.token, null); set(K.user, null);
+      location.replace('login.html?r=reset');
+    } catch (x) { go.disabled = false; m.innerHTML = `<div class="fb bad">${escH(formError(x, 'password'))}</div>`; }
+  });
+  setTimeout(() => { const f = el.querySelector('#np-pass'); if (f) f.focus(); }, 0);
+}
+
+/* ---------- Cambiar la contraseña (Tu cuenta) ---------- */
+function openPassword(d) {
+  view = { kind: 'password' };
+  d.innerHTML = `
+    <div class="acct-head"><h2 id="acct-h">${t('Cambiar la contraseña')}</h2><button type="button" class="btn ghost" data-close>${t('Cancelar')}</button></div>
+    <form id="pw-f" class="acct-form">
+      <label>${t('Contraseña actual')}<input id="pw-cur" type="password" autocomplete="current-password" required maxlength="72"></label>
+      <label>${t('Contraseña nueva')}<input id="pw-new" type="password" autocomplete="new-password" required maxlength="72"></label>
+      <label>${t('Repite la contraseña')}<input id="pw-new2" type="password" autocomplete="new-password" required maxlength="72"></label>
+      <p class="muted small">${t('Mínimo 10 caracteres, con letras y números. Se cerrará la sesión en tus otros dispositivos.')}</p>
+      <p class="acct-err" id="pw-err" role="alert"></p>
+      <div class="row"><button class="btn" type="submit" id="pw-go">${t('Guardar la contraseña')}</button><button class="btn ghost" type="button" data-back>${t('Volver')}</button></div>
+    </form>`;
+  d.querySelector('[data-close]').addEventListener('click', () => openAccount(d));
+  d.querySelector('[data-back]').addEventListener('click', () => openAccount(d));
+  const f = d.querySelector('#pw-f'), err = d.querySelector('#pw-err'), go = d.querySelector('#pw-go');
+  d.querySelector('#pw-cur').focus();
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); go.disabled = true; err.textContent = '';
+    try {
+      await call('PUT', '/password', { current_password: d.querySelector('#pw-cur').value, password: d.querySelector('#pw-new').value, password_confirmation: d.querySelector('#pw-new2').value });
+      d.innerHTML = `<div class="acct-head"><h2 id="acct-h">${t('Contraseña cambiada')}</h2></div>
+        <div class="fb ok">${t('Listo. Las demás sesiones se han cerrado; aquí sigues dentro.')}</div>
+        <div class="row"><button class="btn" type="button" data-back>${t('Volver')}</button></div>`;
+      d.querySelector('[data-back]').addEventListener('click', () => openAccount(d));
+    } catch (x) {
+      go.disabled = false;
+      if (x.status === 401) return expired();
+      err.textContent = formError(x);
+    }
+  });
+  if (!d.open) d.showModal();
+}
+
+/* ---------- Borrar la cuenta (Tu cuenta) ---------- */
+function openDelete(d) {
+  view = { kind: 'delete' };
+  d.innerHTML = `
+    <div class="acct-head"><h2 id="acct-h">${t('Borrar mi cuenta')}</h2><button type="button" class="btn ghost" data-close>${t('Cancelar')}</button></div>
+    <div class="fb bad"><p><b>${t('Esto no se puede deshacer.')}</b> ${t('Se borran tu cuenta, tu progreso en la nube y tus laboratorios. El progreso de este navegador también se borra.')}</p></div>
+    <p class="muted small">${t('Si quieres guardar una copia antes, descárgala desde Resultados.')}</p>
+    <form id="dl-f" class="acct-form">
+      <label>${t('Escribe tu contraseña para confirmar')}<input id="dl-pw" type="password" autocomplete="current-password" required maxlength="72"></label>
+      <p class="acct-err" id="dl-err" role="alert"></p>
+      <div class="row"><button class="btn danger" type="submit" id="dl-go">${t('Borrar mi cuenta para siempre')}</button><button class="btn ghost" type="button" data-back>${t('Volver')}</button></div>
+    </form>`;
+  d.querySelector('[data-close]').addEventListener('click', () => openAccount(d));
+  d.querySelector('[data-back]').addEventListener('click', () => openAccount(d));
+  const pw = d.querySelector('#dl-pw'), err = d.querySelector('#dl-err'), go = d.querySelector('#dl-go');
+  pw.focus();
+  d.querySelector('#dl-f').addEventListener('submit', async e => {
+    e.preventDefault(); if (!pw.value) return;
+    go.disabled = true; err.textContent = '';
+    try {
+      clearTimeout(timer); timer = null;
+      await call('DELETE', '/account', { password: pw.value });
+      pw.value = '';
+      PROGRESS_KEYS.forEach(k => set(k, null));
+      token = null; user = null; set(K.token, null); set(K.user, null); set(K.meta, null);
+      location.replace('login.html?r=deleted');
+    } catch (x) {
+      go.disabled = false; pw.select();
+      if (x.status === 401) return expired();
+      err.textContent = formError(x, 'password');
+    }
+  });
+  if (!d.open) d.showModal();
+}
+
 function statusText() {
   return { out: t('Sin sesión: el progreso solo está en este navegador'), idle: t('Conectando…'), pending: t('Cambios pendientes de guardar'), saving: t('Guardando…'), ok: t('Sincronizado con la nube'), offline: t('Sin conexión con el servidor: guardado solo en este navegador'), error: t('Error al sincronizar, se reintentará'), conflict: t('Hay que elegir qué copia conservar') }[status] || '';
 }
@@ -369,6 +531,7 @@ function init() {
       b.textContent = t('Progreso reiniciado. Empiezas de cero.'); document.body.appendChild(b); setTimeout(() => b.remove(), 6000);
     }
     if (fresh) afterLogin(); else { pull(); loadContent(); }   // recién entrado: decide qué progreso conservar
+    refreshUser();
   }
   // En tu Mac (localhost) se puede probar sin cuenta: el contenido sale de private/js.
   else if (LOCAL) loadContent();

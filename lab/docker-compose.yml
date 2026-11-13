@@ -4,16 +4,17 @@
 #   Apagar:    cd ~/cyber-lab/lab && docker compose stop
 #   Borrar:    cd ~/cyber-lab/lab && docker compose down -v
 # Nunca cambies 127.0.0.1 por 0.0.0.0 ni subas esto a un servidor.
+# Imágenes fijadas por @sha256 (2026-11-13): una imagen cambiada en Docker Hub no entra sola.
 name: cyberlab
 
 services:
   juice-shop:            # OWASP Juice Shop → http://localhost:3000
-    image: bkimminich/juice-shop:latest
+    image: bkimminich/juice-shop@sha256:877fc77b12d72b42e486eb09b6b1711cc56514306d92006b284e7e7cf076a809   # versión fija
     ports: ["127.0.0.1:3000:3000"]
     restart: "no"
 
   dvwa:                  # DVWA → http://localhost:4280 (admin / password)
-    image: ghcr.io/digininja/dvwa:latest
+    image: ghcr.io/digininja/dvwa@sha256:8029450682bd70e2e8cd1ffe8e46dd1885ff2a913296091cebfa8ba0a7d36498   # versión fija
     environment:
       DB_SERVER: db
     depends_on: [db]
@@ -22,7 +23,7 @@ services:
     restart: "no"
 
   db:                    # Base de datos de DVWA (contraseñas de ejemplo, solo para el lab)
-    image: docker.io/library/mariadb:10
+    image: docker.io/library/mariadb@sha256:7d829180b5b2a9ba74f6242876ab401a0d7dd338a807e522ef92bc9698760f20   # 10.x, versión fija
     environment:
       MYSQL_ROOT_PASSWORD: dvwa
       MYSQL_DATABASE: dvwa

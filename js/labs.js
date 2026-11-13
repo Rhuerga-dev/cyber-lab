@@ -14,7 +14,7 @@ const SCEN = {
 const STATUS = { pending: ['En cola', 'pendiente'], starting: ['Preparando', 'programado'], ready: ['Listo', 'aprobado'], stopping: ['Apagando', 'programado'], stopped: ['Detenido', 'pendiente'], failed: ['Error', 'pendiente'] };
 const START_CMD = 'cd ~/Code/cyber-lab-api/runner && ./start.sh';
 
-let root = null, labs = [], runner = { configured: true, error: null }, ttl = 120, msg = '', busy = false, timer = null, armed = 0, loaded = false;
+let root = null, labs = [], runner = { configured: true, error: null }, allowed = true, ttl = 120, msg = '', busy = false, timer = null, armed = 0, loaded = false;
 
 function render(el) {
   root = el;
@@ -32,7 +32,7 @@ async function refresh() {
   if (!root || !root.isConnected) return;
   try {
     const r = await global.Sync.labs.list();
-    labs = Array.isArray(r.data) ? r.data : []; runner = r.runner || runner; ttl = r.ttl_minutes || ttl; loaded = true;
+    labs = Array.isArray(r.data) ? r.data : []; runner = r.runner || runner; allowed = r.allowed !== false; ttl = r.ttl_minutes || ttl; loaded = true;
   } catch (e) {
     runner = { configured: true, error: e.offline ? t('No puedo conectar con el servidor ahora mismo. Comprueba que tu API está encendida.') : (e.body && e.body.message ? global.Sync.tr(e.body.message) : t('No se pudo consultar los laboratorios.')) };
     loaded = true;
@@ -54,7 +54,7 @@ function paint() {
   if (!root || !root.isConnected) return;
   const cur = labs.find(l => ACTIVE.includes(l.status));
   const past = labs.filter(l => !ACTIVE.includes(l.status)).slice(0, 3);
-  const needRunner = !runner.configured || !!runner.error;
+  const needRunner = allowed && (!runner.configured || !!runner.error);
   let html = `<h2>${esc(t('Laboratorio aislado con un clic'))} <span class="pill aprobado">${esc(t('Recomendado'))}</span></h2>
     <p>${esc(t('Sin comandos: eliges la app y se crea en su propia red de Docker, sin salida a internet ni a tu red. Solo este Mac puede abrirla y se apaga sola a los {m} minutos.', { m: ttl }))}</p>`;
   if (needRunner) {
@@ -71,6 +71,10 @@ function paint() {
       <div class="row">${cur.status === 'ready' && cur.access_url ? `<a class="btn" href="${esc(cur.access_url)}" target="_blank" rel="noopener noreferrer">${esc(t('Abrir'))} ${esc(cur.access_url.replace('http://', ''))} ↗</a>` : ''}
       <button class="btn ghost" type="button" id="lb-stop"${busy ? ' disabled' : ''}>${esc(cur.status === 'stopping' ? t('Reintentar apagado') : t('Detener y borrar'))}</button></div>
       ${cur.status === 'ready' && !cur.access_url ? `<p class="muted small">${esc(t('Está encendido, pero el acceso solo funciona desde el mismo Mac del Runner.'))}</p>` : ''}</div>`;
+  } else if (!allowed) {
+    // El Runner corre en el Mac del administrador y el enlace solo abre allí: a los demás no les sirve.
+    html += `<div class="fb hint"><p>${esc(t('Los laboratorios en Docker solo están disponibles para el administrador de Cyber Lab: se encienden en su Mac y solo se pueden abrir desde allí.'))}</p>
+      <p>${esc(t('Mientras tanto, puedes practicar en tu propio equipo con Docker, o en plataformas como TryHackMe o PortSwigger Academy.'))}</p></div>`;
   } else {
     html += `<div class="lab-apps">${Object.entries(SCEN).map(([id, s]) => `<div class="lab-app"><h3>${esc(s.name)}</h3><p>${esc(t(s.what))}</p>
       <div class="row"><button class="btn" type="button" data-lb-create="${id}"${busy || needRunner ? ' disabled' : ''}>${esc(t('Crear laboratorio'))}</button></div></div>`).join('')}</div>
