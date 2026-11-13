@@ -1,0 +1,7 @@
+#!/bin/sh
+# Cyber Lab · Antes de cada commit, pone el ?v= de las páginas según el contenido del JS.
+# Se activa una sola vez con:  git config core.hooksPath tools/hooks
+node tools/bump-cache.js || exit 0
+# Si cambiaron las páginas, añádelas al commit en curso.
+git add index.html login.html 2>/dev/null
+exit 0

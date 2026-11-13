@@ -20,3 +20,13 @@ El progreso se guarda en el navegador (localStorage). Se puede exportar e import
 
 ## Despliegue
 Sitio estático en GitHub Pages con el dominio `cyber.huergalabs.dev` (archivo `CNAME`).
+
+### Caché del navegador (`?v=`)
+El `?v=` de los `<script>`/`<link>` se pone solo según el contenido del JS, para que el navegador recargue
+solo cuando algo cambia. Lo hace `tools/bump-cache.js`, que corre en cada commit **si activas el hook una vez**:
+
+```sh
+git config core.hooksPath tools/hooks
+```
+
+También puedes correrlo a mano antes de subir: `node tools/bump-cache.js`.

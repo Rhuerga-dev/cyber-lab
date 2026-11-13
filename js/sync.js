@@ -112,6 +112,8 @@ function expired() {
 /* ---------------- Contenido protegido ---------------- */
 // Las lecciones, los simuladores y los ejercicios no están en la web pública: la API los entrega
 // solo con sesión iniciada. En local (localhost) sin API, se leen de la carpeta private/js.
+// El orden lo manda private/js/manifest.json (misma fuente que usa la API). Esta lista es el respaldo
+// por si el manifiesto no está.
 const CONTENT_FILES = ['lang/en-course.js', 'lang/en-terminal.js', 'lang/en-review.js', 'lang/en-netlab.js', 'lessons/mis-lecciones.js', 'lessons/mis-retos.js', 'terminal.js', 'netlab.js', 'course.js', 'review.js'];
 let contentLoaded = false, contentLoading = null;
 function runCode(code) {
@@ -125,7 +127,12 @@ function runCode(code) {
 }
 async function devContent() {
   try {
-    const parts = await Promise.all(CONTENT_FILES.map(f => fetch('private/js/' + f, { cache: 'no-cache' }).then(r => r.ok ? r.text() : Promise.reject(r.status))));
+    let files = CONTENT_FILES;
+    try {
+      const m = await fetch('private/js/manifest.json', { cache: 'no-cache' });
+      if (m.ok) { const j = await m.json(); if (Array.isArray(j.files) && j.files.length) files = j.files.filter(f => typeof f === 'string'); }
+    } catch (e) {}
+    const parts = await Promise.all(files.map(f => fetch('private/js/' + f, { cache: 'no-cache' }).then(r => r.ok ? r.text() : Promise.reject(r.status))));
     return parts.join('\n;\n');
   } catch (e) { return null; }
 }

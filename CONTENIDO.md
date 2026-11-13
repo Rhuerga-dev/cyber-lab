@@ -18,7 +18,7 @@ python3 -m http.server 8090
 3. Prueba en el navegador con `python3 -m http.server 8090` y abre http://localhost:8090. Ctrl+C para pararlo.
 4. Haz `git add -A`, `git commit -m "Lección: ..."` y `git push`.
 
-¿Quieres más archivos? Crea `private/js/lessons/otra.js` con el mismo formato y añádelo a la lista `content.files` de `cyber-lab-api/config/cyberlab.php` y a `CONTENT_FILES` en `js/sync.js`.
+¿Quieres más archivos? Crea `private/js/lessons/otra.js` con el mismo formato y añádelo **solo** a la lista `files` de `private/js/manifest.json` (es la fuente única: la API y la web leen de ahí). El comprobador descubre las lecciones de `lessons/` por su cuenta.
 
 ## Formato de una lección
 
