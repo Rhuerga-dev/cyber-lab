@@ -378,7 +378,7 @@ const PHASES=[
   certs:['ccnp-cyber','oscp','securityx','cissp','ccie-sec']},
 ];
 const ALL_TOPICS=PHASES.flatMap(p=>p.topics);
-const certState=id=>Object.assign({status:'pendiente',date:'',score:'',cred:'',notes:''},prog.certs[id]||{});
+const certState=id=>{const s=Object.assign({status:'pendiente',date:'',score:'',cred:'',notes:''},prog.certs[id]||{});if(!(s.status in STATUS))s.status='pendiente';return s;};
 const topicDone=t=>!!prog.topics[t.id]||(t.lab?t.lab.every(l=>prog.done.includes(l)):false);
 function phaseProgress(p){const items=p.topics.map(topicDone);const cs=p.certs.filter(c=>CERT[c].rec);const certDone=cs.map(c=>certState(c).status==='aprobado');
   const all=items.concat(certDone);return {done:all.filter(Boolean).length,total:all.length}}
