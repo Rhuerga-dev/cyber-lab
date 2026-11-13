@@ -5,7 +5,7 @@
 'use strict';
 
 const t = (s, v) => (global.I18N ? global.I18N.t(s, v) : String(s));
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = window.CLUtil.esc;
 const ACTIVE = ['pending', 'starting', 'ready', 'stopping'];
 const SCEN = {
   'juice-shop': { name: 'OWASP Juice Shop', what: 'Tienda web moderna con más de 100 retos: inyección, XSS, control de acceso, lógica de negocio…', login: 'Sin usuario: regístrate dentro de la tienda.' },

@@ -10,11 +10,11 @@ const K = { token: 'cyberlab-token', user: 'cyberlab-user', meta: 'cyberlab-sync
 const get = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const set = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 // La URL de la API sale de env.js (window.CL_ENV), no de la pantalla de login.
-const IS_LOCALHOST = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+const IS_LOCALHOST = window.CLUtil.isLocal();
 const ENV = global.CL_ENV || {};
 const API = () => String((IS_LOCALHOST && ENV.API_URL_LOCAL) || ENV.API_URL || DEFAULT_API).replace(/\/$/, '');
 set(K.api, null);   // limpia la URL que se guardaba antes desde el login
-const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const escH = window.CLUtil.esc;
 
 let token = get(K.token);
 let user = (() => { try { return JSON.parse(get(K.user) || 'null'); } catch (e) { return null; } })();
@@ -170,7 +170,7 @@ function ensureDialog() {
   return dlg;
 }
 // El login vive en su propia página (login.html). Desde la app, "Entrar" lleva allí.
-const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+const LOCAL = window.CLUtil.isLocal();
 const safeNext = h => (/^#[a-z]{2,20}$/.test(h || '') ? h : '');
 function goLogin(reason) {
   const q = new URLSearchParams();

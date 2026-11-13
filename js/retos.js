@@ -7,7 +7,7 @@
 'use strict';
 
 const t = (s, v) => (global.I18N ? global.I18N.t(s, v) : String(s));
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = window.CLUtil.esc;
 const fmt = s => esc(s).split('\n\n').map(p => '<p>' + p.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>') + '</p>').join('');
 const KEY = 'cyberlab-retos-v1';
 const TIERS = ['g', 'p', 'd'], TNAME = { g: 'Guiado', p: 'Práctica', d: 'Dominio' }, MAXH = { g: Infinity, p: 1, d: 0 };

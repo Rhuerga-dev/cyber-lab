@@ -142,7 +142,7 @@ const SOON=[];
 let prog={done:[],streak:{},cur:0,topics:{},certs:{},log:[]};
 try{const s=JSON.parse(localStorage.getItem('cyberlab-v1')||'null');if(s&&Array.isArray(s.done))prog=Object.assign(prog,s)}catch(e){}
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=window.CLUtil.esc;
 let logSeq=Date.now();
 function addLog(e){prog.log.push(Object.assign({id:String(logSeq++),date:today()},e))}
 function save(){try{localStorage.setItem('cyberlab-v1',JSON.stringify(prog))}catch(e){}if(window.Sync)Sync.changed()}
