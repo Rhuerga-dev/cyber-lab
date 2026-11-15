@@ -181,7 +181,9 @@ function streakHTML(noBtn){const L=LEVELS[prog.cur],s=prog.streak[L.id]||0,done=
 function goNext(){if(prog.cur+1<LEVELS.length){prog.cur++;save();render();window.scrollTo({top:0,behavior:'smooth'})}}
 document.addEventListener('click',e=>{if(e.target.closest('[data-gonext]'))goNext()});
 
-function newQ(){const L=LEVELS[prog.cur];const target=L.gen();state={target,on:0,answered:false,hinted:false};
+// Últimos ejercicios de cada nivel: el siguiente nunca repite uno de ellos.
+const RECENT={};
+function newQ(){const L=LEVELS[prog.cur];const target=CLUtil.fresh(L.gen,RECENT[L.id]||(RECENT[L.id]=[]));state={target,on:0,answered:false,hinted:false};
   const n=L.bits, ws=n===4?W4:W8;const P=$('#practice');
   if(L.mode==='read'){
     const b=bin(target,n);
