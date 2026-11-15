@@ -229,7 +229,9 @@ function check(){if(state.answered)return;const L=LEVELS[prog.cur],t=state.targe
   else if(L.mode==='write'){ok=state.on===t;expl=t+' = '+ws.filter(w=>t&w).join(' + ')+' → <b>'+bin(t,L.bits)+'</b>'}
   else if(L.mode==='ask'){
     let v;if(t.opts)v=state.choice;else{v=($('#ans').value||'').trim();if(!v){$('#fb').innerHTML='<div class="fb hint">'+T('Escribe tu respuesta primero.')+'</div>';return}
-      if(t.pre&&!/^\d+\.\d+\.\d+\.\d+$/.test(v))v=t.pre+v.replace(/^\./,'')}
+      if(t.pre&&!/^\d+\.\d+\.\d+\.\d+$/.test(v))v=t.pre+v.replace(/^\./,'');
+      // «095» es 95: en una IP los ceros delante no cambian el número.
+      if(t.pre)v=v.split('.').map(o=>/^\d+$/.test(o)?String(+o):o).join('.')}
     const n=x=>String(x).toLowerCase().replace(/\s+/g,'').replace(/^\//,'');ok=n(v)===n(t.answer);expl=t.why}
   else{const v=parseInt(($('#ans').value||'').replace('/','').trim(),10);if(isNaN(v)){$('#fb').innerHTML='<div class="fb hint">'+T('Escribe un número primero.')+'</div>';return}
     ok=v===t;expl=state.mask.map(x=>x+' = '+bin(x,8)).join('<br>')+'<br>'+T('Unos')+': '+state.mask.map(x=>(MASK_VALUES.find(m=>m[0]===x)||[0,0])[1]).join(' + ')+' = <b>/'+t+'</b>'}
